@@ -1,33 +1,15 @@
 ''''
 Copyright 2020, Vassilis Bitsikas, All rights reserved.
-This file should be used for data analysis of perturbation experiments from a single mouse
-
-Artifact handling
-Artifacts are being detected based on z score in the 4 main frequencies independently.
-The thresholds can be set manually for each frequency. The corresponding timepoints are then padded with NaN.
-State space locations for these points are imputed by a rolling mean window during denoising before normalization.
-
-Analysis
-This script can be used to create three plots:
-1. Circadian average count of SWS, Wake and REM
-2. Circadian average of Delta and Sigma during sleep, Gamma and Theta during Wake and Theta during REM
-3. Plot the perturbation trajectory on top of the baseline PCA
+This file should be used for closed loop stimulation
 '''
 
 import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
-import numpy as np
-import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
-import joblib
 import datetime
 import os
-from pydpc import Cluster
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from utils import *
-import matplotlib as mpl
 import matplotlib
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
@@ -90,4 +72,4 @@ plt.scatter(*mh.pC.T[:,rand_idx], c='k', linewidths=0, alpha=0.4, s=4)
 plt.title('PCA')
 plt.savefig(figureFolder+'PCA using fast Gamma' + figure_tail, dpi=dpi)
 
-#Plot current point  on top of state space and design decision boundaries
+#Plot current point on top of state space and design decision boundaries
