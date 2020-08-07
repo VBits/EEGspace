@@ -87,11 +87,6 @@ class Mouse:
             EMG_rms = np.sqrt(self.EMG_data ** 2)
             resampled_EMG = TimeSeriesResampler(sz=self.df.shape[0]).fit_transform(EMG_rms)
             self.df['EMG_rms'] = resampled_EMG.flatten()
-            # ms_emg_freq = np.round((1 / self.EMG_fs)*1000,2)
-            # EMG_timerange = pd.date_range(start=self.start[0], freq='{}ms'.format(ms_emg_freq), periods=len(self.EMG_data))
-            # EMG_df = pd.DataFrame(data=EMG_rms, index=EMG_timerange, columns=(['EMG_rms']))
-            # EMG_df = EMG_df.resample('{}ms'.format(ms_freq)).mean()
-            # self.df['EMG_rms']= EMG_df['EMG_rms'].values
         if LP_filter:
             # deprecated, filter with rolling mean
             # self.df = self.df.rolling(window_size, center=True,win_type=None, min_periods=2).mean()
