@@ -3,12 +3,16 @@ Copyright 2020, Vassilis Bitsikas, All rights reserved.
 This file should be used for closed loop stimulation
 '''
 
+IS_VASILLIS_WORSTATION = False
+
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
 import datetime
 import os
-sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
+if IS_VASILLIS_WORSTATION:
+    import sys
+    sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from utils import *
 import matplotlib
 from pandas.plotting import register_matplotlib_converters
@@ -20,8 +24,9 @@ register_matplotlib_converters()
 #provide genotype and rig position
 mh = Mouse("TRAP",2)
 #data directory
-EphysDir = 'D:/Ongoing_analysis/'
 
+
+EphysDir = 'D:/Ongoing_analysis/' if IS_VASILLIS_WORSTATION else 'C:/Source/ClosedLoopEEG/181008_000_baseline'
 #experiment directory and filename
 Folder = '181008_TRAP_females_4/baseline/'
 FileMat = '181008_000_baseline.mat'
@@ -58,7 +63,7 @@ matplotlib.use('Qt5Agg')
 # Perform stft and downsample
 #2sec resolution
 nperseg = 4*mh.EEG_fs
-mh.sleep_bandpower(nperseg=nperseg, fs = mh.EEG_fs, EMG=False, LP_filter=True,iterations=1)
+mh.sleep_bandpower(nperseg=nperseg, fs = mh.EEG_fs, EMG=False, LP_filter=True, iterations=1)
 
 ###################################################
 #---------------------------------------
