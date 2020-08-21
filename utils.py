@@ -12,7 +12,8 @@ from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.preprocessing import Normalizer
 import inspect
 from tslearn.preprocessing import TimeSeriesResampler
-
+import Config
+import threading
 
 def inspect_function(f):
     code, line_no = inspect.getsourcelines(f)
@@ -36,14 +37,16 @@ class Mouse:
     def add_data(self, Folder, FileMat):
         self.f = h5py.File(Folder + FileMat,'r')
         self.Ch_name = list(self.f.keys())
-        self.Mouse_Ch = [s for s in self.Ch_name if "G{}".format(self.pos) in s]
-        self.EEG_data = self.f["{}".format(self.Mouse_Ch[0])]["values"][0, :]
+        pos_test = "G{}".format(self.pos)
+        self.Mouse_Ch = [s for s in self.Ch_name if pos_test in s]
+        self.EEG_data = self.f[str(self.Mouse_Ch[0])]["values"][0, :]
+        self.EEG_data = scipy.signal.resample(self.EEG_data, int(len(self.EEG_data)/2.5))
 
         start = pd.DataFrame(self.f['file']['start'][0].reshape(6,1).T, columns = ['year',
                               'month','day','hour','minute','second'])
         self.start = pd.to_datetime(start)
         self.interval = self.f["{}".format(self.Mouse_Ch[0])]['interval'][0][0]
-        self.EEG_fs = 1 / self.f["{}".format(self.Mouse_Ch[0])]['interval'][0][0]
+        self.EEG_fs = int((1 / self.f["{}".format(self.Mouse_Ch[0])]['interval'][0][0])/2.5) #downsampled by a factor of 2.5
         if len(self.Mouse_Ch) == 2:
             self.EMG_data = self.f["{}".format(self.Mouse_Ch[1])]["values"][0, :]
             self.EMG_fs = 1 / self.f["{}".format(self.Mouse_Ch[1])]['interval'][0][0]
@@ -87,7 +90,7 @@ class Mouse:
             EMG_rms = np.sqrt(self.EMG_data ** 2)
             resampled_EMG = TimeSeriesResampler(sz=self.df.shape[0]).fit_transform(EMG_rms)
             self.df['EMG_rms'] = resampled_EMG.flatten()
-        if LP_filter:
+        if scipy.signal.spectrogram:
             # deprecated, filter with rolling mean
             # self.df = self.df.rolling(window_size, center=True,win_type=None, min_periods=2).mean()
             def SG_filter(x):
@@ -115,6 +118,7 @@ class Mouse:
         print('LP filter was set to {}'.format(self.LP_filter))
         pca = PCA(n_components=2)
         self.pC = pca.fit_transform(self.x)
+        print(pca.explained_variance_ratio_)
         self.pC_df = pd.DataFrame(data=self.pC,columns=['pC1','pC2'],index=self.df.index)
 
     def knn_pred(self, clf):
@@ -174,5 +178,3 @@ def iterative_savitzky_golay(data,iterations=3):
                                     w, 2) # order of fitted polynomial
     signal_corrected = signal - signal_sg
     return signal_sg , signal_corrected
-
-
