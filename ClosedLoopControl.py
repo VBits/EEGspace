@@ -63,7 +63,8 @@ first_fifty = mh.pC[0:50]
 print(first_fifty)#get a gist for the data and see if looks approximately the same
 #could pass it in to compare actually.
 
-CycleTestData.cycle_test_files(mh, file_lock)
+if Config.cycle_test_data:
+    CycleTestData.cycle_test_files(mh, file_lock)
 ClosedLoopRunner.read_files(mh.EEG_fs, file_lock, mh)
 
 

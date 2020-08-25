@@ -100,7 +100,7 @@ class Mouse:
                 self.df = self.df.apply(SG_filter)
             self.LP_filter = True
 
-    def PCA(self, window_size = 11,normalizer=False,robust =False, scaler=None):
+    def PCA(self, window_size = 11,normalizer=False,robust =False, scaler=None, saved_pca=None):
         if scaler is not None:
             self.x = scaler.transform(self.df)
         elif self.LP_filter:
@@ -123,9 +123,11 @@ class Mouse:
                                                      win_type=None, min_periods=2).mean())
             print('Using Standard Scaler and rolling mean')
         print('LP filter was set to {}'.format(self.LP_filter))
-        pca = PCA(n_components=2)
-        self.pC = pca.fit_transform(self.x)
-        print(pca.explained_variance_ratio_)
+        if saved_pca is not None:
+            self.pC = saved_pca.transform(self.x)
+        else:
+            self.pca = PCA(n_components=2)
+            self.pC = self.pca.fit_transform(self.x)
         self.pC_df = pd.DataFrame(data=self.pC,columns=['pC1','pC2'],index=self.df.index)
 
     def knn_pred(self, clf):

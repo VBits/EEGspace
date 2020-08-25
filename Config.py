@@ -5,3 +5,4 @@ is_vassilis_workstation = False
 mouse_object_path = "C:\Source\ClosedLoopEEG\mouse_object"
 generate_mouse_object = False
 dpi = 500
+cycle_test_data = False
