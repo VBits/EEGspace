@@ -4,3 +4,4 @@ num_seconds_per_epoch = 2
 is_vassilis_workstation = False
 mouse_object_path = "C:\Source\ClosedLoopEEG\mouse_object"
 generate_mouse_object = False
+dpi = 500

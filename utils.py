@@ -52,7 +52,7 @@ class Mouse:
             self.EMG_fs = 1 / self.f["{}".format(self.Mouse_Ch[1])]['interval'][0][0]
 
 #TODO correct rounding errors that prevent EEG and EMG from EMG from matching
-    def sleep_bandpower(self, x=None, fs=None, nperseg=None, EMG = False, LP_filter = False,iterations=2):
+    def sleep_bandpower(self, x=None, fs=None, nperseg=None, EMG = False, LP_filter = False,iterations=2, mode="interp"):
         if x is None:
             x = self.EEG_data
         if fs is None:
@@ -94,24 +94,31 @@ class Mouse:
             # deprecated, filter with rolling mean
             # self.df = self.df.rolling(window_size, center=True,win_type=None, min_periods=2).mean()
             def SG_filter(x):
-                return scipy.signal.savgol_filter(x, 21, 2)
+                return scipy.signal.savgol_filter(x, 21, 2, mode=mode)
             print('Smoothing filter set at {} iterations'.format(iterations))
             for i in range(iterations):
                 self.df = self.df.apply(SG_filter)
             self.LP_filter = True
 
-    def PCA(self, window_size = 11,normalizer=False,robust =False):
-        if self.LP_filter:
+    def PCA(self, window_size = 11,normalizer=False,robust =False, scaler=None):
+        if scaler is not None:
+            self.x = scaler.transform(self.df)
+        elif self.LP_filter:
+            #check if there is a scaler saved, if yes then use this, if not then use the input variables
             if normalizer:
-                self.x = Normalizer().fit_transform(self.df)
+                self.scaler = Normalizer()
+                self.x = self.scaler.fit_transform(self.df)
                 print('Using Normalizer')
             elif robust:
-                self.x = RobustScaler(quantile_range=(1, 99)).fit_transform(self.df)
+                self.scaler = RobustScaler(quantile_range=(1, 99))
+                self.x = self.scaler.fit_transform(self.df)
                 print('Using Robust Scaler')
             else:
-                self.x = StandardScaler().fit_transform(self.df)
+                self.scaler = StandardScaler()
+                self.x = self.scaler.fit_transform(self.df)
                 print('Using Standard Scaler')
         else:
+            self.scaler = StandardScaler()
             self.x = StandardScaler().fit_transform(self.df.rolling(window_size, center=True,
                                                      win_type=None, min_periods=2).mean())
             print('Using Standard Scaler and rolling mean')
