@@ -12,8 +12,6 @@ from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.preprocessing import Normalizer
 import inspect
 from tslearn.preprocessing import TimeSeriesResampler
-import Config
-import threading
 
 def inspect_function(f):
     code, line_no = inspect.getsourcelines(f)

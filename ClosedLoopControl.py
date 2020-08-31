@@ -22,6 +22,7 @@ from pandas.plotting import register_matplotlib_converters
 import CycleTestData
 import ClosedLoopRunner
 import pickle
+import threading
 
 # data directory
 EphysDir = 'D:/Ongoing_analysis/' if Config.is_vassilis_workstation else 'C:/Source/ClosedLoopEEG/'

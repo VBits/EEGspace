@@ -1,8 +1,8 @@
-channel_file_base_path = "C:\Source\ClosedLoopEEG\ChannelData\{channel_number}\data.bin"
+channel_file_base_path = "C:/Users/bitsik0000/SleepData/binaries/{channel_number}/data.bin"
 num_channels = 1
 num_seconds_per_epoch = 2
 is_vassilis_workstation = False
-mouse_object_path = "C:\Source\ClosedLoopEEG\mouse_object"
+mouse_object_path = "C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/mouse_object"
 generate_mouse_object = False
 dpi = 500
 cycle_test_data = False
