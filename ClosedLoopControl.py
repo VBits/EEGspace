@@ -23,6 +23,9 @@ import CycleTestData
 import ClosedLoopRunner
 import pickle
 import threading
+import Classification
+
+Classification.Classification_Play()
 
 # data directory
 EphysDir = 'D:/Ongoing_analysis/' if Config.is_vassilis_workstation else 'C:/Source/ClosedLoopEEG/'
