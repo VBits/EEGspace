@@ -6,3 +6,4 @@ mouse_object_path = "C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/mouse_obj
 generate_mouse_object = False
 dpi = 500
 cycle_test_data = False
+base_path = "C:/Source/ClosedLoopEEG"
