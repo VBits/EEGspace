@@ -260,7 +260,7 @@ def cluster_on_encoded():
     decoded = pf["decoded"]
 
     n = 10  # How many digits we will display
-    plt.figure(figsize=(20, 4))
+    #plt.figure(figsize=(20, 4))
     from random import randint
 
     rem = [i for i, value in enumerate(X) if value[0] > 0.5 and value[1] < -0.65]
@@ -331,7 +331,7 @@ def cluster_on_encoded():
     # plt.title('MeanShift')
     # plt.show()
 
-    if False:
+    if True:
         n_clusters = 10
 
         from sklearn.cluster import KMeans
@@ -427,6 +427,32 @@ def cluster_on_encoded():
             pyplot.scatter(X[index, 0], X[index, 1])
 
         # show the Gaussian Mixture plot
+        pyplot.show()
+
+    if False:
+        from numpy import unique
+        from numpy import where
+        from matplotlib import pyplot
+        from sklearn.datasets import make_classification
+        from sklearn.cluster import OPTICS
+
+        # define the model
+        optics_model = OPTICS(eps=0.75, min_samples=100)
+
+        # assign each data point to a cluster
+        optics_result = optics_model.fit_predict(X)
+
+        # get all of the unique clusters
+        optics_clusters = unique(optics_result)
+
+        # plot OPTICS the clusters
+        for optics_cluster in optics_clusters:
+            # get data points that fall in this cluster
+            index = where(optics_result == optics_cluster)
+            # make the plot
+            pyplot.scatter(X[index, 0], X[index, 1])
+
+        # show the OPTICS plot
         pyplot.show()
 
     print("done")
