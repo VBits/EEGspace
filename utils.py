@@ -12,10 +12,36 @@ from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.preprocessing import Normalizer
 import inspect
 from tslearn.preprocessing import TimeSeriesResampler
+import Config
+import pickle
 
 def inspect_function(f):
     code, line_no = inspect.getsourcelines(f)
     print(''.join(code))
+
+def create_mouse_object(mouse_num, mouse_object_path):
+    # data directory
+    EphysDir = 'D:/Ongoing_analysis/' if Config.is_vassilis_workstation else 'C:/Source/ClosedLoopEEG/'
+    # experiment directory and filename
+    Folder = '181008_TRAP_females_4/baseline/'
+    FileMat = '181008_000_baseline.mat'
+    # provide genotype and rig position
+    mh = Mouse("TRAP", mouse_num)
+
+    # -----------------------------------------------------------------
+    # Load data
+    mh.add_data(EphysDir + Folder, FileMat)
+
+    nperseg = 4 * mh.EEG_fs
+    mh.sleep_bandpower(nperseg=nperseg, fs=mh.EEG_fs, EMG=False, LP_filter=True, iterations=1)
+
+    ###################################################
+    # ---------------------------------------
+    # PCA, this function will calculate state space distribution of all points
+    mh.PCA(normalizer=False, robust=True)
+
+    f = open(mouse_object_path, 'wb')
+    pickle.dump(mh, f)
 
 # The mouse class object ()
 class Mouse:

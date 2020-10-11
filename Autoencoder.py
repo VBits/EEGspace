@@ -12,7 +12,7 @@ import numpy.random as rnd
 
 save_directory = Config.base_path
 
-def run():
+def run_keras_stacked_autoencoder():
     # to make this notebook's output stable across runs
     rnd.seed(42)
 
@@ -76,9 +76,7 @@ def run():
             saver.save(sess, save_directory + "/my_model_all_layers.ckpt")
 
 
-#run()
-
-def run_keras():
+def run_keras_basic_autencoder():
 
     import keras
     import numpy as np
@@ -123,13 +121,6 @@ def run_keras():
     print(x_train.shape)
     print(x_test.shape)
 
-    noise_factor = 0.5
-    x_train_noisy = x_train + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=x_train.shape)
-    x_test_noisy = x_test + noise_factor * np.random.normal(loc=0.0, scale=1.0, size=x_test.shape)
-
-    x_train_noisy = np.clip(x_train_noisy, 0., 1.)
-    x_test_noisy = np.clip(x_test_noisy, 0., 1.)
-
     autoencoder.fit(x_train, x_train,
                     epochs=50,
                     batch_size=256,
@@ -161,9 +152,6 @@ def run_keras():
     plt.show()
 
     #plt.plot(x=)
-
-
-#run_keras()
 
 
 def run_keras_var_autoencoder():
@@ -250,7 +238,6 @@ def run_keras_var_autoencoder():
 
     print("done")
 
-run_keras_var_autoencoder()
 
 def cluster_on_encoded():
 
@@ -457,6 +444,10 @@ def cluster_on_encoded():
 
     print("done")
 
+
+#run_keras_stacked_autoencoder()
+#run_keras_basic_autencoder
+run_keras_var_autoencoder()
 cluster_on_encoded()
 
 

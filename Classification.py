@@ -1,5 +1,4 @@
 import pickle
-import numpy as np
 from sklearn.manifold import Isomap
 from sklearn.manifold import TSNE
 import matplotlib.pyplot as plt
@@ -7,7 +6,6 @@ from sklearn.decomposition import PCA
 import time
 from random import *
 from time import time
-import numpy as np
 import keras.backend as K
 from keras.engine.topology import Layer, InputSpec
 from keras.layers import Dense, Input
@@ -63,15 +61,6 @@ def Classification_Play():
         plt.show()
 
     def autoencoder(dims, act='relu', init='glorot_uniform'):
-        """
-        Fully connected auto-encoder model, symmetric.
-        Arguments:
-            dims: list of number of units in each layer of encoder. dims[0] is input dim, dims[-1] is units in hidden layer.
-                The decoder is symmetric with encoder. So number of layers of the auto-encoder is 2*len(dims)-1
-            act: activation, not applied to Input, Hidden and Output layers
-        return:
-            (ae_model, encoder_model), Model of autoencoder and model of encoder
-        """
         n_stacks = len(dims) - 1
         # input
         input_img = Input(shape=(dims[0],), name='input')
