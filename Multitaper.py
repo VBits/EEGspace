@@ -65,6 +65,7 @@ if do_multitaper:
     for i in range(iterations):
         density_df = density_df.apply(SG_filter, axis=0, result_type='expand')
 
+    #check this for size, if already too small then it will be further up
     baseline = np.argmax(density_df.values > 0.01, axis=0)
 
     norm = 0 - bins[baseline]
@@ -86,8 +87,8 @@ if plot_multitaper:
         ax = plt.subplot(1, n, i + 1)
         plt.plot(d)
         plt.gray()
-        ax.get_xaxis().set_visible(False)
-        ax.get_yaxis().set_visible(False)
+        #ax.get_xaxis().set_visible(False)
+        #ax.get_yaxis().set_visible(False)
     plt.show()
 
     print("done")

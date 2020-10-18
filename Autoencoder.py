@@ -3,14 +3,19 @@ from tf_slim.layers import fully_connected
 import pickle
 import Config
 import sys
-import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.cluster import DBSCAN
 import numpy as np
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 
 import numpy.random as rnd
 
 save_directory = Config.base_path
+
+latent_dim = 3
+is_2d_encoded = latent_dim == 2
+is_3d_encoded = latent_dim == 3
 
 def run_keras_stacked_autoencoder():
     # to make this notebook's output stable across runs
@@ -160,15 +165,31 @@ def run_keras_var_autoencoder():
     from keras import layers
     from sklearn.model_selection import train_test_split
 
-    f = open('C:/Source/ClosedLoopEEG/Sxx_norm_mt_41_4.pkl', 'rb')
-    pf = pickle.load(f)
-    pf = pf.T[0:40000]
+    mouse_files = ['Sxx_norm_200604_m1.pkl',
+                   'Sxx_norm_200604_m2.pkl',
+                   'Sxx_norm_200604_m3.pkl',
+                   'Sxx_norm_200604_m4.pkl',
+                   'Sxx_norm_200424_m5.pkl',
+                   'Sxx_norm_200424_m6.pkl',
+                   'Sxx_norm_200424_m7.pkl']
 
-    original_dim = pf.shape[1]
+    directory = Config.base_path + '/Multitaper_df_norm/'
+
+    mouse_data = None
+
+    for file in mouse_files:
+        f = open(directory + file, 'rb')
+        m = pickle.load(f)
+        rand_idx = np.random.choice(m.shape[1], size=40000, replace=False)
+        m = m[rand_idx].T
+        if mouse_data is None:
+            mouse_data = np.empty((0, m.shape[1]))
+        mouse_data = np.concatenate((mouse_data, m))
+
+    original_dim = mouse_data.shape[1]
     intermediate_dim = 512
     batch_size = 128
-    latent_dim = 2
-    epochs = 100
+    epochs = 150
 
     inputs = keras.Input(shape=(original_dim,))
     h = layers.Dense(intermediate_dim, activation='relu')(inputs)
@@ -188,7 +209,7 @@ def run_keras_var_autoencoder():
     # Create encoder
     encoder = keras.Model(inputs, [z_mean, z_log_sigma, z], name='encoder')
 
-    # Create decoder
+    # Create decoder1
     latent_inputs = keras.Input(shape=(latent_dim,), name='z_sampling')
     x = layers.Dense(intermediate_dim, activation='relu')(latent_inputs)
     outputs = layers.Dense(original_dim, activation='sigmoid')(x)
@@ -207,30 +228,42 @@ def run_keras_var_autoencoder():
     vae.add_loss(vae_loss)
     vae.compile(optimizer='adam')
 
-    x_train, x_test = train_test_split(np.array(pf), test_size=0.33, random_state=42)
+    x_train, x_test = train_test_split(np.array(mouse_data), test_size=0.33, random_state=42)
 
     x_train = x_train.astype('float32') / 255.
     x_test = x_test.astype('float32') / 255.
     x_train = x_train.reshape((len(x_train), np.prod(x_train.shape[1:])))
     x_test = x_test.reshape((len(x_test), np.prod(x_test.shape[1:])))
 
-    vae.fit(x_train, x_train,
-            epochs=epochs,
-            batch_size=256,
-            validation_data=(x_test, x_test))
+    load_weights = True
+
+    if load_weights:
+        vae.load_weights(Config.base_path + "/vae_weights_" + str(latent_dim) + "_dimensions.h5")
+    else:
+        vae.fit(x_train, x_train,
+                epochs=epochs,
+                batch_size=256,
+                validation_data=(x_test, x_test))
+        vae.save_weights(Config.base_path + "/vae_weights_" + str(latent_dim) + "_dimensions.h5")
 
     x_test_encoded, _, _ = encoder.predict(x_test, batch_size=batch_size)
     decoded = decoder.predict(x_test_encoded)
 
-    if True:
+    if is_2d_encoded:
         plt.figure(figsize=(6, 6))
         plt.scatter(x_test_encoded[:, 0], x_test_encoded[:, 1]) #, c=y_test)
         plt.colorbar()
         plt.show()
+    elif is_3d_encoded:
+        fig = plt.figure()
+        ax = Axes3D(fig)
+        ax.scatter(x_test_encoded[:, 0], x_test_encoded[:, 1], x_test_encoded[:, 2], c='k', alpha=0.1, s=8)
+        ax.set_xlabel('ld1')
+        ax.set_ylabel('ld2')
+        ax.set_zlabel('ld3')
+        plt.show()
 
-    vae.save_weights('vae_weights.h5')
-
-    f = open("encoded_VAE.pkl", 'wb')
+    f = open(Config.base_path + "/encoded_VAE_" + str(latent_dim) + "_dimensions.pkl", "wb")
     pickle.dump({
                 "original_data": x_test,
                 "encoded": x_test_encoded,
@@ -241,52 +274,216 @@ def run_keras_var_autoencoder():
 
 def cluster_on_encoded():
 
-    f = open("encoded_VAE.pkl", 'rb')
+    f = open(Config.base_path + "/encoded_VAE_" + str(latent_dim) + "_dimensions.pkl", 'rb')
     pf = pickle.load(f)
     X = pf["encoded"]
     decoded = pf["decoded"]
 
     n = 10  # How many digits we will display
-    #plt.figure(figsize=(20, 4))
-    from random import randint
 
-    rem = [i for i, value in enumerate(X) if value[0] > 0.5 and value[1] < -0.65]
-    sws = [i for i, value in enumerate(X) if value[0] > 0.125 and value[1] > 0]
-    ha = [i for i, value in enumerate(X) if value[0] < -0.25 and value[1] > 0.15]
-    la = [i for i, value in enumerate(X) if value[0] < -0.125 and value[1] < -0.125]
+    seperate_out_clusters_manually = False
+    manually_labelled_data_file = Config.base_path + "/manually labelled data.pkl"
 
-    f = open("manually labelled data.pkl", 'wb')
-    pickle.dump({
-        "rem": rem,
-        "sws": sws,
-        "ha": ha,
-        "la": la}, f)
+    display_figures = False
+    do_k_means = False
+    do_birch = True
+    do_gaussian_mix = False
+    do_OPTICS = False
 
-    subsets = [rem, sws, ha, la]
-    for s in []:#subsets:
-        for i, idx in enumerate(s[0:n]):
-            # idx = + randint(0, 12000)
-            # Display original
-            ax = plt.subplot(2, n, i + 1)
-            plt.plot(X[idx])
-            plt.gray()
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
+    if display_figures:
+        if seperate_out_clusters_manually:
+            rem = [i for i, value in enumerate(X) if value[0] > 0.5 and value[1] < -0.65]
+            sws = [i for i, value in enumerate(X) if value[0] > 0.125 and value[1] > 0]
+            ha = [i for i, value in enumerate(X) if value[0] < -0.25 and value[1] > 0.15]
+            la = [i for i, value in enumerate(X) if value[0] < -0.125 and value[1] < -0.125]
+            f = open(manually_labelled_data_file, 'wb')
+            pickle.dump({
+                "rem": rem,
+                "sws": sws,
+                "ha": ha,
+                "la": la}, f)
+        else:
+            f = open(manually_labelled_data_file, 'rb')
+            md = pickle.load(f)
+            rem = md["rem"]
+            sws = md["sws"]
+            ha = md["ha"]
+            la = md["la"]
 
-            # Display reconstruction
-            ax = plt.subplot(2, n, i + 1 + n)
-            # encoded = X[idx]
-            # encoded_array = []
-            # for e in encoded:
-            #     encoded_array.append(e)
-            # decoded = decoder.predict(np.array([encoded_array]))
-            plt.plot(decoded[idx])
-            plt.gray()
-            ax.get_xaxis().set_visible(False)
-            ax.get_yaxis().set_visible(False)
+        subsets = [rem, sws, ha, la]
+        for s in subsets:
+            plt.figure(figsize=(20, 4))
+            for i, idx in enumerate(s[0:n]):
+                # idx = + randint(0, 12000)
+                # Display original
+                # Display reconstruction
+                ax = plt.subplot(1, n, i + 1)
+                plt.plot(decoded[idx])
+                plt.gray()
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+            plt.show()
+
+    if do_k_means:
+        n_clusters = 4
+
+        from sklearn.cluster import KMeans
+        km4 = KMeans(n_clusters=n_clusters).fit(X)
+
+        if is_2d_encoded:
+            plt.figure(figsize=(12, 8))
+            sns.scatterplot(X[:, 0], X[:, 1], hue=km4.labels_,
+                            palette=sns.color_palette('hls', n_clusters))
+            plt.title('KMeans with 3 Clusters')
+            plt.show()
+        else:
+            fig = plt.figure()
+            ax = Axes3D(fig)
+            ax.scatter(X[:, 0], X[:, 1], X[:, 2], c=km4.labels_, alpha=0.1, s=8)
+            ax.set_xlabel('ld1')
+            ax.set_ylabel('ld2')
+            ax.set_zlabel('ld3')
+            plt.show()
+
+    if do_birch:
+        from numpy import unique
+        from numpy import where
+        from sklearn.datasets import make_classification
+        from sklearn.cluster import Birch
+
+        # define the model
+        birch_model = Birch(threshold=0.005, branching_factor=50, n_clusters=4)
+
+        # train the model
+        birch_model.fit(X)
+
+        # assign each data point to a cluster
+        birch_result = birch_model.predict(X)
+
+        # get all of the unique clusters
+        birch_clusters = unique(birch_result)
+
+        if is_3d_encoded:
+            fig = plt.figure()
+            ax = Axes3D(fig)
+            ax.set_xlabel('ld1')
+            ax.set_ylabel('ld2')
+            ax.set_zlabel('ld3')
+
+        cluster_array = []
+
+        # plot the BIRCH clusters
+        for birch_cluster in birch_clusters:
+            # get data points that fall in this cluster
+            index = where(birch_result == birch_cluster)
+            cluster_array.append(X[index, :])
+            # make the plot
+            if is_2d_encoded:
+                plt.scatter(X[index, 0], X[index, 1])
+            else:
+                ax.scatter(X[index, 0], X[index, 1], X[index, 2])
+
+        # show the BIRCH plot
         plt.show()
 
-    #db scan is pretty useless
+        for s in cluster_array:
+            plt.figure(figsize=(20, 4))
+            for i, idx in enumerate(s[0:n][0]):
+                # idx = + randint(0, 12000)
+                # Display original
+                # Display reconstruction
+                ax = plt.subplot(1, n, i + 1)
+                plt.plot(decoded[idx])
+                plt.gray()
+                ax.get_xaxis().set_visible(False)
+                ax.get_yaxis().set_visible(False)
+            plt.show()
+
+
+    if do_gaussian_mix:
+        from numpy import unique
+        from numpy import where
+        from matplotlib import pyplot
+        from sklearn.datasets import make_classification
+        from sklearn.mixture import GaussianMixture
+
+        # define the model
+        gaussian_model = GaussianMixture(n_components=4, covariance_type='spherical')
+
+        # train the model
+        gaussian_model.fit(X)
+
+        # assign each data point to a cluster
+        gaussian_result = gaussian_model.predict(X)
+
+        # get all of the unique clusters
+        gaussian_clusters = unique(gaussian_result)
+
+        # plot Gaussian Mixture the clusters
+        for gaussian_cluster in gaussian_clusters:
+            # get data points that fall in this cluster
+            index = where(gaussian_result == gaussian_cluster)
+            # make the plot
+            pyplot.scatter(X[index, 0], X[index, 1])
+
+        # show the Gaussian Mixture plot
+        pyplot.show()
+
+    if do_OPTICS:
+        from numpy import unique
+        from numpy import where
+        from matplotlib import pyplot
+        from sklearn.datasets import make_classification
+        from sklearn.cluster import OPTICS
+
+        # define the model
+        optics_model = OPTICS(eps=0.75, min_samples=100)
+
+        # assign each data point to a cluster
+        optics_result = optics_model.fit_predict(X)
+
+        # get all of the unique clusters
+        optics_clusters = unique(optics_result)
+
+        # plot OPTICS the clusters
+        for optics_cluster in optics_clusters:
+            # get data points that fall in this cluster
+            index = where(optics_result == optics_cluster)
+            # make the plot
+            pyplot.scatter(X[index, 0], X[index, 1])
+
+        # show the OPTICS plot
+        pyplot.show()
+
+    # from numpy import unique
+    # from numpy import where
+    # from matplotlib import pyplot
+    # from sklearn.datasets import make_classification
+    # from sklearn.cluster import AffinityPropagation
+    #
+    # # define the model
+    # model = AffinityPropagation(verbose=True)
+    #
+    # # train the model
+    # model.fit(X)
+    #
+    # # assign each data point to a cluster
+    # result = model.predict(X)
+    #
+    # # get all of the unique clusters
+    # clusters = unique(result)
+    #
+    # # plot the clusters
+    # for cluster in clusters:
+    #     # get data points that fall in this cluster
+    #     index = where(result == cluster)
+    #     # make the plot
+    #     pyplot.scatter(X[index, 0], X[index, 1])
+    #
+    # # show the plot
+    # pyplot.show()
+
+    # db scan is pretty useless, too slow
     # db = DBSCAN(eps=101, min_samples=10000).fit(X)
     #
     # plt.figure(figsize=(12, 8))
@@ -318,136 +515,12 @@ def cluster_on_encoded():
     # plt.title('MeanShift')
     # plt.show()
 
-    if True:
-        n_clusters = 10
-
-        from sklearn.cluster import KMeans
-        km4 = KMeans(n_clusters=n_clusters).fit(X)
-
-        plt.figure(figsize=(12, 8))
-        sns.scatterplot(X[:, 0], X[:, 1], hue=km4.labels_,
-                        palette=sns.color_palette('hls', n_clusters))
-        plt.title('KMeans with 3 Clusters')
-        plt.show()
-
-    # from numpy import unique
-    # from numpy import where
-    # from matplotlib import pyplot
-    # from sklearn.datasets import make_classification
-    # from sklearn.cluster import AffinityPropagation
-    #
-    # # define the model
-    # model = AffinityPropagation(verbose=True)
-    #
-    # # train the model
-    # model.fit(X)
-    #
-    # # assign each data point to a cluster
-    # result = model.predict(X)
-    #
-    # # get all of the unique clusters
-    # clusters = unique(result)
-    #
-    # # plot the clusters
-    # for cluster in clusters:
-    #     # get data points that fall in this cluster
-    #     index = where(result == cluster)
-    #     # make the plot
-    #     pyplot.scatter(X[index, 0], X[index, 1])
-    #
-    # # show the plot
-    # pyplot.show()
-
-    if True:
-        from numpy import unique
-        from numpy import where
-        from matplotlib import pyplot
-        from sklearn.datasets import make_classification
-        from sklearn.cluster import Birch
-
-        # define the model
-        birch_model = Birch(threshold=0.005, branching_factor=50, n_clusters=4)
-
-        # train the model
-        birch_model.fit(X)
-
-        # assign each data point to a cluster
-        birch_result = birch_model.predict(X)
-
-        # get all of the unique clusters
-        birch_clusters = unique(birch_result)
-
-        # plot the BIRCH clusters
-        for birch_cluster in birch_clusters:
-            # get data points that fall in this cluster
-            index = where(birch_result == birch_cluster)
-            # make the plot
-            pyplot.scatter(X[index, 0], X[index, 1])
-
-        # show the BIRCH plot
-        pyplot.show()
-
-    if False:
-        from numpy import unique
-        from numpy import where
-        from matplotlib import pyplot
-        from sklearn.datasets import make_classification
-        from sklearn.mixture import GaussianMixture
-
-        # define the model
-        gaussian_model = GaussianMixture(n_components=4, covariance_type='spherical')
-
-        # train the model
-        gaussian_model.fit(X)
-
-        # assign each data point to a cluster
-        gaussian_result = gaussian_model.predict(X)
-
-        # get all of the unique clusters
-        gaussian_clusters = unique(gaussian_result)
-
-        # plot Gaussian Mixture the clusters
-        for gaussian_cluster in gaussian_clusters:
-            # get data points that fall in this cluster
-            index = where(gaussian_result == gaussian_cluster)
-            # make the plot
-            pyplot.scatter(X[index, 0], X[index, 1])
-
-        # show the Gaussian Mixture plot
-        pyplot.show()
-
-    if False:
-        from numpy import unique
-        from numpy import where
-        from matplotlib import pyplot
-        from sklearn.datasets import make_classification
-        from sklearn.cluster import OPTICS
-
-        # define the model
-        optics_model = OPTICS(eps=0.75, min_samples=100)
-
-        # assign each data point to a cluster
-        optics_result = optics_model.fit_predict(X)
-
-        # get all of the unique clusters
-        optics_clusters = unique(optics_result)
-
-        # plot OPTICS the clusters
-        for optics_cluster in optics_clusters:
-            # get data points that fall in this cluster
-            index = where(optics_result == optics_cluster)
-            # make the plot
-            pyplot.scatter(X[index, 0], X[index, 1])
-
-        # show the OPTICS plot
-        pyplot.show()
-
     print("done")
 
 
 #run_keras_stacked_autoencoder()
 #run_keras_basic_autencoder
-run_keras_var_autoencoder()
+#run_keras_var_autoencoder()
 cluster_on_encoded()
 
 
