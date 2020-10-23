@@ -7,7 +7,7 @@ mouse_object_path = Config.base_path + "/mouse_object_" + str(mouse_num)
 multitaper_dataframe_path = Config.base_path + "/multitaper_mouse_" + str(mouse_num) + "_without_norm.pkl"
 multitaper_data_path = Config.base_path + "/multitaper_mouse_" + str(mouse_num) + ".pkl"
 
-do_multitaper = False
+do_multitaper = True
 plot_multitaper = True
 
 if Config.generate_mouse_object:
@@ -21,7 +21,7 @@ if do_multitaper:
     window_length = 4 * int(mh.EEG_fs)
     window_step = 2 * int(mh.EEG_fs)
 
-    EEG_data = mh.EEG_data[0:40000000]
+    EEG_data = mh.EEG_data
 
     window_starts = np.arange(0, len(EEG_data) - window_length + 1, window_step)
     EEG_segs = detrend(EEG_data[list(map(lambda x: np.arange(x, x + window_length), window_starts))])

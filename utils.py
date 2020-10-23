@@ -1,6 +1,3 @@
-import matplotlib.pyplot as plt
-plt.style.use('seaborn')
-plt.rc('lines', linewidth=0.5)
 import numpy as np
 import pandas as pd
 import h5py
@@ -21,9 +18,9 @@ def inspect_function(f):
 
 def create_mouse_object(mouse_num, mouse_object_path):
     # data directory
-    EphysDir = 'D:/Ongoing_analysis/' if Config.is_vassilis_workstation else 'C:/Source/ClosedLoopEEG/'
+    EphysDir = 'D:/Ongoing_analysis/' if Config.is_vassilis_workstation else Config.base_path
     # experiment directory and filename
-    Folder = '181008_TRAP_females_4/baseline/'
+    Folder = '181008_TRAP_females_4/baseline/' if Config.is_vassilis_workstation else '/'
     FileMat = '181008_000_baseline.mat'
     # provide genotype and rig position
     mh = Mouse("TRAP", mouse_num)

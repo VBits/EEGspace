@@ -64,7 +64,7 @@ def run_loop(fs, channel_number, file_lock, training_mouse_object):
 
             data_points = data_points[1:]
             end_data_analysis = time.perf_counter()
-            print("time doing data ops: " + str(end_data_analysis - start_data_analysis))
+            print("time doing file ops: " + str(end_data_analysis - start_data_analysis))
 
         epoch_count = epoch_count + 1
         end_time = time.perf_counter()
