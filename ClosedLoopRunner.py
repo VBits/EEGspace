@@ -4,18 +4,18 @@ import numpy as np
 import threading
 import os
 import Config
-import utils
 import time
-import Model.Model as Model
+from Model import get_model_object
 import CycleTestData
 import Preprocessing
 
 
 def cycle_files(file_lock):
-    model = Model()
+    model = get_model_object()
     for i in range(0, Config.num_channels):
         #run_loop(i, file_lock, training_mouse_object)
         threading.Thread(target=run_loop, args=(i, file_lock, model)).start()
+
 
 def run_loop(channel_number, file_lock, model):
     epoch_count = 0
@@ -49,10 +49,8 @@ def run_loop(channel_number, file_lock, model):
             start_data_analysis = time.perf_counter()
             X = model.lda.transform(Preprocessing.transform_data(data_points))
             point = X[-1]
-            x = point[0]
-            y = point[1]
-            z = point[2]
-
+            predicted_class = model.classifier.predict(point)
+            print("Predicted class for mouse " + channel_number + " is " + model.states(predicted_class))
             data_points = data_points[1:]
             end_data_analysis = time.perf_counter()
             print("time doing file ops: " + str(end_data_analysis - start_data_analysis))
@@ -63,7 +61,7 @@ def run_loop(channel_number, file_lock, model):
         start_time = time.perf_counter()
 
 
-file_lock = threading.Lock()
+lock = threading.Lock()
 if Config.cycle_test_data:
-    CycleTestData.cycle_test_files(file_lock)
-cycle_files(file_lock)
+    CycleTestData.cycle_test_files(lock)
+cycle_files(lock)

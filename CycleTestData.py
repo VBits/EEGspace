@@ -5,12 +5,12 @@ import threading
 import time
 import os
 import numpy as np
-
+import pickle
 
 def cycle_test_files(file_lock, use_random=False):
-    f = open(Config.mouse_object_path, 'rb')
-    mh = pickle.load(f)
-    epoch_size = Config.num_seconds_per_epoch * mh.EEG_fs
+    f = open(Config.training_data_path + "Sxx_norm_200604_m1.pkl", 'rb')
+    eeg_data = pickle.load(f)
+    epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
     for i in range(0, Config.num_channels):
         path = Config.channel_file_base_path.format(channel_number=i)
         with file_lock:
@@ -18,11 +18,11 @@ def cycle_test_files(file_lock, use_random=False):
                 os.remove(path)
         if use_random:
             random_sample_size = epoch_size * 100
-            random_index = randint(0, len(mh.EEG_data) - random_sample_size)
-            random_sample = mh.EEG_data[random_index:random_index + random_sample_size]
+            random_index = randint(0, len(eeg_data) - random_sample_size)
+            random_sample = eeg_data[random_index:random_index + random_sample_size]
             threading.Thread(target=create_file_creation, args=(random_sample, epoch_size, i, file_lock)).start()
         else:
-            threading.Thread(target=create_file_creation, args=(mh.EEG_data, epoch_size, i, file_lock)).start()
+            threading.Thread(target=create_file_creation, args=(eeg_data, epoch_size, i, file_lock)).start()
 
 
 def create_file_creation(data_points, epoch_size, channel_number, file_lock):
