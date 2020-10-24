@@ -7,7 +7,9 @@ import os
 import numpy as np
 
 
-def cycle_test_files(mh, file_lock, use_random=False):
+def cycle_test_files(file_lock, use_random=False):
+    f = open(Config.mouse_object_path, 'rb')
+    mh = pickle.load(f)
     epoch_size = Config.num_seconds_per_epoch * mh.EEG_fs
     for i in range(0, Config.num_channels):
         path = Config.channel_file_base_path.format(channel_number=i)

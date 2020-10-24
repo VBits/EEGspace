@@ -1,9 +1,12 @@
-channel_file_base_path = "C:/Users/bitsik0000/SleepData/binaries/{channel_number}/data.bin"
+eeg_fs = 100
+smoothing_iterations = 4
 num_channels = 1
 num_seconds_per_epoch = 2
-is_vassilis_workstation = False
-mouse_object_path = "C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/mouse_object"
-generate_mouse_object = False
-dpi = 500
 cycle_test_data = False
-base_path = "C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG"
+channel_file_base_path = "C:/Users/bitsik0000/SleepData/binaries/{channel_number}/data.bin"
+base_path = "C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/" #todo get working directory
+data_path = base_path + "data/"
+mouse_object_path = data_path + "mouse_object.pkl"
+lda_model_path = data_path + "lda_model.pkl"
+training_data_path = data_path + "Multitaper_df_norm/"
+
