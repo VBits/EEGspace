@@ -3,7 +3,8 @@ eeg_fs = 100
 smoothing_iterations = 4
 num_channels = 1
 num_seconds_per_epoch = 2
-cycle_test_data = False
+cycle_test_data = True
+recreate_model_file = False
 base_path = os.getcwd().replace("\\", "/") + "/"
 channel_file_base_path = base_path + "ChannelData/{channel_number}/data.bin" \
     if cycle_test_data else "C:/Users/bitsik0000/SleepData/binaries/{channel_number}/data.bin"

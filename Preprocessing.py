@@ -1,12 +1,15 @@
 import nitime.algorithms as tsa
 from scipy.signal import detrend
 import Config
+import numpy as np
+import pandas as pd
+import scipy
 
 
 def transform_data(data_points):
     eeg_fs = Config.eeg_fs
     eeg_data = np.array(data_points)
-    start = [pandas.to_datetime('today')]
+    start = [pd.to_datetime('today')]
     window_length = 4 * int(eeg_fs)
     window_step = 2 * int(eeg_fs)
     window_starts = np.arange(0, len(eeg_data) - window_length + 1, window_step)

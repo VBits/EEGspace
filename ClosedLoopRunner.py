@@ -8,6 +8,7 @@ import time
 from Model import get_model_object
 import CycleTestData
 import Preprocessing
+import pickle
 
 
 def cycle_files(file_lock):
@@ -18,6 +19,14 @@ def cycle_files(file_lock):
 
 
 def run_loop(channel_number, file_lock, model):
+    #for testing convenience
+    #annoying, remove later
+    # if Config.cycle_test_data:
+    #     f = open(Config.training_data_path + "Sxx_norm_200604_m1.pkl", 'rb')
+    #     eeg_data = pickle.load(f)
+    #     epoch_count = 41
+    #     data_points = [x for x in np.array(eeg_data[0:41])]
+    # else:
     epoch_count = 0
     data_points = []
     time_points = []
@@ -49,8 +58,8 @@ def run_loop(channel_number, file_lock, model):
             start_data_analysis = time.perf_counter()
             X = model.lda.transform(Preprocessing.transform_data(data_points))
             point = X[-1]
-            predicted_class = model.classifier.predict(point)
-            print("Predicted class for mouse " + channel_number + " is " + model.states(predicted_class))
+            predicted_class = model.classifier.predict(point.reshape(1, -1))
+            print("Predicted class for mouse " + str(channel_number) + " is " + model.states[predicted_class[0]])
             data_points = data_points[1:]
             end_data_analysis = time.perf_counter()
             print("time doing file ops: " + str(end_data_analysis - start_data_analysis))

@@ -72,17 +72,17 @@ def load_data_with_states(file_indexes=None):
 
 def get_lda_model(training_data, training_data_states):
     lda = LDA(n_components=3)
-    x_train = lda.fit_transform(training_data, training_data_states)
+    lda_encoded_data = lda.fit_transform(training_data, training_data_states)
     plot_transformation = False
     if plot_transformation:
         fig = plt.figure()
         ax = Axes3D(fig)
-        ax.scatter(x_train[:, 0], x_train[:, 1], x_train[:, 2], c=training_data_states, alpha=0.1, s=8)
+        ax.scatter(lda_encoded_data[:, 0], lda_encoded_data[:, 1], lda_encoded_data[:, 2], c=training_data_states, alpha=0.1, s=8)
         ax.set_xlabel('component 1')
         ax.set_ylabel('component 2')
         ax.set_zlabel('component 3')
         plt.show()
-    return lda
+    return lda, lda_encoded_data
 
 
 def get_classification_model(training_data, training_data_states):
@@ -104,8 +104,7 @@ def get_classification_model(training_data, training_data_states):
 
 def get_model_object():
     model_path = Config.lda_model_path
-    recreate_file = False
-    if recreate_file or not os.path.isfile(model_path):
+    if Config.recreate_model_file or not os.path.isfile(model_path):
         model = Model()
         f = open(Config.lda_model_path, 'wb')
         pickle.dump(model, f)
@@ -118,6 +117,6 @@ def get_model_object():
 class Model:
     def __init__(self):
         self.training_data, self.training_data_states = load_data_with_states()
-        self.lda = get_lda_model(self.training_data, self.training_data_states)
-        self.classifier = get_classification_model(self.training_data, self.training_data_states)
+        self.lda, self.lda_encoded_data = get_lda_model(self.training_data, self.training_data_states)
+        self.classifier = get_classification_model(self.lda_encoded_data, self.training_data_states)
         self.states = {v: k for k, v in states.items()}
