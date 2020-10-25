@@ -14,7 +14,10 @@ def transform_data(data_points):
     window_step = 2 * int(eeg_fs)
     window_starts = np.arange(0, len(eeg_data) - window_length + 1, window_step)
 
-    eeg_segs = detrend(eeg_data[list(map(lambda x: np.arange(x, x + window_length), window_starts))])
+    eeg_segs = []
+    for idx in list(map(lambda x: np.arange(x, x + window_length), window_starts)):
+        eeg_segs.append(eeg_data[idx])
+    eeg_segs = detrend(eeg_segs)
     freqs, psd_est, var_or_nu = tsa.multi_taper_psd(eeg_segs, Fs=eeg_fs, NW=4, adaptive=False, jackknife=False,
                                                     low_bias=True)
     time_idx = pd.date_range(start=start[0], freq='{}ms'.format(window_step / eeg_fs * 1000),

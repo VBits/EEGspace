@@ -1,9 +1,10 @@
 import os
 eeg_fs = 100
-smoothing_iterations = 4
-num_channels = 1
+smoothing_iterations = 1
+num_channels = 8
 num_seconds_per_epoch = 2
-cycle_test_data = True
+iteration_buffer = 100
+cycle_test_data = False
 recreate_model_file = False
 base_path = os.getcwd().replace("\\", "/") + "/"
 channel_file_base_path = base_path + "ChannelData/{channel_number}/data.bin" \

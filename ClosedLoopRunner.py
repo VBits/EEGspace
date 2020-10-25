@@ -54,7 +54,7 @@ def run_loop(channel_number, file_lock, model):
         end_reading_file = time.perf_counter()
         print("time doing file reading: " + str(end_reading_file - start_reading_file))
 
-        if epoch_count > 41:
+        if epoch_count > Config.iteration_buffer:
             start_data_analysis = time.perf_counter()
             X = model.lda.transform(Preprocessing.transform_data(data_points))
             point = X[-1]
