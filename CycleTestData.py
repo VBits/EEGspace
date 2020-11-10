@@ -6,10 +6,28 @@ import time
 import os
 import numpy as np
 import pickle
+import pandas as pd
+import scipy
+import Preprocessing
+from Timer import Timer
+import h5py
+import matplotlib.pyplot as plt
+
+def get_data(mouse_num):
+    f = h5py.File(Config.raw_data_file, 'r')
+    ch_name = list(f.keys())
+    mouse_ch = [s for s in ch_name if "G{}".format(mouse_num) in s]
+    eeg_data = f[str(mouse_ch[0])]["values"][0, :]
+    eeg_data = scipy.signal.resample(eeg_data, int(len(eeg_data) / 2.5))
+    f = open(Config.raw_data_pkl_file, "wb")
+    pickle.dump({"eeg_data": eeg_data}, f)
+    return eeg_data
+
 
 def cycle_test_files(file_lock, use_random=False):
-    f = open(Config.training_data_path + "Sxx_norm_200604_m1.pkl", 'rb')
-    eeg_data = pickle.load(f)
+    f = open(Config.raw_data_pkl_file, "rb")
+    eeg_data = pickle.load(f)["eeg_data"]
+    Preprocessing.transform_data(eeg_data, Timer("start_time", 0, 0))
     epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
     for i in range(0, Config.num_channels):
         path = Config.channel_file_base_path.format(channel_number=i)
