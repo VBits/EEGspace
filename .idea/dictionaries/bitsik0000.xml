@@ -3,6 +3,7 @@
     <words>
       <w>freqs</w>
       <w>multitaper</w>
+      <w>savgol</w>
       <w>segs</w>
     </words>
   </dictionary>

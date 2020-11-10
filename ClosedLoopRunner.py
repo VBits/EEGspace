@@ -55,8 +55,8 @@ def run_loop(channel_number, file_lock, model):
 
         if epoch_count > Config.iteration_buffer:
             timer.set_time_point("start_data_analysis")
-            X = model.lda.transform(Preprocessing.transform_data(data_points, timer))
-            point = X[-1]
+            #todo calculate and add the real norm
+            point = model.lda.transform(Preprocessing.transform_data(data_points, timer, np.zeros(201))[-1])
             predicted_class = model.classifier.predict(point.reshape(1, -1))
             print("Predicted class for mouse " + str(channel_number) + " is " + model.states[predicted_class[0]])
             data_points = data_points[1:]

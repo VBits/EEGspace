@@ -27,7 +27,8 @@ def get_data(mouse_num):
 def cycle_test_files(file_lock, use_random=False):
     f = open(Config.raw_data_pkl_file, "rb")
     eeg_data = pickle.load(f)["eeg_data"]
-    Preprocessing.transform_data(eeg_data, Timer("start_time", 0, 0))
+    #used for testing preprocessing method
+    #Preprocessing.transform_data(eeg_data, Timer("start_time", 0, 0))
     epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
     for i in range(0, Config.num_channels):
         path = Config.channel_file_base_path.format(channel_number=i)
@@ -38,12 +39,12 @@ def cycle_test_files(file_lock, use_random=False):
             random_sample_size = epoch_size * 100
             random_index = randint(0, len(eeg_data) - random_sample_size)
             random_sample = eeg_data[random_index:random_index + random_sample_size]
-            threading.Thread(target=create_file_creation, args=(random_sample, epoch_size, i, file_lock)).start()
+            threading.Thread(target=file_creation, args=(random_sample, epoch_size, i, file_lock)).start()
         else:
-            threading.Thread(target=create_file_creation, args=(eeg_data, epoch_size, i, file_lock)).start()
+            threading.Thread(target=file_creation, args=(eeg_data, epoch_size, i, file_lock)).start()
 
 
-def create_file_creation(data_points, epoch_size, channel_number, file_lock):
+def file_creation(data_points, epoch_size, channel_number, file_lock):
     start_time = 0
     path = Config.channel_file_base_path.format(channel_number=channel_number)
     for epoch in range(0, int(len(data_points) / epoch_size)):

@@ -19,13 +19,7 @@ states = {
 
 
 def load_multiple_mouse_states(file_indexes, random_indexes):
-    mouse_files = ['states_200604_m1.pkl',
-                   'states_200604_m2.pkl',
-                   'states_200604_m3.pkl',
-                   'states_200604_m4.pkl',
-                   'states_200424_m5.pkl',
-                   'states_200424_m6.pkl',
-                   'states_200424_m7.pkl']
+    mouse_files = Config.mouse_state_files
 
     state_data = None
 
@@ -45,13 +39,7 @@ def load_data_with_states(file_indexes=None):
     if file_indexes is None:
         file_indexes = [0, 1, 2, 3, 4, 5, 6]
 
-    mouse_files = ['Sxx_norm_200604_m1.pkl',
-                   'Sxx_norm_200604_m2.pkl',
-                   'Sxx_norm_200604_m3.pkl',
-                   'Sxx_norm_200604_m4.pkl',
-                   'Sxx_norm_200424_m5.pkl',
-                   'Sxx_norm_200424_m6.pkl',
-                   'Sxx_norm_200424_m7.pkl']
+    mouse_files = Config.mouse_files
 
     mouse_data = None
 

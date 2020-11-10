@@ -8,17 +8,17 @@ import Timer
 import matplotlib.pyplot as plt
 
 
-def transform_data(data_points, timer):
+def transform_data(data_points, timer, norm=None):
     timer.set_time_point("start_multitaper")
     multitaper_df = apply_multitaper(data_points)
     timer.print_duration_since("start_multitaper", "Time for multitaper")
-    #plt.plot(multitaper_df[50])
-    #plt.show()
-    timer.set_time_point("start_process_spectrum")
-    _, _, sxx_norm = process_spectrum(multitaper_df, timer)
-    timer.print_duration_since("start_process_spectrum", "Time to process spectrum")
-    #plt.plot(sxx_norm[50])
-    #plt.show()
+    timer.set_time_point("start_smoothing")
+    sxx_df = do_smoothing(multitaper_df, timer)
+    if norm is None:
+        norm = calculate_norm(sxx_df, multitaper_df.columns, timer)
+    sxx_norm = sxx_df.add(norm, axis=0)
+    sxx_norm = pd.DataFrame(data=sxx_norm.T.values,columns=multitaper_df.columns, index=multitaper_df.index)
+    timer.print_duration_since("start_smoothing", "Time to process spectrum")
     return sxx_norm
 
 
@@ -41,57 +41,52 @@ def apply_multitaper(data_points):
     return pd.DataFrame(index=time_idx, data=psd_est, columns=freqs)
 
 
-def process_spectrum(multitaper_df, timer):
+def apply_savgol_filter(x):
+    return scipy.signal.savgol_filter(x, 41, 2)
 
+
+def do_smoothing(multitaper_df, timer):
     timer.set_time_point("start_savgol")
-    ## Normalize the data and plot density spectrogram
-    def SG_filter(x):
-        return scipy.signal.savgol_filter(x, 41, 2)
-
     # Log scale
     sxx_df = 10 * np.log(multitaper_df.T)
 
     # horizontal axis (time)
     iterations = Config.smoothing_iterations
     for i in range(iterations):
-        sxx_df = sxx_df.apply(SG_filter, axis=1, result_type='expand')
+        sxx_df = sxx_df.apply(apply_savgol_filter, axis=1, result_type='expand')
 
     timer.print_duration_since("start_savgol")
+    return sxx_df
+
+
+def density_calc(dataframe, boundary=(-100, 90)):
+    # now calculate the bins for each frequency
+    density_mat = []
+    mean_density = []
+    for i in range(len(dataframe.index)):
+        #timer.set_time_point("density_calc_iteration_"+str(i))
+        density, bins = np.histogram(dataframe.iloc[i, :], bins=5000, range=boundary, density=True)
+        density_mat.append(density)
+        mean_density.append(dataframe.iloc[i, :].mean())
+        #timer.print_duration_since("density_calc_iteration_"+str(i))
+    density_mat = np.array(density_mat)
+    bins = (bins[1:] + bins[:-1]) / 2
+    return density_mat, bins
+
+
+def calculate_norm(sxx_df, columns, timer):
     timer.set_time_point("start_density_calc")
-
-    def density_calc(dataframe, boundary=(-100, 90)):
-        # now calculate the bins for each frequency
-        density_mat = []
-        mean_density = []
-        for i in range(len(dataframe.index)):
-            #timer.set_time_point("density_calc_iteration_"+str(i))
-            density, bins = np.histogram(dataframe.iloc[i, :], bins=5000, range=boundary, density=True)
-            density_mat.append(density)
-            mean_density.append(dataframe.iloc[i, :].mean())
-            #timer.print_duration_since("density_calc_iteration_"+str(i))
-        density_mat = np.array(density_mat)
-        bins = (bins[1:] + bins[:-1]) / 2
-        return density_mat, bins
-
     density_mat, bins = density_calc(sxx_df, boundary=(-100, 90))  # -1,1550
 
     timer.print_duration_since("start_density_calc")
     timer.set_time_point("savgol_2")
 
-    density_df = pd.DataFrame(index=bins, data=density_mat.T, columns=multitaper_df.columns)
-    for i in range(iterations):
-        density_df = density_df.apply(SG_filter, axis=0, result_type='expand')
+    density_df = pd.DataFrame(index=bins, data=density_mat.T, columns=columns)
+    for i in range(Config.smoothing_iterations):
+        density_df = density_df.apply(apply_savgol_filter, axis=0, result_type='expand')
 
     timer.print_duration_since("savgol_2")
-    timer.set_time_point("density_calc_2")
+
     baseline = np.argmax(density_df.values > 0.01, axis=0)
 
-    norm = 0 - bins[baseline]
-    sxx_norm = sxx_df.add(norm, axis=0)
-    density_norm, power_bins = density_calc(sxx_norm, boundary=(-25, 50))
-    sxx_norm = pd.DataFrame(data=sxx_norm.T.values,columns=multitaper_df.columns, index=multitaper_df.index)
-    timer.print_duration_since("density_calc_2")
-
-    return density_norm, power_bins, sxx_norm
-
-
+    return 0 - bins[baseline]
