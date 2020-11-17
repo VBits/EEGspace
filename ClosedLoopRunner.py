@@ -12,9 +12,10 @@ import pickle
 from Timer import Timer
 
 
-def cycle_files(file_lock, model):
-    for i in range(0, Config.num_channels):
+def cycle_files(file_lock):
+    for i in Config.mice_numbers:
         #run_loop(i, file_lock, training_mouse_object)
+        model = get_model_object(i)
         threading.Thread(target=run_loop, args=(i, file_lock, model)).start()
 
 
@@ -55,12 +56,12 @@ def run_loop(channel_number, file_lock, model):
 
         if epoch_count > Config.iteration_buffer:
             timer.set_time_point("start_data_analysis")
-            #todo calculate and add the real norm
-            point = model.lda.transform(Preprocessing.transform_data(data_points, timer, np.zeros(201))[-1])
-            predicted_class = model.classifier.predict(point.reshape(1, -1))
+            point = model.lda.transform(Preprocessing.transform_data(data_points, timer, model.norm))
+            predicted_class = model.classifier.predict(point)
             print("Predicted class for mouse " + str(channel_number) + " is " + model.states[predicted_class[0]])
             data_points = data_points[1:]
             timer.print_duration_since("start_data_analysis", "Time doing data analysis")
+            #todo check the actual state there
 
         epoch_count = epoch_count + 1
         timer.print_duration_since("start_time", "Time for iteration was")
@@ -69,7 +70,6 @@ def run_loop(channel_number, file_lock, model):
 
 
 lock = threading.Lock()
-model = get_model_object()
 if Config.cycle_test_data:
     CycleTestData.cycle_test_files(lock)
-cycle_files(lock, model)
+cycle_files(lock)

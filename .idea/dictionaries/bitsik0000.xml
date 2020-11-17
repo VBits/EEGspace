@@ -2,6 +2,7 @@
   <dictionary name="bitsik0000">
     <words>
       <w>freqs</w>
+      <w>joblib</w>
       <w>multitaper</w>
       <w>savgol</w>
       <w>segs</w>
