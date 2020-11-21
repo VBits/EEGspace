@@ -17,7 +17,7 @@ def transform_data(data_points, timer, norm=None):
     if norm is None:
         norm = calculate_norm(sxx_df, multitaper_df.columns, timer)
     sxx_norm = sxx_df.add(norm, axis=0)
-    sxx_norm = pd.DataFrame(data=sxx_norm.T.values,columns=multitaper_df.columns, index=multitaper_df.index)
+    sxx_norm = pd.DataFrame(data=sxx_norm.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
     timer.print_duration_since("start_smoothing", "Time to process spectrum")
     return sxx_norm
 
@@ -45,13 +45,12 @@ def apply_savgol_filter(x):
     return scipy.signal.savgol_filter(x, 41, 2)
 
 
-def do_smoothing(multitaper_df, timer):
+def do_smoothing(multitaper_df, timer, iterations=Config.smoothing_iterations):
     timer.set_time_point("start_savgol")
     # Log scale
     sxx_df = 10 * np.log(multitaper_df.T)
 
     # horizontal axis (time)
-    iterations = Config.smoothing_iterations
     for i in range(iterations):
         sxx_df = sxx_df.apply(apply_savgol_filter, axis=1, result_type='expand')
 
@@ -64,11 +63,11 @@ def density_calc(dataframe, boundary=(-100, 90)):
     density_mat = []
     mean_density = []
     for i in range(len(dataframe.index)):
-        #timer.set_time_point("density_calc_iteration_"+str(i))
+        # timer.set_time_point("density_calc_iteration_"+str(i))
         density, bins = np.histogram(dataframe.iloc[i, :], bins=5000, range=boundary, density=True)
         density_mat.append(density)
         mean_density.append(dataframe.iloc[i, :].mean())
-        #timer.print_duration_since("density_calc_iteration_"+str(i))
+        # timer.print_duration_since("density_calc_iteration_"+str(i))
     density_mat = np.array(density_mat)
     bins = (bins[1:] + bins[:-1]) / 2
     return density_mat, bins
