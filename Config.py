@@ -2,7 +2,7 @@ import os
 
 # numerical settings
 eeg_fs = 100
-smoothing_iterations = 1
+smoothing_iterations = 4
 num_channels = 1
 num_seconds_per_epoch = 2
 iteration_buffer = 100

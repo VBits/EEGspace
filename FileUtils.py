@@ -1,19 +1,33 @@
-# import h5py
-# import joblib
-# import pickle
-#
-# def load_or_recreate_file(path, recreate_function, recreate_file=False):
-#     if recreate_file:
-#         object = recreate_function()
-#         f = open(model_path, 'wb')
-#         pickle.dump(model, f)
-#     else:
-#         f = open(model_path, 'rb')
-#         model = pickle.load(f)
-#     return model
-#
-# def dump_with_correct_lib(path, object):
-#
-#
-# def load_with_correct_object(path):
-#
+import joblib
+import pickle
+import numpy as np
+import os
+
+
+def load_or_recreate_file(path, recreate_function, recreate_file=False):
+    if recreate_file or not os.path.isfile(path):
+        object = recreate_function()
+        dump_with_correct_lib(path, object)
+    else:
+        object = load_with_correct_lib(path)
+    return object
+
+
+def dump_with_correct_lib(path, object):
+    f = open(path, 'wb')
+    if path.endswith(".pkl"):
+        pickle.dump(object, f)
+    if path.endswith(".joblib"):
+        joblib.dump(object, f)
+    if path.endswith(".npy"):
+        np.array(object).dump(path)
+
+
+def load_with_correct_lib(path):
+    f = open(path, 'wb')
+    if path.endswith(".pkl"):
+        return pickle.load(f)
+    if path.endswith(".joblib"):
+        return joblib.load(f)
+    if path.endswith(".npy"):
+        return np.load(path, mmap_mode='r')

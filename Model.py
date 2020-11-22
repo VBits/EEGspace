@@ -13,6 +13,18 @@ import joblib
 import scipy
 
 
+
+
+def get_standardized_states(states):
+    standardized_states = {
+        "REM": 0,
+        "SWS": 1,
+        "LMwake": 2,
+        "HMwake": 3,
+    }
+    #todo transform the states to a standard form
+
+
 def load_training_data_states(mouse_num):
     f = open(Config.state_file_path.format(mouse_num=mouse_num), 'rb')
     state_data = np.array(pickle.load(f))

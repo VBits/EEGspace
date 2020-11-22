@@ -9,6 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import Model
 from tslearn.preprocessing import TimeSeriesResampler
+import FileUtils
 
 
 def get_data(mouse_num):
@@ -85,8 +86,7 @@ def load_mouse_data_object():
     plt.show()
     print("done")
 
-
-def load_raw_data(mouse_num):
+def read_in_and_resample_data(mouse_num):
     f = h5py.File(Config.raw_data_file, 'r')
     ch_name = list(f.keys())
     mouse_ch = [s for s in ch_name if "G{}".format(mouse_num) in s]
@@ -97,15 +97,20 @@ def load_raw_data(mouse_num):
     new_size = int(len(eeg_data) // downsample_rate)
     og_data = eeg_data
     eeg_data = TimeSeriesResampler(sz=new_size).fit_transform(eeg_data).flatten()
-    eeg_data2 = scipy.signal.resample(og_data, new_size)
+    # eeg_data2 = scipy.signal.resample(og_data, new_size)
 
-    return eeg_data2, eeg_data
+    return eeg_data
+
+
+def load_raw_data(mouse_num):
+    path = Config.data_path + "raw_eeg_mouse_" + str(mouse_num) + ".npy"
+    return FileUtils.load_or_recreate_file(path, lambda: read_in_and_resample_data(mouse_num), recreate_file=False)
 
 
 def test_conversion_using_model():
     mouse_num = 1
     timer = Timer("start_time", 0, 0)  # making things reliant on timer might not have been the smartest idea
-    eeg_data, eeg_data2 = load_raw_data(mouse_num)
+    eeg_data = load_raw_data(mouse_num)
     model = Model.get_model_object(mouse_num)
     preconverted_data = model.training_data
     multitaper_df = Preprocessing.apply_multitaper(eeg_data)
