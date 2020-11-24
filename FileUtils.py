@@ -24,10 +24,10 @@ def dump_with_correct_lib(path, object):
 
 
 def load_with_correct_lib(path):
-    f = open(path, 'wb')
+    f = open(path, 'rb')
     if path.endswith(".pkl"):
         return pickle.load(f)
     if path.endswith(".joblib"):
         return joblib.load(f)
     if path.endswith(".npy"):
-        return np.load(path, mmap_mode='r')
+        return np.load(f, allow_pickle=True)
