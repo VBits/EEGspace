@@ -94,6 +94,7 @@ def read_in_and_resample_data(mouse_num):
     downsample_rate = fs / Config.eeg_fs
     # lenth = int(downsample_rate * 10000)
     eeg_data = f[str(mouse_ch[0])]["values"][0, :]
+    #eeg_data = iterative_savitzky_golay(eeg_data, fs)
     new_size = int(len(eeg_data) // downsample_rate)
     og_data = eeg_data
     eeg_data = TimeSeriesResampler(sz=new_size).fit_transform(eeg_data).flatten()
@@ -107,14 +108,67 @@ def load_raw_data(mouse_num):
     return FileUtils.load_or_recreate_file(path, lambda: read_in_and_resample_data(mouse_num), recreate_file=False)
 
 
+def iterative_savitzky_golay(signal, fs, iterations=3):
+    """
+    This function calculates the Savitzky-Golay filtered EEG signal,
+    which is used to correct artifacts caused by baseline shifts.
+    """
+    w = int(fs//2) #window size used for filtering
+    if (w % 2)==0: # making sure window length is odd
+        w+=1
+    for i in range(iterations):
+        print ('Removing drift in baseline: Iteration {}/3'.format(i+1))
+        if i==0:
+            signal_sg = scipy.signal.savgol_filter(signal,
+                                    w, 2) # order of fitted polynomial
+        else:
+            signal_sg = scipy.signal.savgol_filter(signal_sg,
+                                    w, 2) # order of fitted polynomial
+    signal_corrected = signal - signal_sg
+    return signal_corrected
+
+def knn_pred(lda_converted, sxx_norm):
+    # predict in 2D
+    state_df = pd.DataFrame(index=sxx_norm.index)
+    state_df['clusters_knn'] = clf.predict(lda_converted)
+
+    Nclusters = len(state_df['clusters_knn'].unique())
+
+    # Count state instances after finding which code has higher average T_D.
+    # Descending order(REM, Wake, SWS)
+    state_code = np.zeros(Nclusters)
+    for i in range(Nclusters):
+        delta = Sxx_norm.loc[:, 1:4][state_df['clusters_knn'] == i].mean().mean()
+        theta = Sxx_norm.loc[:, 7:10][state_df['clusters_knn'] == i].mean().mean()
+        state_code[i] = theta/delta
+
+    if Nclusters == 4:
+        LMwake_code = np.argsort(state_code)[0]
+        sws_code = np.argsort(state_code)[1]
+        HMwake_code = np.argsort(state_code)[2]
+        rem_code = np.argsort(state_code)[3]
+
+        conditions = [ (np.in1d(state_df['clusters_knn'], HMwake_code)),
+                       (np.in1d(state_df['clusters_knn'], LMwake_code)),
+                       (np.in1d(state_df['clusters_knn'], sws_code)),
+                       (np.in1d(state_df['clusters_knn'], rem_code))]
+    else:
+        print('Number of clusters not recognized. Run DPC again')
+
+    state_choices = ['HMwake','LMwake', 'SWS', 'REM']
+
+    state_df['4_states'] = np.select(conditions, state_choices, default="ambiguous")
+    return state_df
+
 def test_conversion_using_model():
     mouse_num = 1
     timer = Timer("start_time", 0, 0)  # making things reliant on timer might not have been the smartest idea
     eeg_data = load_raw_data(mouse_num)
+
     model = Model.get_model_object(mouse_num)
-    preconverted_data = model.training_data[0:50]
-    multitaper_df = Preprocessing.apply_multitaper(eeg_data[0:10200])[0:50]
-    sxx_df = Preprocessing.do_smoothing(multitaper_df, timer, 4)
+    preconverted_data = model.training_data #[0:50]
+    multitaper_df = Preprocessing.apply_multitaper(eeg_data) #[0:10200])#[0:50]
+    sxx_df = Preprocessing.do_smoothing(multitaper_df, timer, 1)
     sxx_norm = sxx_df.add(model.norm, axis=0)
     sxx_norm = pd.DataFrame(data=sxx_norm.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
     mse = np.mean((np.array(preconverted_data[0:sxx_norm.shape[0]]) - np.array(sxx_norm)) ** 2)
@@ -138,11 +192,15 @@ def test_conversion_using_model():
     knn_state = model.classifier.predict(lda_encoded)
     new_states = [model.states[state] for state in knn_state]
     print(new_states)
-    old_knn_states = model.training_data_states[0:50]
+    old_knn_states = model.training_data_states #[0:50]
     old_states = [model.states[state] for state in old_knn_states]
     print(old_states)
     cells_with_same_class = [i for (i, x) in enumerate(old_states) if old_states[i] == new_states[i]]
-    print(len(cells_with_same_class))
+    cells_with_diff_class = [i for (i, x) in enumerate(old_states) if old_states[i] != new_states[i]]
+    #manual_states = knn_pred(lda_encoded, converted)
+
+    print(len(cells_with_same_class)/len(old_states))
+    print(cells_with_diff_class)
     print("done")
 
 
@@ -164,7 +222,7 @@ def try_cycling_data():
         eeg_subset.append(eeg_data[start_point:start_point + epoch_size])
         if epoch_count == 50:
             multitaper_df = Preprocessing.apply_multitaper(list(np.concatenate(eeg_subset).flat))
-            sxx_df = Preprocessing.do_smoothing(multitaper_df, timer, 4)
+            sxx_df = Preprocessing.do_smoothing(multitaper_df, timer, 1)
             sxx_norm = sxx_df.add(model.norm, axis=0)
             sxx_norm = pd.DataFrame(data=sxx_norm.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
             epoch_start = epoch - epoch_count

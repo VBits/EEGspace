@@ -20,3 +20,6 @@ class Timer:
         description = description + " for mouse " + \
                       str(self.mouse_number) + ", iteration " + str(self.iteration_num) + ": "
         print(description + str(time.perf_counter() - self.time_points[time_point_name]))
+
+    def get_duration_since(self, time_point_name):
+        return time.perf_counter() - self.time_points[time_point_name]

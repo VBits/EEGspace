@@ -2,7 +2,7 @@ import os
 
 # numerical settings
 eeg_fs = 100
-smoothing_iterations = 4
+smoothing_iterations = 1
 num_channels = 1
 num_seconds_per_epoch = 2
 iteration_buffer = 100
@@ -11,7 +11,7 @@ print_timer_info_for_mice = [1]
 
 # boolean
 cycle_test_data = False
-recreate_model_file = False
+recreate_model_file = True
 recreate_lda = False
 recreate_knn = False
 

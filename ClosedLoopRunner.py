@@ -35,6 +35,7 @@ def run_loop(channel_number, file_lock, model):
     path = Config.channel_file_base_path.format(channel_number=channel_number)
     iteration = 0
     timer = Timer("start_time", channel_number, iteration)
+    time_for_iterations = []
     while True:
         if not os.path.isfile(path):
             time.sleep(0.30)
@@ -60,11 +61,15 @@ def run_loop(channel_number, file_lock, model):
             predicted_class = model.classifier.predict(point)
             print("Predicted class for mouse " + str(channel_number) + " is " + model.states[predicted_class[0]])
             data_points = data_points[1:]
+
             timer.print_duration_since("start_data_analysis", "Time doing data analysis")
-            #todo check the actual state there
 
         epoch_count = epoch_count + 1
         timer.print_duration_since("start_time", "Time for iteration was")
+        #todo remove
+        # time_for_iterations.append(timer.get_duration_since("start_time"))
+        # print(time_for_iterations)
+        # print("Average time for iterations for mouse " + str(channel_number) + ": " + str(np.mean(np.array(time_for_iterations))))
         iteration = iteration + 1
         timer = Timer("start_time", channel_number, iteration)
 

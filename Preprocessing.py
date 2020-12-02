@@ -30,12 +30,15 @@ def apply_multitaper(data_points):
     window_step = 2 * int(eeg_fs)
     window_starts = np.arange(0, len(eeg_data) - window_length + 1, window_step)
 
-    eeg_segs = []
-    for idx in list(map(lambda x: np.arange(x, x + window_length), window_starts)):
-        eeg_segs.append(eeg_data[idx])
-    eeg_segs = detrend(eeg_segs)
+    # eeg_segs = []
+    # for idx in list(map(lambda x: np.arange(x, x + window_length), window_starts)):
+    #     eeg_segs.append(eeg_data[idx])
+    # eeg_segs = detrend(eeg_segs)
+    eeg_segs = detrend(eeg_data[list(map(lambda x: np.arange(x, x + window_length), window_starts))])
+
     freqs, psd_est, var_or_nu = tsa.multi_taper_psd(eeg_segs, Fs=eeg_fs, NW=4, adaptive=False, jackknife=False,
                                                     low_bias=True)
+
     time_idx = pd.date_range(start=start[0], freq='{}ms'.format(window_step / eeg_fs * 1000),
                              periods=len(psd_est))
     return pd.DataFrame(index=time_idx, data=psd_est, columns=freqs)
@@ -46,10 +49,12 @@ def apply_savgol_filter(x):
 
 
 def do_smoothing(multitaper_df, timer, iterations=Config.smoothing_iterations):
-    timer.set_time_point("start_savgol")
+    timer.set_time_point("start_log_calc")
     # Log scale
     sxx_df = 10 * np.log(multitaper_df.T)
+    timer.print_duration_since("start_log_calc")
 
+    timer.set_time_point("start_savgol")
     # horizontal axis (time)
     for i in range(iterations):
         sxx_df = sxx_df.apply(apply_savgol_filter, axis=1, result_type='expand')
