@@ -2,12 +2,12 @@ import os
 
 # numerical settings
 eeg_fs = 100
-smoothing_iterations = 1
+smoothing_iterations = 4
 num_channels = 1
 num_seconds_per_epoch = 2
 iteration_buffer = 100
-mice_numbers = [1, 2, 3, 4, 5, 6, 7]  # array of numbers 1-7
-print_timer_info_for_mice = [1]
+mice_numbers = [1, 2, 3, 4, 5, 6, 7]  # [1, 2, 3, 4, 5, 6, 7]  # array of numbers 1-7
+print_timer_info_for_mice = [0]#[1, 2, 3, 4, 5, 6, 7]
 
 # boolean
 cycle_test_data = False
@@ -31,4 +31,3 @@ state_file_path = training_data_path + 'states_200702_B6J_m{mouse_num}.pkl'
 lda_file_path = training_data_path + 'lda_200702_m{mouse_num}.joblib'
 knn_file_path = training_data_path + 'knn_200702_m{mouse_num}.joblib'
 norm_file_path = training_data_path + 'norm_200702_B6J_m{mouse_num}.npy'
-

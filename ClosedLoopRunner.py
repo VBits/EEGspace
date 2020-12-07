@@ -19,28 +19,50 @@ def cycle_files(file_lock):
         threading.Thread(target=run_loop, args=(i, file_lock, model)).start()
 
 
-def run_loop(channel_number, file_lock, model):
-    #for testing convenience
-    #annoying, remove later
-    # if Config.cycle_test_data:
-    #     f = open(Config.training_data_path + "Sxx_norm_200604_m1.pkl", 'rb')
-    #     eeg_data = pickle.load(f)
-    #     epoch_count = 41
-    #     data_points = [x for x in np.array(eeg_data[0:41])]
-    # else:
+def run_loop(mouse_number, file_lock, model):
     epoch_count = 0
     data_points = []
     time_points = []
     total_points = 0
-    path = Config.channel_file_base_path.format(channel_number=channel_number)
+    path = Config.channel_file_base_path.format(channel_number=(mouse_number - 1))#zero indexed
     iteration = 0
-    timer = Timer("start_time", channel_number, iteration)
-    time_for_iterations = []
+    timer = Timer("start_time", mouse_number, iteration)
+    dropped_epochs = []
+    while not os.path.isfile(path):
+        continue
+
+    #record the timestamp before the first run and run it every 2 seconds after that
+    seconds_per_iteration = Config.num_seconds_per_epoch
+
+    # file has been found, wait for it to be read
+    time.sleep(0.30)
+    # remove the first file
+    os.remove(path)
+
+    iteration_deadline = time.time() + seconds_per_iteration
+
     while True:
-        if not os.path.isfile(path):
-            time.sleep(0.30)
+        if time.time() > iteration_deadline:
+            if mouse_number in Config.print_timer_info_for_mice:
+                print(time.time())
+                print(iteration_deadline)
+            if os.path.isfile(path):
+                os.remove(path)
+            num_epochs_dropped = int((time.time() - iteration_deadline) / seconds_per_iteration) + 1
+            dropped_epochs_delay_seconds = num_epochs_dropped * seconds_per_iteration
+            dropped_epochs = dropped_epochs + list(range(epoch_count, epoch_count + num_epochs_dropped))
+            epoch_count += num_epochs_dropped - 1
+            iteration += num_epochs_dropped - 1
+            iteration_deadline += dropped_epochs_delay_seconds
+
+        while time.time() < iteration_deadline:
             continue
-        timer.print_duration_since("start_time", "Time waiting for file")
+
+        iteration_deadline += seconds_per_iteration
+        timer.print_duration_since("start_time", "Time for iteration was")
+        iteration += 1
+        timer = Timer("start_time", mouse_number, iteration)
+
         timer.set_time_point("start_reading_file")
         with file_lock:
             with open(path, "rb") as f:
@@ -59,19 +81,14 @@ def run_loop(channel_number, file_lock, model):
             timer.set_time_point("start_data_analysis")
             point = model.lda.transform(Preprocessing.transform_data(data_points, timer, model.norm))
             predicted_class = model.classifier.predict(point)
-            print("Predicted class for mouse " + str(channel_number) + " is " + model.states[predicted_class[0]])
+            print("Predicted class for mouse " + str(mouse_number) + " is " + model.states[predicted_class[0]])
             data_points = data_points[1:]
-
+            if mouse_number in Config.print_timer_info_for_mice:
+                print(dropped_epochs)
             timer.print_duration_since("start_data_analysis", "Time doing data analysis")
 
         epoch_count = epoch_count + 1
-        timer.print_duration_since("start_time", "Time for iteration was")
-        #todo remove
-        # time_for_iterations.append(timer.get_duration_since("start_time"))
-        # print(time_for_iterations)
-        # print("Average time for iterations for mouse " + str(channel_number) + ": " + str(np.mean(np.array(time_for_iterations))))
-        iteration = iteration + 1
-        timer = Timer("start_time", channel_number, iteration)
+
 
 
 lock = threading.Lock()

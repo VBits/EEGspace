@@ -256,8 +256,8 @@ def try_cycling_data():
 
 # load_mouse_data_object()
 
-#test_conversion_using_model()
+test_conversion_using_model()
 
-try_cycling_data()
+#try_cycling_data()
 
 print("done")
