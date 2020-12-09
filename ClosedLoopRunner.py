@@ -10,16 +10,30 @@ import CycleTestData
 import Preprocessing
 import pickle
 from Timer import Timer
+import multiprocessing
+import sys
 
 
 def cycle_files(file_lock):
+    jobs = []
+
     for i in Config.mice_numbers:
-        #run_loop(i, file_lock, training_mouse_object)
-        model = get_model_object(i)
-        threading.Thread(target=run_loop, args=(i, file_lock, model)).start()
+        p = multiprocessing.Process(target=run_loop, args=(i,))
+        jobs.append(p)
+        p.start()
+
+    map(lambda p: p.join(), jobs)
+
+    # for i in Config.mice_numbers:
+    #     #run_loop(i, file_lock, training_mouse_object)
+    #     model = get_model_object(i)
+    #     threading.Thread(target=run_loop, args=(i, file_lock, model)).start()
 
 
-def run_loop(mouse_number, file_lock, model):
+def run_loop(mouse_number):
+    sys.stdout.flush()
+    file_lock = threading.Lock()#todo try this with multiprocessing, is it needed for cycling test files? I think it is
+    model = get_model_object(mouse_number)
     epoch_count = 0
     data_points = []
     time_points = []
@@ -30,7 +44,7 @@ def run_loop(mouse_number, file_lock, model):
     dropped_epochs = []
     while not os.path.isfile(path):
         continue
-
+    sys.stdout.flush()
     #record the timestamp before the first run and run it every 2 seconds after that
     seconds_per_iteration = Config.num_seconds_per_epoch
 
@@ -42,6 +56,7 @@ def run_loop(mouse_number, file_lock, model):
     iteration_deadline = time.time() + seconds_per_iteration
 
     while True:
+        #sys.stdout.
         if time.time() > iteration_deadline:
             if mouse_number in Config.print_timer_info_for_mice:
                 print(time.time())
@@ -82,16 +97,33 @@ def run_loop(mouse_number, file_lock, model):
             point = model.lda.transform(Preprocessing.transform_data(data_points, timer, model.norm))
             predicted_class = model.classifier.predict(point)
             print("Predicted class for mouse " + str(mouse_number) + " is " + model.states[predicted_class[0]])
-            data_points = data_points[1:]
+            data_points = data_points[100:]#[Config.eeg_fs * Config.num_seconds_per_epoch:]
             if mouse_number in Config.print_timer_info_for_mice:
+                print(len(data_points))
                 print(dropped_epochs)
             timer.print_duration_since("start_data_analysis", "Time doing data analysis")
 
         epoch_count = epoch_count + 1
+        sys.stdout.flush()
+
+def run():
+    lock = threading.Lock()
+    if Config.cycle_test_data:
+        CycleTestData.cycle_test_files(lock)
+    #cycle_files(lock)
+    jobs = []
+
+    for i in Config.mice_numbers:
+        p = multiprocessing.Process(target=run_loop, args=(i,))
+        jobs.append(p)
+        p.start()
+        sys.stdout.flush()
+
+    map(lambda p: p.join(), jobs)
+
+    while True:
+        continue
 
 
-
-lock = threading.Lock()
-if Config.cycle_test_data:
-    CycleTestData.cycle_test_files(lock)
-cycle_files(lock)
+if __name__ == '__main__':
+    run()

@@ -189,12 +189,12 @@ def test_conversion_using_model():
         plt.gray()
     plt.show()
     lda_encoded = model.lda.transform(converted)
+    preconverted_lda_transformed = model.lda.transform(preconverted)
     knn_state = model.classifier.predict(lda_encoded)
+    preconverted_reclassified_knn_state = model.classifier.predict(preconverted_lda_transformed)
     new_states = [model.states[state] for state in knn_state]
-    print(new_states)
-    old_knn_states = model.training_data_states #[0:50]
-    old_states = [model.states[state] for state in old_knn_states]
-    print(old_states)
+    old_states = [model.states[state] for state in preconverted_reclassified_knn_state]
+    # old_knn_states = [model.states[state] for state in preconverted_reclassified_knn]#model.training_data_states #[0:50]
     cells_with_same_class = [i for (i, x) in enumerate(old_states) if old_states[i] == new_states[i]]
     cells_with_diff_class = [i for (i, x) in enumerate(old_states) if old_states[i] != new_states[i]]
     #manual_states = knn_pred(lda_encoded, converted)
