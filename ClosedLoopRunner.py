@@ -30,6 +30,19 @@ def cycle_files(file_lock):
     #     threading.Thread(target=run_loop, args=(i, file_lock, model)).start()
 
 
+def read_next_epoch_from_file():
+    with file_lock:
+        with open(path, "rb") as f:
+            bytes_read = f.read(8)
+            time_points.append(struct.unpack('<d', bytes_read)[0])
+            bytes_read = f.read(4)
+            total_points = total_points + struct.unpack('<i', bytes_read)[0]
+            bytes_read = f.read(4)
+            while bytes_read:
+                data_points.append(struct.unpack('<f', bytes_read)[0])
+                bytes_read = f.read(4)
+        os.remove(path)
+
 def run_loop(mouse_number):
     sys.stdout.flush()
     file_lock = threading.Lock()#todo try this with multiprocessing, is it needed for cycling test files? I think it is
@@ -79,6 +92,8 @@ def run_loop(mouse_number):
         timer = Timer("start_time", mouse_number, iteration)
 
         timer.set_time_point("start_reading_file")
+        # next_epoch = read_next_epoch_from_file(file_lock)
+        #data_points.append(next_epoch)
         with file_lock:
             with open(path, "rb") as f:
                 bytes_read = f.read(8)
@@ -90,6 +105,7 @@ def run_loop(mouse_number):
                     data_points.append(struct.unpack('<f', bytes_read)[0])
                     bytes_read = f.read(4)
             os.remove(path)
+        print("total points for mouse " + str(mouse_number) + " is " + str(total_points))
         timer.print_duration_since("start_reading_file", "Time doing file reading")
 
         if epoch_count > Config.iteration_buffer:

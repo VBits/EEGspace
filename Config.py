@@ -6,8 +6,8 @@ smoothing_iterations = 4
 num_channels = 1
 num_seconds_per_epoch = 2
 iteration_buffer = 100
-mice_numbers = [1, 2, 3, 4, 5, 6, 7]  # [1, 2, 3, 4, 5, 6, 7]  # array of numbers 1-7
-print_timer_info_for_mice = [1, 2, 3, 4, 5, 6, 7]#[1, 2, 3, 4, 5, 6, 7]
+mice_numbers = [2]  # [1, 2, 3, 4, 5, 6, 7]  # array of numbers 1-7
+print_timer_info_for_mice = [2]#[1, 2, 3, 4, 5, 6, 7]
 
 # boolean
 cycle_test_data = False
