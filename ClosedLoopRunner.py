@@ -126,24 +126,6 @@ def run_loop(mouse_number, queue):
         epoch_count = epoch_count + 1
         sys.stdout.flush()
 
-def run():
-    lock = threading.Lock()
-    if Config.cycle_test_data:
-        CycleTestData.cycle_test_files(lock)
-    #cycle_files(lock)
-    jobs = []
-
-    for i in Config.mice_numbers:
-        p = multiprocessing.Process(target=run_loop, args=(i,))
-        jobs.append(p)
-        p.start()
-        sys.stdout.flush()
-
-    map(lambda p: p.join(), jobs)
-
-    while True:
-        continue
-
 
 if __name__ == '__main__':
     lock = threading.Lock()
