@@ -114,9 +114,10 @@ def run_loop(mouse_number, queue):
             timer.set_time_point("start_data_analysis")
             point = model.lda.transform(Preprocessing.transform_data(data_points, timer, model.norm))
             predicted_class = model.classifier.predict(point)
-            #print("Predicted class for mouse " + str(mouse_number) + " is " + model.states[predicted_class[0]])
-            queue.put((mouse_number, epoch_count, predicted_class[0]))
-            data_points = data_points[100:]#[Config.eeg_fs * Config.num_seconds_per_epoch:]
+            standardized_class_number = model.state_mappings[predicted_class[0]]
+            standardized_class_name = model.get_standard_state_name(standardized_class_number)
+            queue.put((mouse_number, epoch_count, standardized_class_number, standardized_class_name))
+            data_points = data_points[Config.eeg_fs * Config.num_seconds_per_epoch:]
             if mouse_number in Config.print_timer_info_for_mice:
                 print(len(data_points))
                 print(dropped_epochs)

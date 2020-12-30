@@ -12,17 +12,23 @@ import h5py
 import joblib
 import scipy
 
+standardized_states = {
+    "REM": 0,
+    "SWS": 1,
+    "LMwake": 2,
+    "HMwake": 3,
+}
 
 
+def get_standard_state_name(standardized_state_number):
+    return [k for k, v in standardized_states.items() if v == standardized_state_number][0]
 
-def get_standardized_states(states):
-    standardized_states = {
-        "REM": 0,
-        "SWS": 1,
-        "LMwake": 2,
-        "HMwake": 3,
-    }
-    #todo transform the states to a standard form
+
+def get_standardized_state_mappings(states):
+    state_mappings = {}
+    for v, k in states.items():
+        state_mappings[v] = standardized_states[k]
+    return state_mappings
 
 
 def load_training_data_states(mouse_num):
@@ -30,8 +36,7 @@ def load_training_data_states(mouse_num):
     state_data = np.array(pickle.load(f))
     states = list(set([(x[0], x[1]) for x in state_data]))
     states = {k: v for k, v in states}
-    return states, np.array([s[0] for s in state_data])
-
+    return states, np.array([s[0] for s in state_data]), get_standardized_state_mappings(states)
 
 def load_training_data(mouse_num):
     f = open(Config.multitaper_data_file_path.format(mouse_num=mouse_num), 'rb')
@@ -88,7 +93,8 @@ def get_norm(mouse_num):
 class Model:
     def __init__(self, mouse_num):
         self.training_data = load_training_data(mouse_num)
-        self.states, self.training_data_states = load_training_data_states(mouse_num)
+        self.states, self.training_data_states, self.state_mappings = load_training_data_states(mouse_num)
+        self.get_standard_state_name = get_standard_state_name
         self.lda, self.lda_encoded_data = get_lda_model(mouse_num, self.training_data, self.training_data_states)
         self.classifier = get_classification_model(mouse_num, self.lda_encoded_data, self.training_data_states)
         self.norm = get_norm(mouse_num)
