@@ -12,6 +12,7 @@ import pickle
 from Timer import Timer
 import multiprocessing
 import sys
+from multiprocessing import Queue
 
 
 def cycle_files(file_lock):
@@ -43,7 +44,7 @@ def read_next_epoch_from_file():
                 bytes_read = f.read(4)
         os.remove(path)
 
-def run_loop(mouse_number):
+def run_loop(mouse_number, queue):
     sys.stdout.flush()
     file_lock = threading.Lock()#todo try this with multiprocessing, is it needed for cycling test files? I think it is
     model = get_model_object(mouse_number)
@@ -100,6 +101,7 @@ def run_loop(mouse_number):
                 time_points.append(struct.unpack('<d', bytes_read)[0])
                 bytes_read = f.read(4)
                 total_points = total_points + struct.unpack('<i', bytes_read)[0]
+                print(total_points)
                 bytes_read = f.read(4)
                 while bytes_read:
                     data_points.append(struct.unpack('<f', bytes_read)[0])
@@ -112,7 +114,8 @@ def run_loop(mouse_number):
             timer.set_time_point("start_data_analysis")
             point = model.lda.transform(Preprocessing.transform_data(data_points, timer, model.norm))
             predicted_class = model.classifier.predict(point)
-            print("Predicted class for mouse " + str(mouse_number) + " is " + model.states[predicted_class[0]])
+            #print("Predicted class for mouse " + str(mouse_number) + " is " + model.states[predicted_class[0]])
+            queue.put((mouse_number, epoch_count, predicted_class[0]))
             data_points = data_points[100:]#[Config.eeg_fs * Config.num_seconds_per_epoch:]
             if mouse_number in Config.print_timer_info_for_mice:
                 print(len(data_points))
@@ -142,4 +145,20 @@ def run():
 
 
 if __name__ == '__main__':
-    run()
+    lock = threading.Lock()
+    if Config.cycle_test_data:
+        CycleTestData.cycle_test_files(lock)
+    jobs = []
+    queue = Queue()
+
+    for i in Config.mice_numbers:
+        p = multiprocessing.Process(target=run_loop, args=(i, queue))
+        jobs.append(p)
+        p.start()
+        sys.stdout.flush()
+
+    map(lambda p: p.join(), jobs)
+
+    while True:
+        while not queue.empty():
+            print(queue.get())
