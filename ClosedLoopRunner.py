@@ -13,6 +13,7 @@ from Timer import Timer
 import multiprocessing
 import sys
 from multiprocessing import Queue
+import UserInterface
 
 
 def cycle_files(file_lock):
@@ -24,11 +25,6 @@ def cycle_files(file_lock):
         p.start()
 
     map(lambda p: p.join(), jobs)
-
-    # for i in Config.mice_numbers:
-    #     #run_loop(i, file_lock, training_mouse_object)
-    #     model = get_model_object(i)
-    #     threading.Thread(target=run_loop, args=(i, file_lock, model)).start()
 
 
 def read_next_epoch_from_file():
@@ -132,16 +128,30 @@ if __name__ == '__main__':
     if Config.cycle_test_data:
         CycleTestData.cycle_test_files(lock)
     jobs = []
-    queue = Queue()
+    manager = multiprocessing.Manager()
+    file_queue = manager.Queue()
+    ui_input_queue = manager.Queue()
+    ui_output_queue = manager.Queue()
 
     for i in Config.mice_numbers:
-        p = multiprocessing.Process(target=run_loop, args=(i, queue))
+        p = multiprocessing.Process(target=run_loop, args=(i, file_queue))
         jobs.append(p)
         p.start()
         sys.stdout.flush()
 
+    p = multiprocessing.Process(target=UserInterface.create_user_interface,
+                                args=(ui_input_queue, ui_output_queue, Config.mice_numbers))
+    jobs.append(p)
+    p.start()
+
     map(lambda p: p.join(), jobs)
 
     while True:
-        while not queue.empty():
-            print(queue.get())
+        if not ui_output_queue.empty():
+            output = ui_output_queue.get()
+            if output == "Quit":
+                break;
+        while not file_queue.empty():
+            next_status = file_queue.get()
+            ui_input_queue.put(next_status)
+            print(next_status)
