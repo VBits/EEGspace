@@ -12,26 +12,16 @@ import Preprocessing
 from Timer import Timer
 import h5py
 import matplotlib.pyplot as plt
-
-def get_data(mouse_num):
-    f = h5py.File(Config.raw_data_file, 'r')
-    ch_name = list(f.keys())
-    mouse_ch = [s for s in ch_name if "G{}".format(mouse_num) in s]
-    eeg_data = f[str(mouse_ch[0])]["values"][0, :]
-    eeg_data = scipy.signal.resample(eeg_data, int(len(eeg_data) / 2.5))
-    f = open(Config.raw_data_pkl_file, "wb")
-    pickle.dump({"eeg_data": eeg_data}, f)
-    return eeg_data
+import FileUtils
 
 
 def cycle_test_files(file_lock, use_random=False):
-    f = open(Config.raw_data_pkl_file, "rb")
-    eeg_data = pickle.load(f)["eeg_data"]
-    #used for testing preprocessing method
-    #Preprocessing.transform_data(eeg_data, Timer("start_time", 0, 0))
     epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
-    for i in range(0, Config.num_channels):
-        path = Config.channel_file_base_path.format(channel_number=i)
+    f = h5py.File(Config.raw_data_file, 'r') #don't load file multiple times
+    for mouse_num in Config.mice_numbers:
+        channel_number = mouse_num-1
+        path = Config.channel_file_base_path.format(channel_number=channel_number)
+        eeg_data = FileUtils.get_raw_data_and_downsample(mouse_num, f)
         with file_lock:
             if os.path.isfile(path):
                 os.remove(path)
@@ -39,9 +29,9 @@ def cycle_test_files(file_lock, use_random=False):
             random_sample_size = epoch_size * 100
             random_index = randint(0, len(eeg_data) - random_sample_size)
             random_sample = eeg_data[random_index:random_index + random_sample_size]
-            threading.Thread(target=file_creation, args=(random_sample, epoch_size, i, file_lock)).start()
+            threading.Thread(target=file_creation, args=(random_sample, epoch_size, channel_number, file_lock)).start()
         else:
-            threading.Thread(target=file_creation, args=(eeg_data, epoch_size, i, file_lock)).start()
+            threading.Thread(target=file_creation, args=(eeg_data, epoch_size, channel_number, file_lock)).start()
 
 
 def file_creation(data_points, epoch_size, channel_number, file_lock):

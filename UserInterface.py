@@ -1,6 +1,4 @@
-# from PyQt5 import uic, QtWidgets
-# from PyQt5.QtWidgets import *
-import PySimpleGUI as sg  # Part 1 - The import
+import PySimpleGUI as sg
 
 #todo move this to a shared location
 state_colors = {
@@ -10,14 +8,17 @@ state_colors = {
     "HMwake": "#f2ef30",
 }
 
+
 def create_user_interface(input_queue, output_queue, channels):
     layout = []
     for channel_number in channels:
-        text_element = sg.Text("Reading data for mouse " + str(channel_number),
+        text_element = sg.Text("Reading buffer for mouse " + str(channel_number),
                                text_color='black',
                                background_color='white',
                                key=str(channel_number),
-                               border_width=5)
+                               border_width=5,
+                               pad=(100, 5),
+                               justification="center")
         layout.append([text_element])
 
     window = sg.Window('Current Mouse Statuses', layout)

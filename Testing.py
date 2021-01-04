@@ -86,26 +86,11 @@ def load_mouse_data_object():
     plt.show()
     print("done")
 
-def read_in_and_resample_data(mouse_num):
-    f = h5py.File(Config.raw_data_file, 'r')
-    ch_name = list(f.keys())
-    mouse_ch = [s for s in ch_name if "G{}".format(mouse_num) in s]
-    fs = 1 / f["{}".format(mouse_ch[0])]['interval'][0][0]
-    downsample_rate = fs / Config.eeg_fs
-    # lenth = int(downsample_rate * 10000)
-    eeg_data = f[str(mouse_ch[0])]["values"][0, :]
-    #eeg_data = iterative_savitzky_golay(eeg_data, fs)
-    new_size = int(len(eeg_data) // downsample_rate)
-    og_data = eeg_data
-    eeg_data = TimeSeriesResampler(sz=new_size).fit_transform(eeg_data).flatten()
-    # eeg_data2 = scipy.signal.resample(og_data, new_size)
-
-    return eeg_data
-
 
 def load_raw_data(mouse_num):
     path = Config.data_path + "raw_eeg_mouse_" + str(mouse_num) + ".npy"
-    return FileUtils.load_or_recreate_file(path, lambda: read_in_and_resample_data(mouse_num), recreate_file=False)
+    return FileUtils.load_or_recreate_file(path, lambda: FileUtils.get_raw_data_and_downsample(mouse_num),
+                                           recreate_file=False)
 
 
 def iterative_savitzky_golay(signal, fs, iterations=3):
@@ -209,7 +194,7 @@ def try_cycling_data():
     timer = Timer("start_time", 0, 0)  # making things reliant on timer might not have been the smartest idea
     eeg_data = load_raw_data(mouse_num)
     model = Model.get_model_object(mouse_num)
-    epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
+    epoch_size = (Config.num_seconds_per_epoch * Config.eeg_fs)
     eeg_subset = []
     mses = []
     epoch_count = 0
@@ -222,7 +207,7 @@ def try_cycling_data():
         eeg_subset.append(eeg_data[start_point:start_point + epoch_size])
         if epoch_count == 50:
             multitaper_df = Preprocessing.apply_multitaper(list(np.concatenate(eeg_subset).flat))
-            sxx_df = Preprocessing.do_smoothing(multitaper_df, timer, 1)
+            sxx_df = Preprocessing.do_smoothing(multitaper_df, timer, 4)
             sxx_norm = sxx_df.add(model.norm, axis=0)
             sxx_norm = pd.DataFrame(data=sxx_norm.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
             epoch_start = epoch - epoch_count
@@ -256,8 +241,8 @@ def try_cycling_data():
 
 # load_mouse_data_object()
 
-test_conversion_using_model()
+#test_conversion_using_model()
 
-#try_cycling_data()
+try_cycling_data()
 
 print("done")

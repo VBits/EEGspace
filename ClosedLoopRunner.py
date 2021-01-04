@@ -108,11 +108,18 @@ def run_loop(mouse_number, queue):
 
         if epoch_count > Config.iteration_buffer:
             timer.set_time_point("start_data_analysis")
-            point = model.lda.transform(Preprocessing.transform_data(data_points, timer, model.norm))
-            predicted_class = model.classifier.predict(point)
-            standardized_class_number = model.state_mappings[predicted_class[0]]
+            transformed_data = Preprocessing.transform_data(data_points, timer, model.norm)
+            # import matplotlib.pyplot as plt
+            # plt.plot(transformed_data[50])
+            # plt.show()
+            transformed_data = [np.array(transformed_data)[-1]]
+            lda_point = model.lda.transform(transformed_data)
+            predicted_class = model.classifier.predict(lda_point)
+            original_class_number = predicted_class[0]
+            standardized_class_number = model.state_mappings[original_class_number]
             standardized_class_name = model.get_standard_state_name(standardized_class_number)
-            queue.put((mouse_number, epoch_count, standardized_class_number, standardized_class_name))
+            queue.put((mouse_number, epoch_count, standardized_class_number,
+                       standardized_class_name, original_class_number))
             data_points = data_points[Config.eeg_fs * Config.num_seconds_per_epoch:]
             if mouse_number in Config.print_timer_info_for_mice:
                 print(len(data_points))
@@ -133,16 +140,16 @@ if __name__ == '__main__':
     ui_input_queue = manager.Queue()
     ui_output_queue = manager.Queue()
 
+    p = multiprocessing.Process(target=UserInterface.create_user_interface,
+                                args=(ui_input_queue, ui_output_queue, Config.mice_numbers))
+    jobs.append(p)
+    p.start()
+
     for i in Config.mice_numbers:
         p = multiprocessing.Process(target=run_loop, args=(i, file_queue))
         jobs.append(p)
         p.start()
         sys.stdout.flush()
-
-    p = multiprocessing.Process(target=UserInterface.create_user_interface,
-                                args=(ui_input_queue, ui_output_queue, Config.mice_numbers))
-    jobs.append(p)
-    p.start()
 
     map(lambda p: p.join(), jobs)
 
@@ -150,7 +157,8 @@ if __name__ == '__main__':
         if not ui_output_queue.empty():
             output = ui_output_queue.get()
             if output == "Quit":
-                break;
+                break
+            #todo kill test file cycling as well
         while not file_queue.empty():
             next_status = file_queue.get()
             ui_input_queue.put(next_status)
