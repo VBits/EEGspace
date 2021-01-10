@@ -203,7 +203,7 @@ def try_cycling_data():
     newly_converted_states = []
     first_fifty = True
     for epoch in range(0, int(len(eeg_data) / epoch_size)):
-        start_point = epoch * epoch_size
+        start_point = (epoch * epoch_size) + epoch_size #offset by one epoch like the actual file reading
         eeg_subset.append(eeg_data[start_point:start_point + epoch_size])
         if epoch_count == 50:
             multitaper_df = Preprocessing.apply_multitaper(list(np.concatenate(eeg_subset).flat))
