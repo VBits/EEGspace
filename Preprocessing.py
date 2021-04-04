@@ -4,7 +4,7 @@ import Config
 import numpy as np
 import pandas as pd
 import scipy
-import Timer
+import Timing
 import matplotlib.pyplot as plt
 
 

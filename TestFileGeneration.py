@@ -5,14 +5,8 @@ import threading
 import time
 import os
 import numpy as np
-import pickle
-import pandas as pd
-import scipy
-import Preprocessing
-from Timer import Timer
 import h5py
-import matplotlib.pyplot as plt
-import FileUtils
+import Storage
 
 
 def cycle_test_files(file_lock, use_random=False):
@@ -21,7 +15,7 @@ def cycle_test_files(file_lock, use_random=False):
     for mouse_num in Config.mice_numbers:
         channel_number = mouse_num-1
         path = Config.channel_file_base_path.format(channel_number=channel_number)
-        eeg_data = FileUtils.get_raw_data_and_downsample(mouse_num, f)
+        eeg_data = Storage.load_downsampled_raw_data(mouse_num, f)
         with file_lock:
             if os.path.isfile(path):
                 os.remove(path)

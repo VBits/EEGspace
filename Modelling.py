@@ -8,9 +8,8 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
-import h5py
-import joblib
-import scipy
+
+import Storage
 
 standardized_states = {
     "REM": 0,
@@ -32,15 +31,15 @@ def get_standardized_state_mappings(states):
 
 
 def load_training_data_states(mouse_num):
-    f = open(Config.state_file_path.format(mouse_num=mouse_num), 'rb')
-    state_data = np.array(pickle.load(f))
+    file_data = Storage.load_from_file(Config.state_file_path.format(mouse_num=mouse_num))
+    state_data = np.array(file_data)
     states = list(set([(x[0], x[1]) for x in state_data]))
     states = {k: v for k, v in states}
     return states, np.array([s[0] for s in state_data]), get_standardized_state_mappings(states)
 
+
 def load_training_data(mouse_num):
-    f = open(Config.multitaper_data_file_path.format(mouse_num=mouse_num), 'rb')
-    return pickle.load(f)
+    return Storage.load_from_file(Config.multitaper_data_file_path.format(mouse_num=mouse_num))
 
 
 def get_lda_model(mouse_num, training_data, training_data_states):
@@ -59,8 +58,7 @@ def get_lda_model(mouse_num, training_data, training_data_states):
             plt.show()
         return lda, lda_encoded_data
 
-    f = open(Config.lda_file_path.format(mouse_num=mouse_num), 'rb')
-    lda = joblib.load(f)
+    lda = Storage.load_from_file(Config.lda_file_path.format(mouse_num=mouse_num))
     lda_encoded_data = lda.transform(training_data)
     return lda, lda_encoded_data
 
@@ -82,15 +80,14 @@ def get_classification_model(mouse_num, training_data, training_data_states):
 
         return classifier
 
-    f = open(Config.knn_file_path.format(mouse_num=mouse_num), 'rb')
-    return joblib.load(f)
+    return Storage.load_from_file(Config.knn_file_path.format(mouse_num=mouse_num))
 
 
 def get_norm(mouse_num):
-    return np.load(Config.norm_file_path.format(mouse_num=mouse_num), mmap_mode='r')
+    return Storage.load_from_file(Config.norm_file_path.format(mouse_num=mouse_num))
 
 
-class Model:
+class MouseModel:
     def __init__(self, mouse_num):
         self.training_data = load_training_data(mouse_num)
         self.states, self.training_data_states, self.state_mappings = load_training_data_states(mouse_num)
@@ -100,10 +97,10 @@ class Model:
         self.norm = get_norm(mouse_num)
 
 
-def get_model_object(mouse_num):
+def get_model_for_mouse(mouse_num):
     model_path = Config.mouse_model_path.format(mouse_num=mouse_num)
     if Config.recreate_model_file or not os.path.isfile(model_path):
-        model = Model(mouse_num)
+        model = MouseModel(mouse_num)
         f = open(model_path, 'wb')
         pickle.dump(model, f)
     else:
