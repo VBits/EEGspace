@@ -1,5 +1,5 @@
 import nitime.algorithms as tsa
-from scipy.signal import detrend
+from scipy.signal import detrend, dlti, butter, decimate
 import Config
 import numpy as np
 import pandas as pd
@@ -10,16 +10,36 @@ import matplotlib.pyplot as plt
 
 def transform_data(data_points, timer, norm=None):
     timer.set_time_point("start_multitaper")
-    multitaper_df = apply_multitaper(data_points)
+    downsampled_data_points = downsample_EGG(data_points)
+    multitaper_df = apply_multitaper(downsampled_data_points)
     timer.print_duration_since("start_multitaper", "Time for multitaper")
     timer.set_time_point("start_smoothing")
     sxx_df = do_smoothing(multitaper_df, timer)
+    if not Config.use_norm:
+        return  pd.DataFrame(data=sxx_df.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
     if norm is None:
         norm = calculate_norm(sxx_df, multitaper_df.columns, timer)
     sxx_norm = sxx_df.add(norm, axis=0)
     sxx_norm = pd.DataFrame(data=sxx_norm.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
     timer.print_duration_since("start_smoothing", "Time to process spectrum")
     return sxx_norm
+
+#todo see if this can be moved earlier the process
+def downsample_EGG(eeg_data):
+    '''
+    Downsample the data to a target frequency
+
+    You can also replace the Butterworth filter with Bessel filter or the default Chebyshev filter.
+    system = dlti(*bessel(4,0.99))
+    system = dlti(*cheby1(3,0.05,0.99))
+    All filters produced very similar results for downsampling from 200Hz to 100Hz
+    '''
+    eeg_fs = 200#todo
+    target_fs = Config.eeg_fs
+    eeg_fs = round(eeg_fs)
+    rate = eeg_fs / target_fs
+    system = dlti(*butter(4, 0.99))
+    return decimate(eeg_data, round(rate), ftype=system, zero_phase=True)
 
 
 def apply_multitaper(data_points):

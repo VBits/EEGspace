@@ -6,6 +6,7 @@ import Preprocessing
 from Timing import Timer
 import sys
 import Storage
+from InputProcessingResult import InputProcessingResult
 
 #arguments include defaulted libraries that can be replaced for the purposes of mocking in tests
 def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=Config):
@@ -54,7 +55,7 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
         time_point, number_of_points_read, data_read = storage.consume_spike_output_data_file(spike_output_file_path)
         time_points.append(time_point)
         total_points += number_of_points_read
-        data_points.append(data_read)
+        data_points += data_read
         print("total points for mouse " + str(mouse_number) + " is " + str(total_points))
         timer.print_duration_since("start_reading_file", "Time doing file reading")
 
@@ -67,8 +68,9 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
             original_class_number = predicted_class[0]
             standardized_class_number = model.state_mappings[original_class_number]
             standardized_class_name = model.get_standard_state_name(standardized_class_number)
-            queue.put((mouse_number, epoch_count, standardized_class_number,
-                       standardized_class_name, original_class_number))
+            input_processing_result = InputProcessingResult(mouse_number, epoch_count, standardized_class_number,
+                                                            standardized_class_name, original_class_number)
+            queue.put(input_processing_result)
             data_points = data_points[config.eeg_fs * config.num_seconds_per_epoch:]
             if mouse_number in config.print_timer_info_for_mice:
                 print(len(data_points))

@@ -251,16 +251,29 @@ import Config
 #
 # #try_cycling_data()
 
-z = Config.training_data_path + "test_5.pkl"
+from numpy import linalg as LA
 
+import Storage
 
+import numpy as np
 
-print(z)
+norm_path = Config.norm_file_path.format(mouse_num=1)
 
-f = open(z, 'rb')
+old_norm_path = Config.training_data_path + "Old/Sxx_norm_200702_B6J_m1.pkl"
 
-x = pd.read_pickle(f)
-print(x)
+norm = Storage.load_from_file(norm_path)
+
+old_norm = np.array(Storage.load_from_file(old_norm_path))
+
+# print(data)
+#
+# print(data.shape)
+
+# new_norm = LA.norm(data, axis=1)
+
+print(norm)
+
+print(old_norm)
 
 print("done")
 

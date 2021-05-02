@@ -84,7 +84,7 @@ def get_classification_model(mouse_num, training_data, training_data_states):
 
 
 def get_norm(mouse_num):
-    return Storage.load_from_file(Config.norm_file_path.format(mouse_num=mouse_num))
+    return Storage.load_from_file(Config.norm_file_path.format(mouse_num=mouse_num)) if Config.load_norm_from_file else None
 
 
 class MouseModel:

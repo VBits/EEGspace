@@ -31,8 +31,8 @@ def create_user_interface(input_queue, output_queue, channels):
         if not input_queue.empty():
             next_status = input_queue.get()
         if next_status is not None:
-            channel_number = next_status[0]
-            class_name = next_status[3]
+            channel_number = next_status.mouse_number
+            class_name = next_status.standardized_class_name
             color = "white" if class_name is None or class_name not in state_colors else state_colors[class_name]
             details = "Mouse " + str(channel_number) + " class: " + class_name
             text_element = window.FindElement(str(channel_number))
