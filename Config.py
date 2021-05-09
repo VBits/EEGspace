@@ -17,6 +17,7 @@ recreate_knn = False
 #todo change
 use_norm = True
 load_norm_from_file = True
+use_simple_ui = False
 
 # file paths and file names
 base_path = os.getcwd().replace("\\", "/") + "/"

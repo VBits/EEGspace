@@ -4,6 +4,7 @@ import Config
 import multiprocessing
 import TestFileGeneration
 import SimpleUserInterface
+import UserInterface
 import InputProcessing
 import threading
 import StimulusOutput
@@ -19,8 +20,12 @@ if __name__ == '__main__':
     ui_output_queue = manager.Queue()
     # stimulus_queues = []
 
-    p = multiprocessing.Process(target=SimpleUserInterface.create_user_interface,
-                                args=(ui_input_queue, ui_output_queue, Config.mice_numbers))
+    if Config.use_simple_ui:
+        p = multiprocessing.Process(target=SimpleUserInterface.create_user_interface,
+                                    args=(ui_input_queue, ui_output_queue, Config.mice_numbers))
+    else:
+        p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue,))
+
     jobs.append(p)
     p.start()
 
