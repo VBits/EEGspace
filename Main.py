@@ -8,6 +8,7 @@ import UserInterface
 import InputProcessing
 import threading
 import StimulusOutput
+import Modelling
 
 if __name__ == '__main__':
     lock = threading.Lock()
