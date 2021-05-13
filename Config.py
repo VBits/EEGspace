@@ -37,3 +37,10 @@ state_file_path = training_data_path + 'states_'+run_name+'_m{mouse_num}.pkl'
 lda_file_path = training_data_path + 'lda_'+run_name+'_m{mouse_num}.joblib'
 knn_file_path = training_data_path + 'knn_'+run_name+'_m{mouse_num}.joblib'
 norm_file_path = training_data_path + 'norm_'+run_name+'_m{mouse_num}.npy'
+
+state_colors = {
+    "REM": "#443e99",
+    "SWS": "#3e8399",
+    "LMwake": "#3e9944",
+    "HMwake": "#f2ef30",
+}
