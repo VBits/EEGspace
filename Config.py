@@ -13,7 +13,7 @@ print_timer_info_for_mice = []#[1, 2, 3, 4, 5, 6, 7]
 cycle_test_data = False
 recreate_model_file = True
 recreate_lda = False
-recreate_knn = False
+recreate_knn = True
 #todo change
 use_norm = True
 load_norm_from_file = True

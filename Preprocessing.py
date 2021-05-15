@@ -16,7 +16,7 @@ def transform_data(data_points, timer, norm=None):
     timer.set_time_point("start_smoothing")
     sxx_df = do_smoothing(multitaper_df, timer)
     if not Config.use_norm:
-        return  pd.DataFrame(data=sxx_df.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
+        return pd.DataFrame(data=sxx_df.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
     if norm is None:
         norm = calculate_norm(sxx_df, multitaper_df.columns, timer)
     sxx_norm = sxx_df.add(norm, axis=0)

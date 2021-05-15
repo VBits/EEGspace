@@ -11,6 +11,7 @@ from sklearn.metrics import classification_report, confusion_matrix, accuracy_sc
 
 import Storage
 
+#todo test label change flexibility
 standardized_states = {
     "REM": 0,
     "SWS": 1,

@@ -70,7 +70,7 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
             standardized_class_name = model.get_standard_state_name(standardized_class_number)
             input_processing_result = InputProcessingResult(mouse_number, epoch_count, standardized_class_number,
                                                             standardized_class_name, original_class_number,
-                                                            transformed_data, lda_point)
+                                                            transformed_data, lda_point, data_read)
             queue.put(input_processing_result)
             data_points = data_points[config.eeg_fs * config.num_seconds_per_epoch:]
             if mouse_number in config.print_timer_info_for_mice:
