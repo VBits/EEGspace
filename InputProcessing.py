@@ -53,6 +53,9 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
 
         timer.set_time_point("start_reading_file")
         time_point, number_of_points_read, data_read = storage.consume_spike_output_data_file(spike_output_file_path)
+        if time_point is None:
+            continue
+
         time_points.append(time_point)
         total_points += number_of_points_read
         data_points += data_read
@@ -70,7 +73,7 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
             standardized_class_name = model.get_standard_state_name(standardized_class_number)
             input_processing_result = InputProcessingResult(mouse_number, epoch_count, standardized_class_number,
                                                             standardized_class_name, original_class_number,
-                                                            transformed_data, lda_point, data_read)
+                                                            transformed_data, lda_point, data_read, time_point)
             queue.put(input_processing_result)
             data_points = data_points[config.eeg_fs * config.num_seconds_per_epoch:]
             if mouse_number in config.print_timer_info_for_mice:

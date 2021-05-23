@@ -57,6 +57,8 @@ def no_file_exists_at_location(path):
 
 
 def consume_spike_output_data_file(path):
+    if not os.path.isfile(path):
+        return None, None, None
     file_lock = threading.Lock()
     data_points = []
     with file_lock:

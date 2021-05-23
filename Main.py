@@ -8,9 +8,9 @@ import UserInterface
 import InputProcessing
 import threading
 import StimulusOutput
-import Modelling
 
 if __name__ == '__main__':
+
     lock = threading.Lock()
     if Config.cycle_test_data:
         TestFileGeneration.cycle_test_files(lock)
@@ -44,8 +44,10 @@ if __name__ == '__main__':
 
     stimulus_input_queue = queue.Queue()
     stimulus_output_queue = queue.Queue()
-    threading.Thread(target=StimulusOutput.randomize_stimulus_output,
-                     args=(stimulus_input_queue, stimulus_output_queue, "WhiteNoise"))
+    # stimulus_thread = threading.Thread(target=StimulusOutput.randomize_stimulus_output,
+    #                  args=(stimulus_input_queue, stimulus_output_queue, "WhiteNoise"))
+    # stimulus_thread.start()
+    # stimulus_thread.join()
 
     map(lambda p: p.join(), jobs)
 

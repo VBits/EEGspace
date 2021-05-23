@@ -26,11 +26,17 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.canvas1 = FigureCanvasQTAgg(self.figure1)
         self.ax1 = self.figure1.add_subplot(111)
         self.ax1.set_title("Raw data")
+        self.ax1.set_xlim([0, 400])
+        self.ax1.set_ylim([-300, 300])
 
         self.figure2 = Figure(figsize=(5, 5))
         self.canvas2 = FigureCanvasQTAgg(self.figure2)
         self.ax2 = self.figure2.add_subplot(111)
         self.ax2.set_title("Transformed data")
+
+
+        self.ax2.set_xlim([0, 200])
+        self.ax2.set_ylim([-5, 35])
 
         self.figure3 = Figure(figsize=(5, 5))
         self.canvas3 = FigureCanvasQTAgg(self.figure3)
@@ -109,7 +115,8 @@ class PlotWindow(QtWidgets.QMainWindow):
 
             class_name = result.standardized_class_name
             indicator_panel = self.indicator_panels[Config.mice_numbers.index(result.mouse_number)]
-            indicator_panel.setText("Predicted class for mouse " + str(result.mouse_number) + ": " + class_name)
+            indicator_panel.setText("Predicted class for mouse " + str(result.mouse_number) + " at timepoint" +
+                                    str(result.time_point) + " :" + class_name)
             stylesheet = self.indicator_panel_stylesheet + "color: black; background-color: " \
                          + Config.state_colors[class_name]
             indicator_panel.setStyleSheet(stylesheet)
@@ -121,12 +128,16 @@ class PlotWindow(QtWidgets.QMainWindow):
             self.ax1.clear()
             self.ax1.plot([x for x in range(1, len(raw_data) + 1)], [point for point in raw_data])
             self.ax1.set_title("Raw data")
+            self.ax1.set_xlim([0, 400])
+            self.ax1.set_ylim([-300, 300])
             self.canvas1.draw()
 
             data = result.transformed_data
             self.ax2.clear()
             self.ax2.plot([x for x in range(1, 202)], [point for point in data[0]])
             self.ax2.set_title("Transformed data")
+            self.ax2.set_xlim([0, 200])
+            self.ax2.set_ylim([-5, 35])
             self.canvas2.draw()
 
             scatter_point = result.lda_point[0]
