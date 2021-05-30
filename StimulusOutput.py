@@ -33,7 +33,7 @@ def randomize_stimulus_output(stimulus_input_queue, stimulus_output_queue, stimu
             within_time_window = seconds_since_last_stimulus > time_window
             can_output_stimulus = random.randint(1, 3) == 1 and within_time_window
             if can_output_stimulus:  # and stimulus_input_queue.standardized_class_name == "SWS":
-                output_action()
+                #output_action()
                 t = time.time()
                 last_stimulus_timestamp = t
                 stimulus_timepoints.append(t)

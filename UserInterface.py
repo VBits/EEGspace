@@ -33,8 +33,6 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.canvas2 = FigureCanvasQTAgg(self.figure2)
         self.ax2 = self.figure2.add_subplot(111)
         self.ax2.set_title("Transformed data")
-
-
         self.ax2.set_xlim([0, 200])
         self.ax2.set_ylim([-5, 35])
 
@@ -70,7 +68,7 @@ class PlotWindow(QtWidgets.QMainWindow):
 
         self.mouse_select = QComboBox()
         self.mouse_select.addItems([str(num) for num in Config.mice_numbers])
-        self.mouse_select.currentIndexChanged.connect(self.mouse_change)
+        self.mouse_select.activated[str].connect(self.mouse_change)
 
         self.indicator_layout = QGridLayout()
         self.indicator_panel_stylesheet = "text-align: center; border: none; padding: 5px; font-size: 20px;";
@@ -108,6 +106,9 @@ class PlotWindow(QtWidgets.QMainWindow):
 
     def mouse_change(self, mouse_num):
         self.mouse_num = mouse_num
+        self.ax1.clear()
+        self.ax2.clear()
+        #self.spot.remove()#broken
 
     def on_timeout(self):
         if not self.queue.empty():
@@ -129,7 +130,7 @@ class PlotWindow(QtWidgets.QMainWindow):
             self.ax1.plot([x for x in range(1, len(raw_data) + 1)], [point for point in raw_data])
             self.ax1.set_title("Raw data")
             self.ax1.set_xlim([0, 400])
-            self.ax1.set_ylim([-300, 300])
+            self.ax1.set_ylim([-200, 200])
             self.canvas1.draw()
 
             data = result.transformed_data

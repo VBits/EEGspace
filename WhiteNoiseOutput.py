@@ -16,9 +16,9 @@ def get_white_noise_function():
         on = (b"1\n")
         off = (b"0\n")
         print('Starting the audio on: {}'.format(datetime.datetime.now()))
-        #audio.write(on)
+        audio.write(on)
         time.sleep(duration)
-        #audio.write(off)
+        audio.write(off)
         print('Stopping the audio on: {}'.format(datetime.datetime.now()))
 
     return white_noise
