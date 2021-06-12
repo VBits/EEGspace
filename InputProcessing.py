@@ -36,7 +36,8 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
     time.sleep(0.50)
 
     # start the timer
-    iteration_deadline = time.time() + seconds_per_iteration
+    start_time = time.time()
+    iteration_deadline = start_time + seconds_per_iteration
 
     while True:
         # if already past the deadline then record dropped epochs and reset the deadline
