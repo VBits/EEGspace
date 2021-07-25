@@ -3,17 +3,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
-import numpy as np
-import pandas as pd
-from sklearn.neighbors import KNeighborsClassifier
-import joblib
-import datetime
-import os
-from pydpc import Cluster
 import sys
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from smrx_version.functions import *
-import matplotlib as mpl
 import matplotlib
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
@@ -24,9 +16,9 @@ def run_offline_analysis():
     mh = Mouse("B6J", 1)
 
     #data directory
-    EphysDir = 'C:/Users/bitsik0000/SleepData/'
+    EphysDir = 'C:/Users/matthew.grant/source/repos/ClosedLoopEEG/data/Ephys/'
 
-    Folder = '210409/Ephys/'
+    Folder = ''
     File = '210409_000.smrx'
 
     FilePath = EphysDir+Folder+File

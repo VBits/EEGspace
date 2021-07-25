@@ -61,13 +61,13 @@ class Mouse:
         pos_test = "G{}".format(self.pos)
         self.Mouse_Ch = [s for s in self.Ch_name if pos_test in s]
         self.EEG_data = self.f[str(self.Mouse_Ch[0])]["values"][0, :]
-        self.EEG_data = scipy.signal.resample(self.EEG_data, int(len(self.EEG_data)/2.5))
+        #self.EEG_data = scipy.signal.resample(self.EEG_data, int(len(self.EEG_data)/2.5))
 
         start = pd.DataFrame(self.f['file']['start'][0].reshape(6,1).T, columns = ['year',
                               'month','day','hour','minute','second'])
         self.start = pd.to_datetime(start)
         self.interval = self.f["{}".format(self.Mouse_Ch[0])]['interval'][0][0]
-        self.EEG_fs = int((1 / self.f["{}".format(self.Mouse_Ch[0])]['interval'][0][0])/2.5) #downsampled by a factor of 2.5
+        self.EEG_fs = int((1 / self.f["{}".format(self.Mouse_Ch[0])]['interval'][0][0])) #downsampled by a factor of 2.5 /2.5
         if len(self.Mouse_Ch) == 2:
             self.EMG_data = self.f["{}".format(self.Mouse_Ch[1])]["values"][0, :]
             self.EMG_fs = 1 / self.f["{}".format(self.Mouse_Ch[1])]['interval'][0][0]

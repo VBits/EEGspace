@@ -876,4 +876,3 @@ def run_keras_basic_autencoder(x, states, load_weights=True):
 #cluster_on_encoded()
 
 
-
