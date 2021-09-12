@@ -10,9 +10,9 @@ import threading
 import struct
 
 
-def load_or_recreate_file(path, recreate_function, recreate_file=False):
+def load_or_recreate_file(path, recreate_function, recreate_file=False, params={}):
     if recreate_file or not os.path.isfile(path):
-        object = recreate_function()
+        object = recreate_function(**params)
         dump_to_file(path, object)
     else:
         object = load_from_file(path)

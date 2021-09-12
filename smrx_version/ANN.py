@@ -14,7 +14,7 @@ ANNfolder = Config.base_path + '/ANN'
 
 def try_ann(series, states, convert_states=True):
     states_numeric = np.array([s[0] for s in np.array(states)]) if convert_states else states
-    rand_idx = np.random.choice(len(series), size=40000, replace=False)
+    rand_idx = np.random.choice(len(series), size=150000, replace=False)
     X = series.iloc[rand_idx]
 
     model = keras.Sequential([
@@ -55,7 +55,7 @@ def try_ann(series, states, convert_states=True):
     # Train the model
     model.fit(X.values, y,
               class_weight=classWeight,
-              epochs=50)
+              epochs=150)
 
     # test accuracy
     # test_loss, test_acc = model.evaluate(X.values.T,mh.state_df['clusters_knn'][rand_idx].values, verbose=2)
@@ -67,9 +67,9 @@ def try_ann(series, states, convert_states=True):
     predictions = probability_model.predict(series)
     state_predictions = np.argmax(predictions, axis=1)
 
-    _, lda_encoded_data = train_lda(series, states_numeric)
-
-    plot_lda(lda_encoded_data, state_predictions)
+    # _, lda_encoded_data = train_lda(series, states_numeric)
+    #
+    # plot_lda(lda_encoded_data, state_predictions)
 
     # save model
     model.save(ANNfolder + 'keras_model_2.h5')

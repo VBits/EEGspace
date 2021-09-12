@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 import numpy as np
 from scipy.signal import savgol_filter
-
 import Config
 import Storage
 from smrx_version import Offline_analysis
