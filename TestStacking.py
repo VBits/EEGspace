@@ -1,4 +1,5 @@
 import pandas as pd
+from scipy.signal import savgol_filter
 
 import Common
 import Config
@@ -152,6 +153,22 @@ def train_ann_on_transitions(series, states, buffer=50, subset_size=None, load_f
     print("General accuracy:" + str(general_accuracy) + "%")
     print("Transition accuracy:" + str(transition_accuracy) + "%")
 
+# def generate_plots_for_blog(series):
+#     #generate some savgol data with various window sizes and plot them
+#     #shorter data
+#     window_size = 29
+#     poly_order = 1
+#     subset = series[0:10]#Common.select_random_data(series, 15)
+#     subset = np.array(subset).flatten()
+#     subset = np.array([subset])
+#     new_data = savgol_filter(subset, window_size, poly_order)
+#     to_plot = np.stack([subset, new_data], axis=1)
+#     labels = ["original data", "savgol smoothed"]
+#     title = "Window size=" + str(window_size) + ", Polynomial order=" + str(poly_order)
+#     colors = ['-b', '-g']
+#     weights = [1,3]
+#     Common.plot_data_overlayed(to_plot, title, labels, colors, weights)
+#     print("done")
 
 
 def create_statespace_from_last_epoch_averages(series, states, number_of_averages=3):
@@ -174,6 +191,7 @@ if __name__ == '__main__':
     multitaper, unsmoothed, smoothed, states = load_offline_data()
     if False:
         Common.graph_transition_averages(unsmoothed, states)
-    train_ann_on_transitions(unsmoothed, states)
+        train_ann_on_transitions(unsmoothed, states)
+    #generate_plots_for_blog(unsmoothed)
     #create_statespace_from_prev_savgol(unsmoothed, states)
     # create_statespace_from_last_epoch_averages(unsmoothed, states)

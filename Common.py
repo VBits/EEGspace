@@ -63,6 +63,27 @@ def apply_savgol(series, window_size=41, iterations=10):
     return series
 
 
+def plot_data_overlayed(data, plot_title="plot", labels=None, colors=None, weights=None):
+    for i in range(len(data)):#subplots
+        ax = plt.subplot(1, len(data), i + 1)
+        for j in range(len(data[i])):#overlapping plots
+            if labels is None:
+                ax.plot(data)
+            else:
+                color = colors[j] if colors is not None else '-b'
+                weight = weights[j] if weights is not None else 1
+                ax.plot(data[i][j], color, label=labels[j], linewidth=weight)
+        plt.legend()
+        if plot_title is not None:
+            plt.title(plot_title)
+    plt.show()
+
+
+def select_random_data(series, size):
+    rand_idx = np.random.choice(series.shape[0], size=size, replace=False)
+    return np.array(series)[rand_idx]
+
+
 def plot_transition_states(series1, series2, series3, numeric_states, series1_label='Series 1',
                            series2_label='Series 2', series3_label='Series 3'):
     transitions = []
