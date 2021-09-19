@@ -14,14 +14,17 @@ ANNfolder = Config.base_path + '/ANN'
 
 def try_ann(series, states, convert_states=True):
     states_numeric = np.array([s[0] for s in np.array(states)]) if convert_states else states
-    rand_idx = np.random.choice(len(series), size=150000, replace=False)
+    rand_idx = np.random.choice(len(series), size=100000, replace=False)
     X = series.iloc[rand_idx]
+    y = states_numeric[rand_idx]
+    state_numbers = np.unique(y)
 
     model = keras.Sequential([
         keras.layers.Input(shape=(len(series.T),)),
         keras.layers.Dense(32, activation='relu', name='1stHidden'),
         keras.layers.Dense(16, activation='relu', name='2ndHidden'),
-        keras.layers.Dense(4)
+        # keras.layers.Dense(16, activation='relu', name='3rdHidden'),
+        keras.layers.Dense(len(state_numbers))
     ])
 
     # Optional Plot model
@@ -33,10 +36,6 @@ def try_ann(series, states, convert_states=True):
     #                  'LMwake':2,
     #                  'HMwake':3
     #                  }
-
-    y = states_numeric[rand_idx]
-
-    state_numbers = np.unique(y)
 
     classWeight = compute_class_weight('balanced', state_numbers, y)
     # classWeight = dict(enumerate(classWeight))
@@ -55,7 +54,7 @@ def try_ann(series, states, convert_states=True):
     # Train the model
     model.fit(X.values, y,
               class_weight=classWeight,
-              epochs=150)
+              epochs=5)
 
     # test accuracy
     # test_loss, test_acc = model.evaluate(X.values.T,mh.state_df['clusters_knn'][rand_idx].values, verbose=2)
@@ -73,6 +72,8 @@ def try_ann(series, states, convert_states=True):
 
     # save model
     model.save(ANNfolder + 'keras_model_2.h5')
+
+    return state_predictions
 
 if __name__ == '__main__':
     multitaper, unsmoothed, smoothed, states = load_offline_data()
