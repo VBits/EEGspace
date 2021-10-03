@@ -49,7 +49,7 @@ def load_offline_data():
     multitaper = data["multitaper"]
     unsmoothed = data["unsmoothed"]
     smoothed = data["smoothed"]
-    states = Storage.load_from_file("/data/Ephys/states_210409_210409_B6J_m1.pkl")
+    states = Storage.load_from_file(Config.base_path + "/data/Ephys/states_210409_210409_B6J_m1.pkl")
     return multitaper, unsmoothed, smoothed, states
 
 

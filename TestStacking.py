@@ -142,6 +142,11 @@ def try_knn_with_prev_and_current_epoch_probabiliites(series, states, buffer=50,
     neigh_mirror_transformed.fit(lda_transformed_mirror_transformed, states_numeric)
     state_predictions_probability_mirror_transformed = neigh_mirror_transformed.predict_proba(lda_transformed_mirror_transformed)
 
+    state_predictions_mirror_transformed = neigh_mirror_transformed.predict(lda_transformed_mirror_transformed)
+    general_accuracy = Common.compare_states_for_accuracy(states_numeric, state_predictions_mirror_transformed)
+
+    print(general_accuracy)
+
     neigh_prev_epochs = KNeighborsClassifier(n_neighbors=8)
     neigh_prev_epochs.fit(lda_transformed_prev_epoch, states_numeric)
     state_predictions_probability_prev_epochs = neigh_prev_epochs.predict_proba(lda_transformed_prev_epoch)
