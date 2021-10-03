@@ -106,6 +106,11 @@ def try_knn_with_prev_and_current_epoch_probabiliites(series, states, buffer=50,
     if subset_size is None:
         subset_size = np.array(series).shape[0]
 
+    x = Common.get_state_mapping_from_list(np.array(states))
+    print(x)
+
+    standard_lda = Storage.load_from_file(Config.base_path + '/smrx_version/lda_210216_210301_Vglut2Cre-SuM_all_mice.joblib')
+
     save_file_path = Config.base_path + "/mirror_transformed_" + str(subset_size) + "_long.pkl"
     params = {'series': series }
     mirror_transformed = Storage.load_or_recreate_file(save_file_path, mirror_transform_faster, not load_from_file, params)
@@ -117,6 +122,8 @@ def try_knn_with_prev_and_current_epoch_probabiliites(series, states, buffer=50,
     params = {'series': series, 'buffer': buffer, 'subset_size': subset_size}
     prev_epochs = Storage.load_or_recreate_file(save_file_path, smooth_prev_epochs_with_savgol, not load_from_file,
                                                params)
+
+
 
     states_numeric = states_to_numeric_version(states)[buffer:subset_size]
     Storage.dump_to_file(Config.base_path + "/ground_truth_states.pkl", states_numeric)
@@ -135,10 +142,19 @@ def try_knn_with_prev_and_current_epoch_probabiliites(series, states, buffer=50,
     lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs.pkl",
                                                    train_lda_for_object_retrieval, False, params)
 
-    lda_transformed_mirror_transformed = lda_result_log10['lda'].transform(mirror_transformed)
+    # lda_transformed_mirror_transformed = lda_result_log10['lda'].transform(mirror_transformed)
+    lda_transformed_mirror_transformed = standard_lda.transform(mirror_transformed)
     Common.plot_lda(lda_transformed_mirror_transformed, states_numeric)
+    Storage.dump_to_file(Config.base_path + "/mirror_lda_transformed_data_pretrained_lda.pkl", lda_transformed_mirror_transformed)
+
+    ground_truth_lda_transformed_data_pretrained_lda = standard_lda.transform(series[buffer:])
+    Common.plot_lda(ground_truth_lda_transformed_data_pretrained_lda, states_numeric)
+    Storage.dump_to_file(Config.base_path + "/ground_truth_lda_transformed_data_pretrained_lda.pkl",
+                         ground_truth_lda_transformed_data_pretrained_lda)
+
 
     lda_transformed_prev_epoch = lda_result_prev_epoch['lda'].transform(prev_epochs)
+    # lda_transformed_prev_epoch = standard_lda.transform(prev_epochs)
     Common.plot_lda(lda_transformed_prev_epoch, states_numeric)
 
     from sklearn.neighbors import KNeighborsClassifier
