@@ -12,7 +12,7 @@ from Common import train_lda, load_offline_data, plot_lda
 
 ANNfolder = Config.base_path + '/ANN'
 
-def try_ann(series, states, convert_states=True):
+def try_ann(series, states, convert_states=True, return_probabilities=True):
     states_numeric = np.array([s[0] for s in np.array(states)]) if convert_states else states
     rand_idx = np.random.choice(len(series), size=100000, replace=False)
     X = series.iloc[rand_idx]
@@ -54,7 +54,8 @@ def try_ann(series, states, convert_states=True):
     # Train the model
     model.fit(X.values, y,
               class_weight=classWeight,
-              epochs=5)
+              epochs=10,
+              batch_size=64)
 
     # test accuracy
     # test_loss, test_acc = model.evaluate(X.values.T,mh.state_df['clusters_knn'][rand_idx].values, verbose=2)
@@ -64,6 +65,10 @@ def try_ann(series, states, convert_states=True):
     # classify dataframe using ANN
     probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
     predictions = probability_model.predict(series)
+    model.save(ANNfolder + 'keras_model_2.h5')
+    if return_probabilities:
+        return predictions
+
     state_predictions = np.argmax(predictions, axis=1)
 
     # _, lda_encoded_data = train_lda(series, states_numeric)
@@ -71,8 +76,6 @@ def try_ann(series, states, convert_states=True):
     # plot_lda(lda_encoded_data, state_predictions)
 
     # save model
-    model.save(ANNfolder + 'keras_model_2.h5')
-
     return state_predictions
 
 if __name__ == '__main__':
