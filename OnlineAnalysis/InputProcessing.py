@@ -9,6 +9,7 @@ import sys
 import Storage
 from OnlineAnalysis.InputProcessingResult import InputProcessingResult
 
+
 # arguments include defaulted libraries that can be replaced for the purposes of mocking in tests
 def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=Config):
 
@@ -59,7 +60,7 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
             timer = Timer("start_time", mouse_number, iteration)
 
             timer.set_time_point("start_reading_file")
-            time_point, number_of_points_read, data_read = storage.consume_spike_output_data_file(
+            time_point, number_of_points_read, data_read = storage.consume_spike2_output_data_file(
                 spike_output_file_path)
 
             time_points.append(time_point)
