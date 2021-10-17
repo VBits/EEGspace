@@ -87,34 +87,3 @@ def do_smoothing(multitaper_df, timer, iterations=Config.smoothing_iterations):
     return sxx_df
 
 
-def density_calc(dataframe, boundary=(-100, 90)):
-    # now calculate the bins for each frequency
-    density_mat = []
-    mean_density = []
-    for i in range(len(dataframe.index)):
-        # timer.set_time_point("density_calc_iteration_"+str(i))
-        density, bins = np.histogram(dataframe.iloc[i, :], bins=5000, range=boundary, density=True)
-        density_mat.append(density)
-        mean_density.append(dataframe.iloc[i, :].mean())
-        # timer.print_duration_since("density_calc_iteration_"+str(i))
-    density_mat = np.array(density_mat)
-    bins = (bins[1:] + bins[:-1]) / 2
-    return density_mat, bins
-
-
-def calculate_norm(sxx_df, columns, timer):
-    timer.set_time_point("start_density_calc")
-    density_mat, bins = density_calc(sxx_df, boundary=(-100, 90))  # -1,1550
-
-    timer.print_duration_since("start_density_calc")
-    timer.set_time_point("savgol_2")
-
-    density_df = pd.DataFrame(index=bins, data=density_mat.T, columns=columns)
-    for i in range(Config.smoothing_iterations):
-        density_df = density_df.apply(apply_savgol_filter, axis=0, result_type='expand')
-
-    timer.print_duration_since("savgol_2")
-
-    baseline = np.argmax(density_df.values > 0.01, axis=0)
-
-    return 0 - bins[baseline]
