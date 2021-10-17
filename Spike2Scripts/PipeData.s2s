@@ -30,7 +30,7 @@
 ' to tidy up the code. It also means we cannot use FileStatus() to find out file information, which would
 ' make the code less obscure when detecting if the file is still present.
 
-const ADCRate := 100;   ' The expected sample rate of the output files
+const ADCRate := 200;   ' The expected sample rate of the output files
 const tSave := 2.0;     ' How often to send data and the length of data to send
 var root$;              ' Path to root folder
 const data$ := "data.bin"; 'data file name (could use data%d.bin if using to create multiple files)
