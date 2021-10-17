@@ -4,7 +4,7 @@ Online analysis
 import numpy as np
 import Config
 import time
-import Modelling
+import LoadModels
 import Preprocessing
 from Timing import Timer
 import sys
@@ -13,7 +13,7 @@ from InputProcessingResult import InputProcessingResult
 
 
 # arguments include defaulted libraries that can be replaced for the purposes of mocking in tests
-def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=Config):
+def run_loop(mouse_number, queue, storage=Storage, modelling=LoadModels, config=Config):
 
     # set up variables
     model = modelling.get_model_for_mouse(mouse_number)

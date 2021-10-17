@@ -12,7 +12,7 @@ import Config
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
-import Modelling
+import LoadModels
 import numpy as np
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from pandas.plotting import register_matplotlib_converters
@@ -44,7 +44,7 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.ax3 = self.figure3.add_subplot(111, projection='3d')
 
         self.queue = queue
-        self.model = Modelling.get_model_for_mouse(1)#todo
+        self.model = LoadModels.get_model_for_mouse(1)#todo
         self.lda_encoded = self.model.lda.transform(self.model.training_data)
 
         n = 40000

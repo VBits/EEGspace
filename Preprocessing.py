@@ -11,6 +11,23 @@ import scipy
 import Timing
 import matplotlib.pyplot as plt
 
+def smooth_prev_epochs_with_savgol(series, buffer, subset_size):
+    epoch_size = series.shape[1]
+    subset = np.array(series[:subset_size])
+
+    new_series = []
+    subset_flattened = subset.flatten()
+    for i in range(0, subset_size):
+        if i < buffer:
+            continue
+        buffer_expanded = buffer * epoch_size
+        index_expanded = i * epoch_size
+        subseries = np.array(subset_flattened[index_expanded - buffer_expanded:index_expanded])
+        subseries_smoothed = apply_savgol(subseries, 41, 4)
+        new_series.append(subseries_smoothed)
+
+    new_series = np.array(new_series).flatten().reshape(subset_size - buffer, epoch_size * buffer)
+    return new_series
 
 def transform_data(data_points, timer, norm=None):
     timer.set_time_point("start_multitaper")
