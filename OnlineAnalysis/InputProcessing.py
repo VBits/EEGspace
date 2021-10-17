@@ -8,14 +8,14 @@ from OnlineAnalysis.Timing import Timer
 import sys
 import Storage
 from OnlineAnalysis.InputProcessingResult import InputProcessingResult
-from Modelling import MouseModel
+from OnlineAnalysis.LoadModels import MouseModel
 
 
 # arguments include defaulted libraries that can be replaced for the purposes of mocking in tests
 def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, config=Config):
 
     # set up variables
-    model = MouseModel(mouse_num)
+    model = MouseModel(mouse_number)
 
     data_points = []
     time_points = []
