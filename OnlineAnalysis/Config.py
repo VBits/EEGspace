@@ -5,25 +5,20 @@ Online analysis
 
 import os
 
-#############################
-#Universal variables
-
-#############################
-
 #Digitization frequency
 eeg_fs = 100
-#Savgol iterations (recommended range 0-4)
-smoothing_iterations = 4
 #Specify the time resolution for each epoch
 num_seconds_per_epoch = 2
-#Specify buffer length for savgol filtering
+#Specify the buffer length
 epoch_buffer = 50
 #Savgol filtering parameters
 savgol_window=41
 savgol_order=2
+#Savgol iterations (recommended range 0-4)
+smoothing_iterations = 4
 #Specify number of epochs used for dimensionality reduction
 LDA_epochs = 51
-
+#rig position
 rig_position = [1]  # array of numbers 1-8
 print_timer_info_for_mice = [1]#[1, 2, 3, 4, 5, 6, 7]
 
@@ -32,19 +27,17 @@ cycle_test_data = False
 recreate_model_file = True
 recreate_lda = False
 recreate_knn = True
-#todo change
-use_norm = True
-load_norm_from_file = True
-use_simple_ui = False
 
 # file paths and file names
 base_path = os.getcwd().replace("\\", "/") + "/"
 channel_file_base_path = \
     base_path + "ChannelData/{channel_number}/data.bin" if cycle_test_data \
     else "C:/Users/bitsik0000/SleepData/binaries/{channel_number}/data.bin"
+
+#Naming and file convensions
 data_path = base_path + "data/"
 mouse_object_path = data_path + "mouse_object.pkl"
-lda_model_path = data_path + "model.pkl"
+lda_model_path = data_path + "lda_model.pkl"
 mouse_model_path = data_path + "Models/{mouse_num}/mouse_model.pkl"
 training_data_path = data_path + "CombinedData/"
 raw_data_file = training_data_path + "200724_000_B6J_burrowingSD.mat"
