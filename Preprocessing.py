@@ -1,3 +1,7 @@
+"""
+Offline analysis
+"""
+
 import nitime.algorithms as tsa
 from scipy.signal import detrend, dlti, butter, decimate
 import Config

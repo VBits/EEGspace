@@ -1,3 +1,6 @@
+"""
+Online analysis
+"""
 import numpy as np
 import Config
 import time

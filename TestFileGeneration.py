@@ -1,3 +1,7 @@
+"""
+Online analysis simulation
+"""
+
 from random import *
 import struct
 import Config

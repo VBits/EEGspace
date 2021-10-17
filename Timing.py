@@ -1,3 +1,6 @@
+"""
+Code optimization
+"""
 import Config
 import time
 

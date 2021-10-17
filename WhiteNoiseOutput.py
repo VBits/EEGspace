@@ -1,3 +1,7 @@
+"""
+Online analysis - Stimulus delivery
+"""
+
 import serial
 import time
 import datetime

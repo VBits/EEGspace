@@ -1,9 +1,11 @@
+"""
+Online analysis
+"""
 import queue
 import sys
 import Config
 import multiprocessing
 import TestFileGeneration
-import SimpleUserInterface
 import UserInterface
 import InputProcessing
 import threading
@@ -21,11 +23,8 @@ if __name__ == '__main__':
     ui_output_queue = manager.Queue()
     # stimulus_queues = []
 
-    if Config.use_simple_ui:
-        p = multiprocessing.Process(target=SimpleUserInterface.create_user_interface,
-                                    args=(ui_input_queue, ui_output_queue, Config.mice_numbers))
-    else:
-        p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue,))
+
+    p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue,))
 
     jobs.append(p)
     p.start()

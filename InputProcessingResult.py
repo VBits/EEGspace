@@ -1,3 +1,8 @@
+"""
+Online analysis
+"""
+
+
 class InputProcessingResult:
 
     def __init__(self, mouse_number, epoch_count, standardized_class_number, standardized_class_name,
