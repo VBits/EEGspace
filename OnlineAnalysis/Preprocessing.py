@@ -34,12 +34,7 @@ def transform_data(data_points, timer, norm=None):
     timer.print_duration_since("start_multitaper", "Time for multitaper")
     timer.set_time_point("start_smoothing")
     sxx_df = do_smoothing(multitaper_df, timer)
-    if not Config.use_norm:
-        return pd.DataFrame(data=sxx_df.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
-    if norm is None:
-        norm = calculate_norm(sxx_df, multitaper_df.columns, timer)
-    sxx_norm = sxx_df.add(norm, axis=0)
-    sxx_norm = pd.DataFrame(data=sxx_norm.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
+    sxx_norm = pd.DataFrame(data=sxx_df.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
     timer.print_duration_since("start_smoothing", "Time to process spectrum")
     return sxx_norm
 

@@ -23,7 +23,7 @@ rig_position = [1]  # array of numbers 1-8
 print_timer_info_for_mice = [1]#[1, 2, 3, 4, 5, 6, 7]
 
 # boolean
-cycle_test_data = False
+cycle_test_data = True
 recreate_model_file = True
 recreate_lda = False
 recreate_knn = True
