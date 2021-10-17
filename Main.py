@@ -40,12 +40,12 @@ if __name__ == '__main__':
         #                  args=(stimulus_input_queue, stimulus_output_queue, "BrainLaser"))
 
     #Bulk stimulus
-    stimulus_input_queue = queue.Queue()
-    stimulus_output_queue = queue.Queue()
-    stimulus_thread = threading.Thread(target=StimulusOutput.randomize_stimulus_output,
-                                       args=(stimulus_input_queue, stimulus_output_queue, "WhiteNoise"))
-    stimulus_thread.start()
-    stimulus_thread.join()
+    # stimulus_input_queue = queue.Queue()
+    # stimulus_output_queue = queue.Queue()
+    # stimulus_thread = threading.Thread(target=StimulusOutput.randomize_stimulus_output,
+    #                                    args=(stimulus_input_queue, stimulus_output_queue, "WhiteNoise"))
+    # stimulus_thread.start()
+    # stimulus_thread.join()
 
     map(lambda p: p.join(), jobs)
 
