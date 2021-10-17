@@ -6,7 +6,7 @@ import pickle
 import numpy as np
 import os
 import h5py
-import Config
+from OnlineAnalysis import Config
 from tslearn.preprocessing import TimeSeriesResampler
 import pandas as pd
 import threading

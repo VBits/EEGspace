@@ -4,7 +4,7 @@ Online analysis simulation
 
 from random import *
 import struct
-import Config
+from OnlineAnalysis import Config
 import threading
 import time
 import os
@@ -16,7 +16,7 @@ import Storage
 def cycle_test_files(file_lock, use_random=False):
     epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
     f = h5py.File(Config.raw_data_file, 'r') #don't load file multiple times
-    for mouse_num in Config.mice_numbers:
+    for mouse_num in Config.rig_position:
         channel_number = mouse_num-1
         path = Config.channel_file_base_path.format(channel_number=channel_number)
         eeg_data = Storage.load_downsampled_raw_data(mouse_num, f)
@@ -45,5 +45,6 @@ def file_creation(data_points, epoch_size, channel_number, file_lock):
                 start_point = epoch * epoch_size
                 for data_point in data_points[start_point:start_point + epoch_size]:
                     f.write(struct.pack('<f', data_point))
-        time.sleep(Config.num_seconds_per_epoch - ((time.time() - start_time) % Config.num_seconds_per_epoch))
+        time.sleep(
+            Config.num_seconds_per_epoch - ((time.time() - start_time) % Config.num_seconds_per_epoch))
 

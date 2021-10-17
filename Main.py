@@ -3,18 +3,14 @@ Online analysis
 """
 import queue
 import sys
-import Config
+from OnlineAnalysis import Config as ConfigOnline, InputProcessing, TestFileGeneration, StimulusOutput, UserInterface
 import multiprocessing
-import TestFileGeneration
-import UserInterface
-import InputProcessing
 import threading
-import StimulusOutput
 
 if __name__ == '__main__':
 
     lock = threading.Lock()
-    if Config.cycle_test_data:
+    if ConfigOnline.cycle_test_data:
         TestFileGeneration.cycle_test_files(lock)
     jobs = []
     manager = multiprocessing.Manager()
@@ -29,11 +25,13 @@ if __name__ == '__main__':
     jobs.append(p)
     p.start()
 
-    for mouse_number in Config.mice_numbers:
+    #start processing EEG data
+    for mouse_number in ConfigOnline.rig_position:
         p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_number, file_queue))
         jobs.append(p)
         p.start()
         sys.stdout.flush()
+        #TODO change only if you're delivering stimuli to mice at diffirent times
         #for later when we have other forms of stimulus
         # stimulus_input_queue = queue.Queue()
         # stimulus_output_queue = queue.Queue()
@@ -41,10 +39,11 @@ if __name__ == '__main__':
         # threading.Thread(target=StimulusOutput.randomize_stimulus_output,
         #                  args=(stimulus_input_queue, stimulus_output_queue, "BrainLaser"))
 
+    #Bulk stimulus
     stimulus_input_queue = queue.Queue()
     stimulus_output_queue = queue.Queue()
     stimulus_thread = threading.Thread(target=StimulusOutput.randomize_stimulus_output,
-                     args=(stimulus_input_queue, stimulus_output_queue, "WhiteNoise"))
+                                       args=(stimulus_input_queue, stimulus_output_queue, "WhiteNoise"))
     stimulus_thread.start()
     stimulus_thread.join()
 

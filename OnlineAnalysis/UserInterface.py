@@ -2,17 +2,16 @@
 Online analysis
 """
 import sys
-from PyQt5.QtWidgets import QWidget, QComboBox, QLabel,QHBoxLayout,QVBoxLayout,\
-    QPushButton, QSlider, QStyle, QSizePolicy, QFileDialog, QGridLayout
+from PyQt5.QtWidgets import QWidget, QComboBox, QLabel,QHBoxLayout,QVBoxLayout, \
+    QGridLayout
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-import Config
+from OnlineAnalysis import Config, Modelling
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
-import Modelling
 import numpy as np
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from pandas.plotting import register_matplotlib_converters
@@ -70,13 +69,13 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.mouse_select_label = QLabel("Mouse number:")
 
         self.mouse_select = QComboBox()
-        self.mouse_select.addItems([str(num) for num in Config.mice_numbers])
+        self.mouse_select.addItems([str(num) for num in Config.rig_position])
         self.mouse_select.activated[str].connect(self.mouse_change)
 
         self.indicator_layout = QGridLayout()
         self.indicator_panel_stylesheet = "text-align: center; border: none; padding: 5px; font-size: 20px;";
         self.indicator_panels = []
-        for mouse_num in Config.mice_numbers:
+        for mouse_num in Config.rig_position:
             indicator_panel = QLabel("Reading buffer for mouse " + str(mouse_num) + "...")
             indicator_panel.setStyleSheet(self.indicator_panel_stylesheet)
             indicator_panel.setAlignment(QtCore.Qt.AlignCenter)
@@ -105,7 +104,7 @@ class PlotWindow(QtWidgets.QMainWindow):
         # timer interval in milliseconds
         timer.start(500)
 
-        self.mouse_num = Config.mice_numbers[0]#initialize to the first mouse number
+        self.mouse_num = Config.rig_position[0]#initialize to the first mouse number
 
     def mouse_change(self, mouse_num):
         self.mouse_num = mouse_num
@@ -118,7 +117,7 @@ class PlotWindow(QtWidgets.QMainWindow):
             result = self.queue.get()
 
             class_name = result.standardized_class_name
-            indicator_panel = self.indicator_panels[Config.mice_numbers.index(result.mouse_number)]
+            indicator_panel = self.indicator_panels[Config.rig_position.index(result.mouse_number)]
             indicator_panel.setText("Predicted class for mouse " + str(result.mouse_number) + " at timepoint" +
                                     str(result.time_point) + " :" + class_name)
             stylesheet = self.indicator_panel_stylesheet + "color: black; background-color: " \

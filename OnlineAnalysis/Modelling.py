@@ -5,7 +5,7 @@ Online analysis
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 import os
 import pickle
-import Config
+from OnlineAnalysis import Config
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import numpy as np

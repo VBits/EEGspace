@@ -2,14 +2,12 @@
 Online analysis
 """
 import numpy as np
-import Config
+from OnlineAnalysis import Config, Modelling, Preprocessing
 import time
-import Modelling
-import Preprocessing
-from Timing import Timer
+from OnlineAnalysis.Timing import Timer
 import sys
 import Storage
-from InputProcessingResult import InputProcessingResult
+from OnlineAnalysis.InputProcessingResult import InputProcessingResult
 
 # arguments include defaulted libraries that can be replaced for the purposes of mocking in tests
 def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=Config):
@@ -70,7 +68,7 @@ def run_loop(mouse_number, queue, storage=Storage, modelling=Modelling, config=C
             print("total points for mouse " + str(mouse_number) + " is " + str(total_points))
             timer.print_duration_since("start_reading_file", "Time doing file reading")
 
-            if iteration > config.iteration_buffer:
+            if iteration > config.epoch_buffer:
                 timer.set_time_point("start_data_analysis")
                 transformed_data = Preprocessing.transform_data(data_points, timer, model.norm)
                 transformed_data = [np.array(transformed_data)[-1]]

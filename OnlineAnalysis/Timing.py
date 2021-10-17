@@ -1,7 +1,7 @@
 """
 Code optimization
 """
-import Config
+from OnlineAnalysis import Config
 import time
 
 
