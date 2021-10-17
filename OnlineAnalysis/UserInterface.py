@@ -8,7 +8,7 @@ from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-from OnlineAnalysis import Config, LoadModels
+from OnlineAnalysis import Config, Modelling
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
@@ -43,7 +43,7 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.ax3 = self.figure3.add_subplot(111, projection='3d')
 
         self.queue = queue
-        self.model = LoadModels.get_model_for_mouse(1)#todo
+        self.model = Modelling.get_model_for_mouse(1)#todo
         self.lda_encoded = self.model.lda.transform(self.model.training_data)
 
         n = 40000
