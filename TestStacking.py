@@ -31,6 +31,14 @@ def smooth_prev_epochs_with_savgol(series, buffer, subset_size):
 
 
 def try_ann_with_prev_and_current_epoch_probabiliites(series, states, buffer=50, subset_size=None, load_from_file=True):
+
+    #load in the indexes
+    #filter the series and states by the new loaded indexes
+    #train as usal
+    #compare confusion matrix and plot the lda with the new state colors
+
+
+
     if subset_size is None:
         subset_size = np.array(series).shape[0]
 
@@ -39,6 +47,8 @@ def try_ann_with_prev_and_current_epoch_probabiliites(series, states, buffer=50,
     params = {'series': series, 'buffer': buffer, 'subset_size': subset_size}
     new_series = Storage.load_or_recreate_file(save_file_path, smooth_prev_epochs_with_savgol, not load_from_file,
                                                params)
+
+    new_series = np.array(new_series)
 
     states_numeric = states_to_numeric_version(states)[buffer:subset_size]
 
@@ -101,6 +111,7 @@ def mirror_transform_faster(series):
             buffer.append(mirrored_chunk[-1])
     buffer = np.asarray(buffer)
     return buffer
+
 
 def try_knn_with_prev_and_current_epoch_probabiliites(series, states, buffer=50, subset_size=None, load_from_file=True):
     if subset_size is None:
@@ -205,6 +216,273 @@ def try_knn_with_prev_and_current_epoch_probabiliites(series, states, buffer=50,
     print(percentage)
 
     Common.print_confusion_matrix(states_numeric, state_predictions_combined_probabilities)
+
+
+def try_knn_with_prev_and_current_epoch_probabiliites_1(series, states, buffer=50, subset_size=None, load_from_file=True):
+    series, states = load_offline_data()
+    if subset_size is None:
+        subset_size = np.array(series).shape[0]
+
+    # x = Common.get_state_mapping_from_list(np.array(states))
+    # print(x)
+
+    random_index_file_path = Config.base_path + "/rand_idx.joblib"
+    random_indexes = np.array(Storage.load_from_file(random_index_file_path))
+    indexes_to_remove = np.where(random_indexes < 50)
+    random_indexes = np.delete(random_indexes, indexes_to_remove)
+
+    overfit_states_file_path = Config.base_path + "/states_centered_multitaper_df.joblib"
+    overfit_states_numeric = np.array(Storage.load_from_file(overfit_states_file_path))
+    overfit_states_numeric = np.delete(overfit_states_numeric, indexes_to_remove)
+
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        subset_size) + "_long_savgol_smoothed.pkl"
+    params = {'series': series, 'buffer': buffer, 'subset_size': subset_size}
+    prev_epochs = Storage.load_or_recreate_file(save_file_path, smooth_prev_epochs_with_savgol, not load_from_file,
+                                                params)
+
+    states_numeric = states_to_numeric_version(states)[buffer:subset_size]
+
+    # lda, lda_trained_data = train_lda(prev_epochs, states_numeric, True)
+
+    def train_lda_for_object_retrieval(series, numerical_states, show_plot):
+        lda, lda_trained_data = train_lda(series, numerical_states, show_plot)
+        return {'lda': lda, 'lda_trained_data': lda_trained_data}
+
+    lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs.pkl",
+                                                   train_lda_for_object_retrieval, False, params)
+    lda_trained_data = lda_result_prev_epoch["lda"].transform(prev_epochs)
+
+    # lda_trained_data = lda_result_prev_epoch["lda_trained_data"]
+
+    Common.plot_lda(lda_trained_data[np.array(random_indexes) - 50], overfit_states_numeric)
+
+    print("stop")
+    # standard_lda = Storage.load_from_file(Config.base_path + '/smrx_version/lda_210216_210301_Vglut2Cre-SuM_all_mice.joblib')
+
+    # save_file_path = Config.base_path + "/mirror_transformed_" + str(subset_size) + "_long.pkl"
+    # params = {'series': series }
+    # mirror_transformed = Storage.load_or_recreate_file(save_file_path, mirror_transform_faster, not load_from_file, params)
+    #
+    # mirror_transformed = mirror_transformed[buffer:subset_size]
+
+
+    # Storage.dump_to_file(Config.base_path + "/ground_truth_states.pkl", states_numeric)
+
+    # def train_lda_for_object_retrieval(series, numerical_states, show_plot):
+    #     lda, lda_trained_data = train_lda(series, numerical_states, show_plot)
+    #     return {'lda': lda, 'lda_trained_data': lda_trained_data}
+
+    # params = {'series': mirror_transformed[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    #
+    # lda_result_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_mirror_transformed.pkl",
+    #                                                train_lda_for_object_retrieval, False, params)
+
+    # params = {'series': prev_epochs[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    #
+    # lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs.pkl",
+    #                                                train_lda_for_object_retrieval, False, params)
+
+
+
+    # lda_transformed_mirror_transformed = lda_result_log10['lda'].transform(mirror_transformed)
+    # lda_transformed_mirror_transformed = standard_lda.transform(mirror_transformed)
+    # Common.plot_lda(lda_transformed_mirror_transformed, states_numeric)
+    # Storage.dump_to_file(Config.base_path + "/mirror_lda_transformed_data_pretrained_lda.pkl",
+    #                      lda_transformed_mirror_transformed)
+    #
+    # ground_truth_lda_transformed_data_pretrained_lda = standard_lda.transform(series[buffer:])
+    # Common.plot_lda(ground_truth_lda_transformed_data_pretrained_lda, states_numeric)
+    # Storage.dump_to_file(Config.base_path + "/ground_truth_lda_transformed_data_pretrained_lda.pkl",
+    #                      ground_truth_lda_transformed_data_pretrained_lda)
+
+
+
+    # lda_transformed_prev_epoch = lda_result_prev_epoch['lda'].transform(prev_epochs)
+    # lda_transformed_prev_epoch = standard_lda.transform(prev_epochs)
+
+
+    # from sklearn.neighbors import KNeighborsClassifier
+    # neigh_mirror_transformed = KNeighborsClassifier(n_neighbors=8)
+    # neigh_mirror_transformed.fit(lda_transformed_mirror_transformed, states_numeric)
+    # state_predictions_probability_mirror_transformed = neigh_mirror_transformed.predict_proba(lda_transformed_mirror_transformed)
+    #
+    # state_predictions_mirror_transformed = neigh_mirror_transformed.predict(lda_transformed_mirror_transformed)
+    # Storage.dump_to_file(Config.base_path + "/state_predictions_for_mirror_transformed.pkl", state_predictions_mirror_transformed)
+    # general_accuracy_mirrored = Common.compare_states_for_accuracy(states_numeric, state_predictions_mirror_transformed)
+    #
+    # print(general_accuracy_mirrored)
+    #
+    # neigh_prev_epochs = KNeighborsClassifier(n_neighbors=8)
+    # neigh_prev_epochs.fit(lda_transformed_prev_epoch, states_numeric)
+    # state_predictions_probability_prev_epochs = neigh_prev_epochs.predict_proba(lda_transformed_prev_epoch)
+    #
+    # state_predictions_prev_epochs = neigh_prev_epochs.predict(lda_transformed_prev_epoch)
+    # Storage.dump_to_file(Config.base_path + "/state_predictions_for_prev_epochs.pkl", state_predictions_prev_epochs)
+    # general_accuracy_prev_epochs = Common.compare_states_for_accuracy(states_numeric, state_predictions_prev_epochs)
+    #
+    # print(general_accuracy_prev_epochs)
+    #
+    # new_probabilities = np.dstack((state_predictions_probability_mirror_transformed, state_predictions_probability_prev_epochs))
+    #
+    # new_probabilities = new_probabilities.reshape(new_probabilities.shape[0], new_probabilities.shape[1] * new_probabilities.shape[2])
+    #
+    # # state_predictions_combined_probabilities = try_ann(pd.DataFrame(new_probabilities), states_numeric, False, False)
+    #
+    # # params = {'series': new_probabilities[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    # #
+    # # lda_for_combined_probabilities = Storage.load_or_recreate_file(Config.base_path + "/lda_for_combined_probabilites.pkl",
+    # #                                                train_lda_for_object_retrieval, True, params)
+    # #
+    # # lda_combined_probabilities_transformed = lda_for_combined_probabilities['lda'].transform(new_probabilities)
+    # #
+    # neigh_combined_probabilities = KNeighborsClassifier(n_neighbors=8)
+    # neigh_combined_probabilities.fit(new_probabilities, states_numeric)
+    # state_predictions_combined_probabilities = neigh_combined_probabilities.predict(new_probabilities)
+    # Storage.dump_to_file(Config.base_path + "/state_predictions_for_combined_probabilities.pkl", state_predictions_combined_probabilities)
+    #
+    # general_accuracy = Common.compare_states_for_accuracy(states_numeric, state_predictions_combined_probabilities)
+    #
+    # print(general_accuracy)
+    #
+    # percentage = Common.transition_state_misclassification_percentages(states_numeric, state_predictions_combined_probabilities)
+    #
+    # print(percentage)
+    #
+    # Common.print_confusion_matrix(states_numeric, state_predictions_combined_probabilities)
+
+def try_knn_with_prev_and_current_epoch_probabiliites(series, states, buffer=50, subset_size=None, load_from_file=True):
+    series, states = load_offline_data()
+    if subset_size is None:
+        subset_size = np.array(series).shape[0]
+
+    # x = Common.get_state_mapping_from_list(np.array(states))
+    # print(x)
+
+    random_index_file_path = Config.base_path + "/rand_idx.joblib"
+    random_indexes = np.array(Storage.load_from_file(random_index_file_path))
+    indexes_to_remove = np.where(random_indexes < 50)
+    random_indexes = np.delete(random_indexes, indexes_to_remove)
+
+    overfit_states_file_path = Config.base_path + "/states_centered_multitaper_df.joblib"
+    overfit_states_numeric = np.array(Storage.load_from_file(overfit_states_file_path))
+    overfit_states_numeric = np.delete(overfit_states_numeric, indexes_to_remove)
+
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        subset_size) + "_long_savgol_smoothed.pkl"
+    params = {'series': series, 'buffer': buffer, 'subset_size': subset_size}
+    prev_epochs = Storage.load_or_recreate_file(save_file_path, smooth_prev_epochs_with_savgol, not load_from_file,
+                                                params)
+
+    states_numeric = states_to_numeric_version(states)[buffer:subset_size]
+
+    # lda, lda_trained_data = train_lda(prev_epochs, states_numeric, True)
+
+    def train_lda_for_object_retrieval(series, numerical_states, show_plot):
+        lda, lda_trained_data = train_lda(series, numerical_states, show_plot)
+        return {'lda': lda, 'lda_trained_data': lda_trained_data}
+
+    lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs.pkl",
+                                                   train_lda_for_object_retrieval, False, params)
+    lda_trained_data = lda_result_prev_epoch["lda"].transform(prev_epochs)
+
+    # lda_trained_data = lda_result_prev_epoch["lda_trained_data"]
+
+    Common.plot_lda(lda_trained_data[np.array(random_indexes) - 50], overfit_states_numeric)
+
+    print("stop")
+    # standard_lda = Storage.load_from_file(Config.base_path + '/smrx_version/lda_210216_210301_Vglut2Cre-SuM_all_mice.joblib')
+
+    # save_file_path = Config.base_path + "/mirror_transformed_" + str(subset_size) + "_long.pkl"
+    # params = {'series': series }
+    # mirror_transformed = Storage.load_or_recreate_file(save_file_path, mirror_transform_faster, not load_from_file, params)
+    #
+    # mirror_transformed = mirror_transformed[buffer:subset_size]
+
+
+    # Storage.dump_to_file(Config.base_path + "/ground_truth_states.pkl", states_numeric)
+
+    # def train_lda_for_object_retrieval(series, numerical_states, show_plot):
+    #     lda, lda_trained_data = train_lda(series, numerical_states, show_plot)
+    #     return {'lda': lda, 'lda_trained_data': lda_trained_data}
+
+    # params = {'series': mirror_transformed[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    #
+    # lda_result_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_mirror_transformed.pkl",
+    #                                                train_lda_for_object_retrieval, False, params)
+
+    # params = {'series': prev_epochs[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    #
+    # lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs.pkl",
+    #                                                train_lda_for_object_retrieval, False, params)
+
+
+
+    # lda_transformed_mirror_transformed = lda_result_log10['lda'].transform(mirror_transformed)
+    # lda_transformed_mirror_transformed = standard_lda.transform(mirror_transformed)
+    # Common.plot_lda(lda_transformed_mirror_transformed, states_numeric)
+    # Storage.dump_to_file(Config.base_path + "/mirror_lda_transformed_data_pretrained_lda.pkl",
+    #                      lda_transformed_mirror_transformed)
+    #
+    # ground_truth_lda_transformed_data_pretrained_lda = standard_lda.transform(series[buffer:])
+    # Common.plot_lda(ground_truth_lda_transformed_data_pretrained_lda, states_numeric)
+    # Storage.dump_to_file(Config.base_path + "/ground_truth_lda_transformed_data_pretrained_lda.pkl",
+    #                      ground_truth_lda_transformed_data_pretrained_lda)
+
+
+
+    # lda_transformed_prev_epoch = lda_result_prev_epoch['lda'].transform(prev_epochs)
+    # lda_transformed_prev_epoch = standard_lda.transform(prev_epochs)
+
+
+    # from sklearn.neighbors import KNeighborsClassifier
+    # neigh_mirror_transformed = KNeighborsClassifier(n_neighbors=8)
+    # neigh_mirror_transformed.fit(lda_transformed_mirror_transformed, states_numeric)
+    # state_predictions_probability_mirror_transformed = neigh_mirror_transformed.predict_proba(lda_transformed_mirror_transformed)
+    #
+    # state_predictions_mirror_transformed = neigh_mirror_transformed.predict(lda_transformed_mirror_transformed)
+    # Storage.dump_to_file(Config.base_path + "/state_predictions_for_mirror_transformed.pkl", state_predictions_mirror_transformed)
+    # general_accuracy_mirrored = Common.compare_states_for_accuracy(states_numeric, state_predictions_mirror_transformed)
+    #
+    # print(general_accuracy_mirrored)
+    #
+    # neigh_prev_epochs = KNeighborsClassifier(n_neighbors=8)
+    # neigh_prev_epochs.fit(lda_transformed_prev_epoch, states_numeric)
+    # state_predictions_probability_prev_epochs = neigh_prev_epochs.predict_proba(lda_transformed_prev_epoch)
+    #
+    # state_predictions_prev_epochs = neigh_prev_epochs.predict(lda_transformed_prev_epoch)
+    # Storage.dump_to_file(Config.base_path + "/state_predictions_for_prev_epochs.pkl", state_predictions_prev_epochs)
+    # general_accuracy_prev_epochs = Common.compare_states_for_accuracy(states_numeric, state_predictions_prev_epochs)
+    #
+    # print(general_accuracy_prev_epochs)
+    #
+    # new_probabilities = np.dstack((state_predictions_probability_mirror_transformed, state_predictions_probability_prev_epochs))
+    #
+    # new_probabilities = new_probabilities.reshape(new_probabilities.shape[0], new_probabilities.shape[1] * new_probabilities.shape[2])
+    #
+    # # state_predictions_combined_probabilities = try_ann(pd.DataFrame(new_probabilities), states_numeric, False, False)
+    #
+    # # params = {'series': new_probabilities[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    # #
+    # # lda_for_combined_probabilities = Storage.load_or_recreate_file(Config.base_path + "/lda_for_combined_probabilites.pkl",
+    # #                                                train_lda_for_object_retrieval, True, params)
+    # #
+    # # lda_combined_probabilities_transformed = lda_for_combined_probabilities['lda'].transform(new_probabilities)
+    # #
+    # neigh_combined_probabilities = KNeighborsClassifier(n_neighbors=8)
+    # neigh_combined_probabilities.fit(new_probabilities, states_numeric)
+    # state_predictions_combined_probabilities = neigh_combined_probabilities.predict(new_probabilities)
+    # Storage.dump_to_file(Config.base_path + "/state_predictions_for_combined_probabilities.pkl", state_predictions_combined_probabilities)
+    #
+    # general_accuracy = Common.compare_states_for_accuracy(states_numeric, state_predictions_combined_probabilities)
+    #
+    # print(general_accuracy)
+    #
+    # percentage = Common.transition_state_misclassification_percentages(states_numeric, state_predictions_combined_probabilities)
+    #
+    # print(percentage)
+    #
+    # Common.print_confusion_matrix(states_numeric, state_predictions_combined_probabilities)
 
 def create_statespace_from_prev_savgol(series, states, buffer=50, subset_size=None, load_from_file=True,
                                        concatenate_original=False, use_ann=True):

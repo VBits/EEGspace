@@ -34,7 +34,7 @@ def plot_lda(lda_encoded_data, states_numeric):
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.scatter(lda_encoded_data[:, 0], lda_encoded_data[:, 1], lda_encoded_data[:, 2], c=states_numeric,
-               alpha=0.2, s=4, cmap='Accent')
+               alpha=0.3, s=5, cmap='Accent')
     ax.set_xlabel('C1')
     ax.set_ylabel('C2')
     ax.set_zlabel('C3')
