@@ -1,17 +1,30 @@
 """
 Inputs defined by user
-Online and offline analysis
+Online analysis
 """
 
 import os
 
-# numerical settings
+#############################
+#Universal variables
+
+#############################
+
+#Digitization frequency
 eeg_fs = 100
+#Savgol iterations (recommended range 0-4)
 smoothing_iterations = 4
-num_channels = 1
+#Specify the time resolution for each epoch
 num_seconds_per_epoch = 2
-iteration_buffer = 50
-mice_numbers = [1]  # array of numbers 1-8
+#Specify buffer length for savgol filtering
+epoch_buffer = 50
+#Savgol filtering parameters
+savgol_window=41
+savgol_order=2
+#Specify number of epochs used for dimensionality reduction
+LDA_epochs = 51
+
+rig_position = [1]  # array of numbers 1-8
 print_timer_info_for_mice = [1]#[1, 2, 3, 4, 5, 6, 7]
 
 # boolean

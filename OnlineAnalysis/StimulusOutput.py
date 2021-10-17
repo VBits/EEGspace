@@ -6,7 +6,7 @@ import sched, time
 import random
 import Storage
 import sys
-import WhiteNoiseOutput
+from OnlineAnalysis import WhiteNoiseOutput
 
 
 def randomize_stimulus_output(stimulus_input_queue, stimulus_output_queue, stimulus_type):

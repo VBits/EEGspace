@@ -4,12 +4,10 @@ Offline analysis
 
 import nitime.algorithms as tsa
 from scipy.signal import detrend, dlti, butter, decimate
-import Config
+from OnlineAnalysis import Config
 import numpy as np
 import pandas as pd
 import scipy
-import Timing
-import matplotlib.pyplot as plt
 
 def smooth_prev_epochs_with_savgol(series, buffer, subset_size):
     epoch_size = series.shape[1]
@@ -86,7 +84,7 @@ def apply_multitaper(data_points):
 
 
 def apply_savgol_filter(x):
-    return scipy.signal.savgol_filter(x, 41, 2)
+    return scipy.signal.savgol_filter(x, Config.savgol_window, Config.savgol_order)
 
 
 def do_smoothing(multitaper_df, timer, iterations=Config.smoothing_iterations):
