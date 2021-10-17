@@ -1,3 +1,7 @@
+"""
+Online analysis
+"""
+
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
 import os
 import pickle

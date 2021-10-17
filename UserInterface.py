@@ -1,3 +1,6 @@
+"""
+Online analysis
+"""
 import sys
 from PyQt5.QtWidgets import QWidget, QComboBox, QLabel,QHBoxLayout,QVBoxLayout,\
     QPushButton, QSlider, QStyle, QSizePolicy, QFileDialog, QGridLayout

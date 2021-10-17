@@ -1,3 +1,8 @@
+"""
+Inputs defined by user
+Online and offline analysis
+"""
+
 import os
 
 # numerical settings
