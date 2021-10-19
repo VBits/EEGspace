@@ -91,7 +91,7 @@ def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, confi
 
         except Exception as ex:
             dropped_epochs.append(iteration)
-            #todo ensure the datapoins is the correct size here
+            #todo ensure the datapoint is the correct size here
             print("iteration encountered an error: ", str(iteration))
             print("Error details :", ex)
         finally:

@@ -6,7 +6,8 @@ Online analysis
 import os
 
 #Digitization frequency
-eeg_fs = 100
+eeg_fs = 200
+downsample_fs = 100
 #Specify the time resolution for each epoch
 num_seconds_per_epoch = 2
 #Specify the buffer length
