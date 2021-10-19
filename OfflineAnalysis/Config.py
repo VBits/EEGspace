@@ -1,6 +1,6 @@
 from Mouse import Mouse
 
-mh = Mouse("B6J", 1)
+m = Mouse("B6J", 1)
 
 EphysDir = 'D:/Project_Mouse/Ongoing_analysis/'
 

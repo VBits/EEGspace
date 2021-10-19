@@ -183,7 +183,7 @@ class Mouse:
     #Expand the sample labels to the rest of the data using
     def knn_pred(self, clf, transform='PCA'):
         # predict in 2D
-        self.state_df = pd.DataFrame(index=self.Sxx_norm.index)
+        self.state_df = pd.DataFrame(index=self.Sxx_df.index)
         if transform =='PCA':
             print('Predicting clusters using PCA')
             self.state_df['clusters_knn'] = clf.predict(self.pC_df)
@@ -199,9 +199,9 @@ class Mouse:
         # Descending order(REM, Wake, SWS)
         state_code = np.zeros(Nclusters)
         for i in range(Nclusters):
-            delta = self.Sxx_norm.loc[:, 1:4][self.state_df['clusters_knn'] == i].mean().mean()
-            theta = self.Sxx_norm.loc[:, 7:10][self.state_df['clusters_knn'] == i].mean().mean()
-            gamma = self.Sxx_norm.loc[:,40:45][self.state_df['clusters_knn'] == i].mean().mean()
+            delta = self.Sxx_df.loc[:, 1:4][self.state_df['clusters_knn'] == i].mean().mean()
+            theta = self.Sxx_df.loc[:, 7:10][self.state_df['clusters_knn'] == i].mean().mean()
+            gamma = self.Sxx_df.loc[:,40:45][self.state_df['clusters_knn'] == i].mean().mean()
             state_code[i] = theta/delta * gamma
 
         if Nclusters == 3:
@@ -219,20 +219,6 @@ class Mouse:
             sws_code = np.argsort(state_code)[0]
             HTwake_code = np.argsort(state_code)[3]
             rem_code = np.argsort(state_code)[2]
-
-            conditions = [ (np.in1d(self.state_df['clusters_knn'], HTwake_code)),
-                           (np.in1d(self.state_df['clusters_knn'], LTwake_code)),
-                           (np.in1d(self.state_df['clusters_knn'], sws_code)),
-                           (np.in1d(self.state_df['clusters_knn'], rem_code))]
-
-            state_choices = ['HTwake', 'LTwake', 'SWS', 'REM']
-            self.state_df['states'] = np.select(conditions, state_choices, default="ambiguous")
-        elif Nclusters > 4:
-            real_clusters = np.argsort(np.unique(clone.labels_,return_counts=True))[1]
-            LTwake_code = real_clusters[-3]
-            sws_code = real_clusters[-2]
-            HTwake_code = real_clusters[-1]
-            rem_code = real_clusters[-4]
 
             conditions = [ (np.in1d(self.state_df['clusters_knn'], HTwake_code)),
                            (np.in1d(self.state_df['clusters_knn'], LTwake_code)),
