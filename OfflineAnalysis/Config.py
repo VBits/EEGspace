@@ -1,6 +1,3 @@
-from Mouse import Mouse
-
-m = Mouse("B6J", 1)
 
 EphysDir = 'D:/Project_Mouse/Ongoing_analysis/'
 

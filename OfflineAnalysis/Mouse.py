@@ -202,7 +202,9 @@ class Mouse:
             delta = self.Sxx_df.loc[:, 1:4][self.state_df['clusters_knn'] == i].mean().mean()
             theta = self.Sxx_df.loc[:, 7:10][self.state_df['clusters_knn'] == i].mean().mean()
             gamma = self.Sxx_df.loc[:,40:45][self.state_df['clusters_knn'] == i].mean().mean()
-            state_code[i] = theta/delta * gamma
+            print (i, delta,theta,gamma)
+            # state_code[i] = theta/delta * gamma
+            state_code[i] = gamma
 
         if Nclusters == 3:
             sws_code = np.argsort(state_code)[0]
@@ -215,17 +217,16 @@ class Mouse:
             state_choices = ['Wake', 'SWS', 'REM']
             self.state_df['states'] = np.select(conditions, state_choices, default="ambiguous")
         elif Nclusters == 4:
-            LTwake_code = np.argsort(state_code)[1]
-            sws_code = np.argsort(state_code)[0]
-            HTwake_code = np.argsort(state_code)[3]
-            rem_code = np.argsort(state_code)[2]
 
-            conditions = [ (np.in1d(self.state_df['clusters_knn'], HTwake_code)),
-                           (np.in1d(self.state_df['clusters_knn'], LTwake_code)),
-                           (np.in1d(self.state_df['clusters_knn'], sws_code)),
-                           (np.in1d(self.state_df['clusters_knn'], rem_code))]
+            state_choices = ['SWS', 'REM','LTwake','HTwake']
+            codes = dict(zip(state_choices,np.argsort(state_code)))
 
-            state_choices = ['HTwake', 'LTwake', 'SWS', 'REM']
+            conditions = [ (np.in1d(self.state_df['clusters_knn'], codes['SWS'])),
+                           (np.in1d(self.state_df['clusters_knn'], codes['REM'])),
+                           (np.in1d(self.state_df['clusters_knn'], codes['LTwake'])),
+                           (np.in1d(self.state_df['clusters_knn'], codes['HTwake']))]
+
+
             self.state_df['states'] = np.select(conditions, state_choices, default="ambiguous")
         else:
             print('Number of clusters not recognized. Automatic state assignment failed')

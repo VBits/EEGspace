@@ -19,8 +19,8 @@ import Storage
 standardized_states = {
     "REM": 0,
     "SWS": 1,
-    "LMwake": 2,
-    "HMwake": 3,
+    "LTwake": 2,
+    "HTwake": 3,
 }
 
 #Remap state numbers
