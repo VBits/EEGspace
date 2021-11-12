@@ -44,7 +44,9 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.ax3 = self.figure3.add_subplot(111, projection='3d')
 
         self.queue = queue
-        self.model = MouseModel(1)#todo
+        self.mouse_num = Config.rig_position[0]#initialize to the first mouse number
+        self.models = {str(num):MouseModel(num) for num in Config.rig_position}
+        self.model = self.models[str(self.mouse_num)]
         self.lda_encoded = self.model.lda.transform(self.model.training_data)
 
         n = 40000
@@ -105,10 +107,10 @@ class PlotWindow(QtWidgets.QMainWindow):
         # timer interval in milliseconds
         timer.start(500)
 
-        self.mouse_num = Config.rig_position[0]#initialize to the first mouse number
 
     def mouse_change(self, mouse_num):
         self.mouse_num = mouse_num
+        self.model = self.models[str(mouse_num)]
         self.ax1.clear()
         self.ax2.clear()
         #self.spot.remove()#broken
@@ -150,10 +152,11 @@ class PlotWindow(QtWidgets.QMainWindow):
             self.canvas3.draw()
 
 
-def create_user_interface(queue):
+def create_user_interface(input_queue, output_queue):
     plot_app = QtWidgets.QApplication(sys.argv)
-    p = PlotWindow(queue)
+    p = PlotWindow(input_queue)
     p.resize(1200, 700)
     p.show()
     plot_app.exec_()
+    output_queue.put("Quit")
     plot_app.quit()

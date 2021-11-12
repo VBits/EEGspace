@@ -19,15 +19,15 @@ if __name__ == '__main__':
     ui_output_queue = manager.Queue()
     # stimulus_queues = []
 
-
-    p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue,))
-
+    p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue, ui_output_queue))
+    p.daemon = True
     jobs.append(p)
     p.start()
 
     #start processing EEG data
     for mouse_number in ConfigOnline.rig_position:
         p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_number, file_queue))
+        p.daemon = True
         jobs.append(p)
         p.start()
         sys.stdout.flush()
@@ -53,8 +53,9 @@ if __name__ == '__main__':
         if not ui_output_queue.empty():
             output = ui_output_queue.get()
             if output == "Quit":
+                for p in jobs:
+                    p.terminate()
                 break
-            #todo kill test file cycling as well
         while not file_queue.empty():
             next_status = file_queue.get()
             #stimulus_queues[next_status.mouse_number - 1].put(next_status)

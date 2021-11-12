@@ -27,7 +27,7 @@ def smooth_prev_epochs_with_savgol(series, buffer, subset_size):
     new_series = np.array(new_series).flatten().reshape(subset_size - buffer, epoch_size * buffer)
     return new_series
 
-def transform_data(data_points, timer, norm=None):
+def transform_data(data_points, timer):
     timer.set_time_point("start_multitaper")
     downsampled_data_points = downsample_EGG(data_points)
     multitaper_df = apply_multitaper(downsampled_data_points)
@@ -38,7 +38,7 @@ def transform_data(data_points, timer, norm=None):
     timer.print_duration_since("start_smoothing", "Time to process spectrum")
     return sxx_norm
 
-#todo see if this can be moved earlier the process
+
 def downsample_EGG(eeg_data):
     '''
     Downsample the data to a target frequency
@@ -48,8 +48,8 @@ def downsample_EGG(eeg_data):
     system = dlti(*cheby1(3,0.05,0.99))
     All filters produced very similar results for downsampling from 200Hz to 100Hz
     '''
-    eeg_fs = 200#todo
-    target_fs = Config.eeg_fs
+    eeg_fs = Config.eeg_fs
+    target_fs = Config.downsample_fs
     eeg_fs = round(eeg_fs)
     rate = eeg_fs / target_fs
     system = dlti(*butter(4, 0.99))
