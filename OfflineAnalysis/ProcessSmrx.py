@@ -12,11 +12,11 @@ sys.path.append('C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/OfflineAnalys
 from OfflineAnalysis.Config import *
 from OfflineAnalysis.Mouse import Mouse
 
-def get_mouse():
+def get_mouse(strain,pos):
     # from pandas.plotting import register_matplotlib_converters
     # register_matplotlib_converters()
     # -----------------------------------------------------------------
-    m = Mouse("B6J", 1)
+    m = Mouse(strain, pos)
 
     # #Create directory to save figures
     m.figureFolder = m.gen_folder(EphysDir, Folder)
@@ -39,5 +39,5 @@ def get_mouse():
     # m.multitaper_df.to_pickle(EphysDir + Folder + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
     # Load previously saved Dataframe from experimental folder
     m.Sxx_df = pd.read_pickle(EphysDir + Folder + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
-    m.multitaper_df = pd.read_pickle(EphysDir + Folder + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
+    # m.multitaper_df = pd.read_pickle(EphysDir + Folder + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
     return m

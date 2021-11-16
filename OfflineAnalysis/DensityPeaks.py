@@ -1,8 +1,10 @@
 from pydpc import Cluster
+import numpy as np
+import matplotlib.pyplot as plt
 
 def get_dpc(m,rand_idx,savefigure=False):
     # build the density peak clusterer
-    sample_data = np.ascontiguousarray(m.LD_df.iloc[rand_idx].values)
+    sample_data = np.ascontiguousarray(m.LD_df.loc[rand_idx].values)
     clu = Cluster(sample_data)
     plt.title('DPC', fontsize=15)
     if savefigure:

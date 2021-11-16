@@ -67,6 +67,7 @@ def get_labels(model,m,Sxx_extended):
     # classify dataframe using ANN
     probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
     predictions = probability_model.predict(Sxx_extended.values)
+    m.state_df = pd.DataFrame(index=Sxx_extended.index)
     m.state_df['ann_states'] = np.argmax(predictions, axis=1)
 
 

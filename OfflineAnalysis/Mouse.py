@@ -181,9 +181,9 @@ class Mouse:
         self.pC_df = pd.DataFrame(data=self.pC,columns=['pC1','pC2'],index=self.df.index)
 
     #Expand the sample labels to the rest of the data using
-    def knn_pred(self, clf, transform='PCA'):
+    def knn_pred(self, clf, Sxx_extended,state_averages_path,transform='LDA'):
         # predict in 2D
-        self.state_df = pd.DataFrame(index=self.Sxx_df.index)
+        self.state_df = pd.DataFrame(index=Sxx_extended.index)
         if transform =='PCA':
             print('Predicting clusters using PCA')
             self.state_df['clusters_knn'] = clf.predict(self.pC_df)
@@ -195,43 +195,22 @@ class Mouse:
 
         Nclusters = len(self.state_df['clusters_knn'].unique())
 
-        # Count state instances after finding which code has higher average T_D.
-        # Descending order(REM, Wake, SWS)
-        state_code = np.zeros(Nclusters)
-        for i in range(Nclusters):
-            delta = self.Sxx_df.loc[:, 1:4][self.state_df['clusters_knn'] == i].mean().mean()
-            theta = self.Sxx_df.loc[:, 7:10][self.state_df['clusters_knn'] == i].mean().mean()
-            gamma = self.Sxx_df.loc[:,40:45][self.state_df['clusters_knn'] == i].mean().mean()
-            print (i, delta,theta,gamma)
-            # state_code[i] = theta/delta * gamma
-            state_code[i] = gamma
+        state_averages = pd.read_pickle(state_averages_path)
+        label_averages = pd.DataFrame()
+        for label in np.unique(self.state_df['clusters_knn']):
+            label_averages[label] = self.Sxx_df.loc[self.state_df[self.state_df['clusters_knn'] == label].index].mean(axis=0)
 
-        if Nclusters == 3:
-            sws_code = np.argsort(state_code)[0]
-            wake_code = np.argsort(state_code)[1]
-            rem_code = np.argsort(state_code)[2]
+        if Nclusters <= 4:
+            state_dict = {}
+            for label in label_averages.iteritems():
+                # calculate least square difference for each label
+                lsq_df = state_averages.sub(label[1], axis='rows') ** 2
+                state_dict[label[0]]= lsq_df.mean(axis=0).idxmin()
 
-            conditions = [  (np.in1d(self.state_df['clusters_knn'], wake_code)),
-                            (np.in1d(self.state_df['clusters_knn'], sws_code)),
-                            (np.in1d(self.state_df['clusters_knn'], rem_code))]
-            state_choices = ['Wake', 'SWS', 'REM']
-            self.state_df['states'] = np.select(conditions, state_choices, default="ambiguous")
-        elif Nclusters == 4:
-
-            state_choices = ['SWS', 'REM','LTwake','HTwake']
-            codes = dict(zip(state_choices,np.argsort(state_code)))
-
-            conditions = [ (np.in1d(self.state_df['clusters_knn'], codes['SWS'])),
-                           (np.in1d(self.state_df['clusters_knn'], codes['REM'])),
-                           (np.in1d(self.state_df['clusters_knn'], codes['LTwake'])),
-                           (np.in1d(self.state_df['clusters_knn'], codes['HTwake']))]
-
-
-            self.state_df['states'] = np.select(conditions, state_choices, default="ambiguous")
+            self.state_df['states'] = self.state_df['clusters_knn']
+            self.state_df.replace({"states": state_dict},inplace=True)
         else:
             print('Number of clusters not recognized. Automatic state assignment failed')
-
-
 
 
 

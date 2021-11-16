@@ -5,26 +5,26 @@ from mpl_toolkits.mplot3d import Axes3D
 from cycler import cycler
 
 def get_random_idx(array, size=40000, Repeat=False):
-    rand_idx = np.random.choice(len(array), size, replace=Repeat)
+    rand_idx = np.random.choice(array[100:-100].index, size, replace=Repeat)
     return rand_idx
 
 def plot_LDA(m,rand_idx,states=False,labels='states',alpha=0.2,size=5,linewidths=0,savefigure=False):
     LD_df = m.LD_df.copy()
     if states:
         if labels =='states':
-            c_rules = m.state_df[labels][rand_idx].apply(lambda x: m.colors[x])
+            c_rules = m.state_df[labels].loc[rand_idx].apply(lambda x: m.colors[x])
         else:
             cm = plt.get_cmap('tab10')
             unique_labels = np.unique(m.state_df[labels])
             num = len(unique_labels)
             col_cycle = cycler(cycler('color', [cm(1.*i/num) for i in range(num)]))
             colors = dict(zip(unique_labels,col_cycle.by_key()["color"]))
-            c_rules = m.state_df[labels][rand_idx].apply(lambda x: colors[x])
+            c_rules = m.state_df[labels].loc[rand_idx].apply(lambda x: colors[x])
     else:
         c_rules = 'k'
     if len(LD_df) != len(rand_idx):
         print ('selecting a subsample of input data to plot')
-        LD_df = LD_df.iloc[rand_idx]
+        LD_df = LD_df.loc[rand_idx]
     if LD_df.shape[1] == 3:
         fig = plt.figure()
         ax = Axes3D(fig)
@@ -54,4 +54,3 @@ def plot_EEG(m, File, hide_figure=True):
     plt.savefig(m.figureFolder+'{}_{}'.format(m.Ch_name,File[:6]) + m.figure_tail)
     matplotlib.use('Qt5Agg')
 
-# plot_LDA(LD_df_test,rand_idx)
