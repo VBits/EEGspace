@@ -1,11 +1,13 @@
 """
-v.20211116 - Not finalized yet
+v0.16
+Roadmap to 0.2:
+1. ANN to be replaced with SVM
+2. option for savgol vs unsmoothed data
 """
 import OfflineAnalysis.ANN as ANN
 from OfflineAnalysis.PlottingUtils import get_random_idx
 from OfflineAnalysis.ProcessSmrx import get_mouse
 from OfflineAnalysis.Config import *
-# import numpy as np
 import pandas as pd
 from DensityPeaks import *
 from Transformations import *
@@ -22,9 +24,8 @@ m = get_mouse('SertCre-CS',1)
 Sxx_extended = expand_epochs(m,smoothed_data=True)
 rand_idx = get_random_idx(Sxx_extended)
 
-# #OR load previously calculated files
-# Sxx_extended = pd.read_pickle(EphysDir + Folder + 'Sxx_extended_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
-# labels_extended = pd.read_pickle(EphysDir + Folder + 'labels_extended_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
+#load previously calculated files
+labels_extended = pd.read_pickle(EphysDir + Folder + 'labels_extended_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
 
 #Create and train a model
 model = ANN.create_model(Sxx_extended)
