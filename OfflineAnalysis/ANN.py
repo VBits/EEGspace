@@ -1,18 +1,9 @@
 # Initial classification with ANN
 import tensorflow as tf
 from tensorflow import keras
-#TODO uncomment
-# from Config import *
-import numpy as np
 from sklearn.utils import compute_class_weight
 import pandas as pd
 from OfflineAnalysis.PlottingUtils import *
-
-#
-# #previously trained network
-# weights_file = 'keras_model.h5'
-
-
 
 def create_model(dataframe):
     model = keras.Sequential([
@@ -49,11 +40,6 @@ def calculate_weights(m,rand_idx):
     classWeight = compute_class_weight('balanced', np.unique(m.state_df['state_codes'][rand_idx].values),
                                        m.state_df['state_codes'][rand_idx].values)
     classWeight = dict(zip(np.unique(m.state_df['state_codes'][rand_idx].values), classWeight))
-
-    # # convert dictionary to numbers
-    # for i in ['SWS', 'REM', 'LTwake', 'HTwake']:
-    #     print(i)
-    #     classWeight[state_codes[i]] = classWeight.pop(i)
     return classWeight
 
 def train_model(model,dataframe,states,classWeight,rand_idx):

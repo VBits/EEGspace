@@ -2,9 +2,6 @@ import os
 
 EphysDir = 'D:/Project_Mouse/Ongoing_analysis/'
 
-# Folder = '210409_White_noise/Ephys/'
-# File = '210409_000.smrx'
-# Folder = '211014_Vglut2-Cre_CS_Casp3/Ephys/'
 Folder = '211011_Sert-Cre_Ai14_CS_Casp3/Ephys/'
 File = '211102_000.smrx'
 
