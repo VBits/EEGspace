@@ -4,3 +4,5 @@ mouse_object
 *.pkl
 *.h5
 Data/
+
+*.joblib
