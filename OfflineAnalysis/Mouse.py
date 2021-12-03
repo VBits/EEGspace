@@ -145,10 +145,10 @@ class Mouse:
         self.multitaper_df = pd.DataFrame(index=time_idx, data=psd_est,columns=freqs)
 
     #Smoothen the multitaper data with Savgol
-    def process_spectrum(self,smooth_iter=4, window_size=41):
+    def process_spectrum(self,smooth_iter=1, window_size=21,polynomial=4):
         ## Normalize the data and plot density spectrogram
         def SG_filter(x):
-            return scipy.signal.savgol_filter(x, window_size, 2)
+            return scipy.signal.savgol_filter(x, window_size, polynomial)
 
         # Log scale
         Sxx_df = 10 * np.log(self.multitaper_df.T)
@@ -181,31 +181,30 @@ class Mouse:
         self.pC_df = pd.DataFrame(data=self.pC,columns=['pC1','pC2'],index=self.df.index)
 
     #Expand the sample labels to the rest of the data using
-    def knn_pred(self, clf, Sxx_extended,state_averages_path,transform='LDA'):
-        # predict in 2D
+    def knn_pred(self, clf, Sxx_extended,state_averages_path):
+        # predict states
         self.state_df = pd.DataFrame(index=Sxx_extended.index)
-        if transform =='PCA':
-            print('Predicting clusters using PCA')
-            self.state_df['clusters_knn'] = clf.predict(self.pC_df)
-        elif transform =='LDA':
-            print('Predicting clusters using LDA')
-            self.state_df['clusters_knn'] = clf.predict(self.LD_df)
-        else:
-            print('Cannot recognise PCA or LDA data')
+        self.state_df['clusters_knn'] = clf.predict(self.LD_df)
+
 
         Nclusters = len(self.state_df['clusters_knn'].unique())
 
+        #read previously calculated state averages (normalized data)
         state_averages = pd.read_pickle(state_averages_path)
+        #normalize spectrum
+        normalization = self.Sxx_df.quantile(q=0.01, axis=0)
+        self.Sxx_df_norm = self.Sxx_df - normalization
+
+        #compute knn state averages
         label_averages = pd.DataFrame()
         for label in np.unique(self.state_df['clusters_knn']):
-            label_averages[label] = self.Sxx_df.loc[self.state_df[self.state_df['clusters_knn'] == label].index].mean(axis=0)
-
-        if Nclusters <= 4:
+            label_averages[label] = self.Sxx_df_norm.loc[self.state_df[self.state_df['clusters_knn'] == label].index].mean(axis=0)
+        #determine which knn labels match each state
+        if Nclusters == 4:
             state_dict = {}
-            for label in label_averages.iteritems():
-                # calculate least square difference for each label
-                lsq_df = state_averages.sub(label[1], axis='rows') ** 2
-                state_dict[label[0]]= lsq_df.mean(axis=0).idxmin()
+            for state in state_averages:
+                state_correlations = label_averages.corrwith(state_averages[state])
+                state_dict[state_correlations.argmax()] = state
 
             self.state_df['states'] = self.state_df['clusters_knn']
             self.state_df.replace({"states": state_dict},inplace=True)

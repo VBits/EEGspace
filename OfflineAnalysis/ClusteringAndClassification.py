@@ -1,194 +1,201 @@
 """
 v.20211116 - Not finalized yet
 """
-import OfflineAnalysis.ANN as ANN
-from OfflineAnalysis.PlottingUtils import get_random_idx
+# import OfflineAnalysis.ANN as ANN
+from OfflineAnalysis.GeneralUtils import get_random_idx
 from OfflineAnalysis.ProcessSmrx import get_mouse
 from OfflineAnalysis.Config import *
 # import numpy as np
 import pandas as pd
+from GeneralUtils import *
 from DensityPeaks import *
 from Transformations import *
 from PlottingUtils import *
 from NearestNeighbors import *
 import joblib
 from Expand import *
+from SVM import *
 
-m = get_mouse('SertCre-CS',1)
 
+# m = get_mouse('SertCre-CS',1)
+# for i in range(1, 9):
+for i in range(9, 17):
+    print (i)
+    m = get_mouse('Vglut2Cre-CS',i,load=True)
+
+m = get_mouse('B6J',1,load=True)
 ######################################
 # 1. Label the multitaper_df using an ANN (use 50 epochs, centered around the epoch of interest)
 #Create the Sxx_extended
-Sxx_extended = expand_epochs(m,smoothed_data=True)
-rand_idx = get_random_idx(Sxx_extended)
+Sxx_extended = expand_epochs(m,smoothed_data=True,win=81)
+rand_idx = get_random_idx(Sxx_extended,size=40000)
 
-# #OR load previously calculated files
-# Sxx_extended = pd.read_pickle(EphysDir + Folder + 'Sxx_extended_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
-# labels_extended = pd.read_pickle(EphysDir + Folder + 'labels_extended_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))
-
-#Create and train a model
-model = ANN.create_model(Sxx_extended)
-# ANN.standardize_state_codes(m.state_df)
-ANN.standardize_state_codes(labels_extended)
-# ANN.plot_model(EphysDir+Folder)
-classWeight = ANN.calculate_weights(m,rand_idx)
-model = ANN.train_model(model,Sxx_extended,labels_extended,classWeight,rand_idx)
-model.save_weights(EphysDir + Folder+ 'weights_Sxx_df_51epochs_centered_final.h5')
-
-#load weights
-model.load_weights(EphysDir+Folder+'weights_Sxx_df_51epochs_centered_final.h5')
-#
-labels = ANN.get_labels(model, m,Sxx_extended)
-# NNetwork.test_accuracy()
-#
 ############################################################
-#Use SVM to gel labels
-from sklearn.svm import LinearSVC
-linear = svm.SVC(kernel='linear', C=1, decision_function_shape='ovo').fit(Sxx_extended.iloc[rand_idx], m.state_df['states'].iloc[rand_idx])
+# 2. Get temporary SVM labels
+# Recover previously saved model
+svm_clf = load_svm(offline_data_path)
+m.svm_labels = get_svm_labels(m.Sxx_df3,svm_clf)
+m.svm_labels = get_svm_labels(m.multitaper_df,svm_clf)
 
-Z = linear.predict(Sxx_extended.iloc[rand_idx])
-
-svm_labels = pd.DataFrame(data=Z)
-
-
-fig = plt.figure()
-ax = Axes3D(fig)
-# ax.scatter(m.LD_df['LD1'].iloc[rand_idx], m.LD_df['LD2'].iloc[rand_idx], m.LD_df['LD3'].iloc[rand_idx],
-#            c=svm_labels[0].apply(lambda x: m.colors[x]), alpha=0.2,s=5,linewidths=0)
-ax.scatter(m.LD_df['LD1'].loc[rand_idx], m.LD_df['LD2'].loc[rand_idx], m.LD_df['LD3'].loc[rand_idx],
-           c=clu.membership,cmap='tab10',alpha=0.2,s=5,linewidths=0)
-ax.set_xlabel('LD1')
-ax.set_ylabel('LD2')
-ax.set_zlabel('LD3')
-
-svm_filename = EphysDir+Folder + 'svm_{}_{}_{}_m{}.joblib'.format(Folder[:6],File[:6],m.genotype,m.pos)
-svm_filename = EphysDir+Folder + 'svm_211011_211102_B6J_m1.joblib'
-# Save file
-joblib.dump(linear, svm_filename)
-# # Recover previously saved file
-linear = joblib.load(svm_filename)
-
-#
-# ######################################
-# 2. Use ANN labels for LDA
-#train an LDA based on the ANN labels
+############################################################
+# 3. Train an LDA or load a previously created LDA
+# Recover previously saved model
+#train an LDA based on the SVM labels
+lda, X_train = train_lda(Sxx_extended,m.svm_labels['svm_labels'],rand_idx,components=3)
 lda, X_train = train_lda(Sxx_extended,m.state_df['states'],rand_idx,components=3)
-#load LDA
-lda_filename = EphysDir+Folder + 'lda_extended-corr_{}_{}_{}_m{}.joblib'.format(Folder[:6],File[:6],m.genotype,m.pos)
-# lda_filename = EphysDir+Folder + 'lda_extended_211014_211102_Vglut2Cre-CS_m9.joblib'
-# lda_filename = EphysDir+Folder + 'lda_extended-corr_210409_210409_B6J_m1.joblib'
-# Save file
-joblib.dump(lda, lda_filename)
-# # Recover previously saved file
-lda = joblib.load(lda_filename)
-
+lda, X_train = train_lda(Sxx_extended,m.state_df_corr['states'],rand_idx,components=3)
+lda, X_train = train_lda(m.Sxx_df3,m.state_df_corr['states'],rand_idx,components=3)
+lda, X_train = train_lda(m.Sxx_df3,m.svm_labels['svm_labels'],rand_idx,components=3)
 # Create dataframe for LDs
 m.LD_df = lda_transform_df(Sxx_extended,lda)
+m.LD_df = lda_transform_df(m.Sxx_df3,lda)
 
-labels ='ann_states'
-labels ='states'
-title= 'LDA no labels', title= 'LDA dpc labels', title= 'LDA ann labels'
-plot_LDA(m,rand_idx,states=False,labels=labels,savefigure=False)
+#TODO test PCA
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.decomposition import PCA
+Sxx_extended_scaled =MinMaxScaler().fit_transform(Sxx_extended)
+pca = PCA(n_components=3)
+LD_df = pca.fit_transform(Sxx_extended_scaled)
+LD_df = pca.fit_transform(Sxx_extended)
+m.LD_df = pd.DataFrame(data=LD_df, columns=['LD1', 'LD2', 'LD3'], index=Sxx_extended.index)
+m.Sxx_df_scaled =MinMaxScaler().fit_transform(m.Sxx_df)
+LD_df = pca.fit_transform(m.Sxx_df3)
+m.LD_df = pd.DataFrame(data=LD_df, columns=['LD1', 'LD2', 'LD3'], index=m.Sxx_df.index)
+
+
+#TODO Import NMF
+from sklearn.decomposition import NMF
+# Create an NMF instance: model
+model = NMF(n_components=3)
+# Fit the model to televote_Rank
+m.Sxx_df_scaled =MinMaxScaler().fit_transform(Sxx_extended)
+model.fit(m.Sxx_df_scaled)
+# Transform the televote_Rank: nmf_features
+LD = model.transform(m.Sxx_df_scaled)
+m.LD_df = pd.DataFrame(data=LD, columns=['LD1', 'LD2', 'LD3'], index=m.Sxx_df.index)
+# Print the NMF features
+print(nmf_features.shape)
+print(model.components_.shape)
+
+
+
+
+#load previously saved LDA
+lda_filename = offline_data_path +'lda_extended_211014_211102_Vglut2Cre-CS_m9.joblib'
+lda_filename = EphysDir+Folder  + 'lda_extended-corr_210409_210409_B6J_m1.joblib'
+lda_filename = EphysDir+Folder + 'lda_extended_210409_210409_B6J_m1.joblib'
+lda_filename = EphysDir+Folder + 'lda_extended_21win_p4_210409_210409_B6J_m1.joblib'
+lda = joblib.load(lda_filename)
+# Create dataframe for LDs
+m.LD_df = lda_transform_df(Sxx_extended,lda)
+#Evaluate SVM labels
+plot_LDA(m,rand_idx,savefigure=False)
+#Or evaluate LDA shape seperately
+title= 'LDA no labels', title= 'LDA svm labels'
+plot_LDA(m,rand_idx,savefigure=False)
 plt.savefig(m.figureFolder+title + m.figure_tail, dpi=dpi)
 
 ######################################
-# 3 Density peak clustering
+# 4. Density peak clustering
 # build the density peak clusterer
-clu = get_dpc(m,rand_idx,savefigure=True)
+clu = get_dpc(m,rand_idx,savefigure=False)
 # decide the cutoffs for the clusters
-clu = dpc_cutoffs(clu,50,2,savefigure=False)
+clu = dpc_cutoffs(clu,100,4,savefigure=False)
 
 # ######################################
-# 4. Propagate DPC labels
-clf = propagate_classes(m,Sxx_extended,rand_idx,state_averages_path,clu,n_neighbors=201)
+# 5. Propagate DPC labels
+knn_clf = get_knn_clf(m,rand_idx,clu,n_neighbors=201)
+# propagate labels
+m.knn_pred(knn_clf, Sxx_extended,state_averages_path)
 
+##################
+# #Automatic state assignment
+# Nclusters = len(self.state_df['clusters_knn'].unique())
+#
+# state_averages = pd.read_pickle(state_averages_path)
+# label_averages = pd.DataFrame()
+# for label in np.unique(self.state_df['clusters_knn']):
+#     label_averages[label] = self.Sxx_df_2.loc[self.state_df[self.state_df['clusters_knn'] == label].index].mean(axis=0)
+# for label in ['HTwake','LTwake','SWS','REM']:
+#     label_averages[label] = Sxx_combined_2.loc[states_combined[states_combined['states'] == label].index].mean(axis=0)
+# plt.figure()
+# plt.plot(label_averages)
+# plt.legend()
+#
+# label_averages.to_pickle(EphysDir+Folder+'StateAverages.pkl')
+# stateAverages = label_averages
+#
+# normalization = m.Sxx_df.quantile(q=0.01,axis=0)
+# m.Sxx_df_norm = m.Sxx_df - normalization
+#
+# background = Sxx_combined.quantile(q=0.01,axis=0)
+# Sxx_combined_2  = Sxx_combined - background
+#
+#
+# plt.figure()
+# plt.plot(state_averages)
+# plt.legend()
+# label_averages.plot()
+#
+# from scipy.signal import correlate
+#
+# for i in range(4):
+#     print (i, stateAverages.corr(label_averages))
+#
+# label_averages.corrwith(stateAverages['SWS'])
+#
+# state_averages.corrwith(label_averages)
+# pd.concat([state_averages, label_averages], axis=1).corr().iloc[:4,5:]
+#
+# if Nclusters == 4:
+#     state_dict = {}
+#     for state in state_averages:
+#         print(state)
+#         state_correlations = label_averages.corrwith(stateAverages[state])
+#         state_dict[state] = state_correlations.argmax()
+#
+#     self.state_df['states'] = self.state_df['clusters_knn']
+#     self.state_df.replace({"states": state_dict}, inplace=True)
+# else:
+#     print('Number of clusters not recognized. Automatic state assignment failed')
 ### ----
 # 3D
 # Plot and evaluate state assignment 3D
 labels ='states'
 labels = 'clusters_knn'
-plot_LDA(m,rand_idx,states=True,labels=labels,savefigure=False)
+plot_LDA(m,rand_idx,m.state_df_corr['states'],savefigure=False)
 plt.savefig(m.figureFolder + 'LDA DPC labels {}_{}'.format(Folder[:6], File[:6]) + m.figure_tail, dpi=dpi)
 
 
+### -------------------
 # Load OR Save knn model
 knn_file = EphysDir+Folder + 'knn_{}_{}_{}_m{}.joblib'.format(Folder[:6],File[:6],m.genotype,m.pos)
-# knn_file = EphysDir+Folder + 'knn_{}_{}_{}_m{}.joblib'.format(Folder[:6],File[:6],m.genotype,'all_mice')
-### -------------------
 # Save file
 joblib.dump(clf, knn_file)
-### -------------------
 # Recover previously saved file
 clf = joblib.load(knn_file)
 
 ### -------------------
 #Save State Dataframe
-m.state_df.to_pickle(EphysDir + Folder + 'states-corr_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
+m.state_df.to_pickle(EphysDir + Folder + 'states_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
 # #Load previously saved Dataframe from experimental folder
-m.state_df = pd.read_pickle(EphysDir + Folder + 'states_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
-
-
-
-# #check transitions
-# Delta = m.Sxx_df.loc[:, 1:4].mean(axis=1)
-# Theta = m.Sxx_df.loc[:, 9:10].mean(axis=1)
-#
-#
-# fig, (ax1,ax3) = plt.subplots(2, sharex=True)
-# ax1.plot(m.Sxx_df.index,Delta.values,color= 'r', label='raw Delta')
-# ax1.grid(False)
-# ax1.set_ylabel('Power (Delta raw)')
-# ax1.set_xlabel('epochs')
-# # ax1.set_title('During SWS')
-# ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-#
-# ax2.plot(m.Sxx_df.index,Theta.values,color= 'g', label='Theta')
-# ax2.grid(False)
-# ax2.set_ylabel('Theta')
-# ax3.plot(m.state_df.index,m.state_df['clusters_knn'].values,color= 'b', label='knn')
-# ax3.grid(False)
-# ax3.set_ylabel('states')
-# fig.legend()
-
-####
-# Assign states automatically
-state_averages = pd.DataFrame()
-for state in np.unique(m.state_df['states']):
-    print(state)
-    state_averages[state] = m.Sxx_df.loc[m.state_df[m.state_df['states']==state].index].mean(axis=0)
-    state_averages.to_pickle(state_averages_path)
-state_averages['Wake'] = m.Sxx_df.loc[m.state_df[m.state_df['states'].isin(['LTwake','HTwake'])].index].mean(axis=0)
-state_averages = pd.read_pickle(state_averages_path)
-#create label averages
-label_averages = pd.DataFrame()
-for label in np.unique(m.state_df['clusters_knn']):
-    print(label)
-    label_averages[label] = m.Sxx_df.loc[m.state_df[m.state_df['clusters_knn']==label].index].mean(axis=0)
-
-for label in label_averages.iteritems():
-    #calculate least square difference for each label
-    lsq_df = state_averages.sub(label[1], axis='rows')**2
-    print (label[0],lsq_df.mean(axis=0).idxmin())
-
-
-
-
-df['dist'] = np.linalg.norm(df.iloc[:, [1,2]].values - df.iloc[:, [3,4]], axis=1)
+m.state_df_corr = pd.read_pickle(EphysDir + Folder + 'states-corr_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
 
 # ######################################
 # # 5. Use DPC labels to update LDA
 
 #train an LDA based on the ANN labels
-lda, X_train = train_lda(Sxx_extended,m.state_df['states'],rand_idx,components=3)
+lda, X_train = train_lda(Sxx_extended,m.state_df_corr['states'],rand_idx,components=3)
 # Create dataframe for LDs
 m.LD_df = lda_transform_df(Sxx_extended,lda)
 
 
 labels ='states'
 title= 'LDA dpc labels'
-plot_LDA(m,rand_idx,states=True,labels=labels,savefigure=False)
-plt.savefig(m.figureFolder+'LDA dpc labels updated LDA' + m.figure_tail, dpi=dpi)
-
+plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
+plot_LDA(m,rand_idx,m.state_df_corr['states'],savefigure=False)
+plot_LDA(m,rand_idx,m.svm_labels['svm_labels'])
+plt.savefig(m.figureFolder+'LDA corr labels multitaper data another rand_idx' + m.figure_tail, dpi=dpi)
 
 # ### -------------------
 # Store or load LDA transformation
@@ -198,6 +205,9 @@ joblib.dump(lda, lda_filename)
 # # Recover previously saved file
 lda = joblib.load(lda_filename)
 
-
-
+#-------------------------------------------------
+from sklearn.metrics import confusion_matrix
+m.state_df = pd.read_pickle(EphysDir + Folder + 'states_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
+m.state_df_corr = pd.read_pickle(EphysDir + Folder + 'states-corr_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
+confusion_matrix(m.state_df_corr['states'],m.state_df['states'],normalize='true')
 
