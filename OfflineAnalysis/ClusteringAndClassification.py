@@ -24,11 +24,12 @@ for i in range(1, 9):
     m = get_mouse('SertCre-CS',i,load=False)
 
 m = get_mouse('B6J',1,load=True)
+m = get_mouse('SertCre-CS',1,load=True)
 ######################################
 # 1. Label the multitaper_df using an ANN (use 50 epochs, centered around the epoch of interest)
 #Create the Sxx_extended
 # Sxx_extended = expand_epochs(m,smoothed_data=True,win=81)
-rand_idx = get_random_idx(Sxx_extended,size=80000)
+rand_idx = get_random_idx(m.Sxx_df,size=80000)
 
 
 ############################################################
@@ -39,62 +40,74 @@ rand_idx = get_random_idx(Sxx_extended,size=80000)
 
 ############################################################
 # 2a. Train ANN
-NNetwork = ANN(multitaper_extended,labels_extended,rand_idx)
-NNetwork.initialize()
-NNetwork.train_model()
-NNetwork.get_labels()
-NNetwork.save_weights(EphysDir + Folder, 'weights_Multitaper_df_51epochs_centered.h5')
-NNetwork.load_weights(EphysDir+Folder,'weights_Sxx_df.h5')
-NNetwork.test_accuracy()
+# NNetwork = ANN(multitaper_extended,labels_extended,rand_idx)
+# NNetwork.initialize()
+# NNetwork.train_model()
+# NNetwork.get_labels()
+# NNetwork.save_weights(EphysDir + Folder, 'weights_Multitaper_df_51epochs_centered.h5')
+# NNetwork.load_weights(EphysDir+Folder,'weights_Sxx_df.h5')
+# NNetwork.test_accuracy()
+
+model = ANN.create_model(m.Sxx_df)
+# ANN.standardize_state_codes(m.state_df)
+ANN.standardize_state_codes(m.state_df)
+# ANN.plot_model(EphysDir+Folder)
+classWeight = ANN.calculate_weights(m,rand_idx)
+model = ANN.train_model(model,m.Sxx_df,m.state_df,classWeight,rand_idx)
+
+
+model.save_weights(EphysDir + Folder+ 'weights_Sxx_df_51epochs_centered_final.h5')
+# model.load_weights(EphysDir+Folder,'weights_Sxx_df_51epochs_centered_final.h5')
+m.state_df['ann_labels'] = ANN.get_labels(model, m,m.Sxx_df)
 
 ############################################################
 # 2b. Get temporary SVM labels
 # Recover previously saved model
-svm_clf = load_svm(offline_data_path)
-m.svm_labels = get_svm_labels(m.Sxx_df3,svm_clf)
-m.svm_labels = get_svm_labels(m.multitaper_df,svm_clf)
+# svm_clf = load_svm(offline_data_path)
+# m.svm_labels = get_svm_labels(m.Sxx_df3,svm_clf)
+# m.svm_labels = get_svm_labels(m.multitaper_df,svm_clf)
 
 ############################################################
 # 3. Train an LDA or load a previously created LDA
 # Recover previously saved model
 #train an LDA based on the SVM labels
-lda, X_train = train_lda(Sxx_extended,m.svm_labels['svm_labels'],rand_idx,components=3)
-lda, X_train = train_lda(Sxx_extended,m.state_df['states'],rand_idx,components=3)
-lda, X_train = train_lda(Sxx_extended.loc['2021-04-09 13:55:04':'2021-04-13 14:01:54'],m.state_df_corr['states'],rand_idx,components=3)
-lda, X_train = train_lda(m.Sxx_df3,m.state_df_corr['states'],rand_idx,components=3)
-lda, X_train = train_lda(m.Sxx_df3,m.svm_labels['svm_labels'],rand_idx,components=3)
-lda, X_train
+# lda, X_train = train_lda(Sxx_extended,m.svm_labels['svm_labels'],rand_idx,components=3)
+# lda, X_train = train_lda(Sxx_extended,m.state_df['states'],rand_idx,components=3)
+# lda, X_train = train_lda(Sxx_extended.loc['2021-04-09 13:55:04':'2021-04-13 14:01:54'],m.state_df_corr['states'],rand_idx,components=3)
+# lda, X_train = train_lda(m.Sxx_df3,m.state_df_corr['states'],rand_idx,components=3)
+lda, X_train = train_lda(m.Sxx_df,m.state_df['ann_labels'],rand_idx,components=3)
+
 # Create dataframe for LDs
-m.LD_df = lda_transform_df(Sxx_extended,lda)
-m.LD_df = lda_transform_df(m.Sxx_df3,lda)
+# m.LD_df = lda_transform_df(Sxx_extended,lda)
+m.LD_df = lda_transform_df(m.Sxx_df,lda)
 
-#TODO test PCA
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.decomposition import PCA
-Sxx_extended_scaled =MinMaxScaler().fit_transform(Sxx_extended)
-pca = PCA(n_components=3)
-LD_df = pca.fit_transform(Sxx_extended_scaled)
-LD_df = pca.fit_transform(Sxx_extended)
-m.LD_df = pd.DataFrame(data=LD_df, columns=['LD1', 'LD2', 'LD3'], index=Sxx_extended.index)
-m.Sxx_df_scaled =MinMaxScaler().fit_transform(m.Sxx_df)
-LD_df = pca.fit_transform(m.Sxx_df3)
-m.LD_df = pd.DataFrame(data=LD_df, columns=['LD1', 'LD2', 'LD3'], index=m.Sxx_df.index)
+# #TODO test PCA
+# from sklearn.preprocessing import MinMaxScaler
+# from sklearn.decomposition import PCA
+# Sxx_extended_scaled =MinMaxScaler().fit_transform(Sxx_extended)
+# pca = PCA(n_components=3)
+# LD_df = pca.fit_transform(Sxx_extended_scaled)
+# LD_df = pca.fit_transform(Sxx_extended)
+# m.LD_df = pd.DataFrame(data=LD_df, columns=['LD1', 'LD2', 'LD3'], index=Sxx_extended.index)
+# m.Sxx_df_scaled =MinMaxScaler().fit_transform(m.Sxx_df)
+# LD_df = pca.fit_transform(m.Sxx_df3)
+# m.LD_df = pd.DataFrame(data=LD_df, columns=['LD1', 'LD2', 'LD3'], index=m.Sxx_df.index)
 
 
-#TODO Import NMF
-from sklearn.decomposition import NMF
-# Create an NMF instance: model
-model = NMF(n_components=3)
-# Fit the model to televote_Rank
-m.Sxx_df_scaled =MinMaxScaler().fit_transform(Sxx_extended)
-model.fit(m.Sxx_df_scaled)
-# Transform the televote_Rank: nmf_features
-LD = model.transform(m.Sxx_df_scaled)
-m.LD_df = pd.DataFrame(data=LD, columns=['LD1', 'LD2', 'LD3'], index=m.Sxx_df.index)
-# Print the NMF features
-print(nmf_features.shape)
-print(model.components_.shape)
-
+# #TODO Import NMF
+# from sklearn.decomposition import NMF
+# # Create an NMF instance: model
+# model = NMF(n_components=3)
+# # Fit the model to televote_Rank
+# m.Sxx_df_scaled =MinMaxScaler().fit_transform(Sxx_extended)
+# model.fit(m.Sxx_df_scaled)
+# # Transform the televote_Rank: nmf_features
+# LD = model.transform(m.Sxx_df_scaled)
+# m.LD_df = pd.DataFrame(data=LD, columns=['LD1', 'LD2', 'LD3'], index=m.Sxx_df.index)
+# # Print the NMF features
+# print(nmf_features.shape)
+# print(model.components_.shape)
+#
 
 
 
