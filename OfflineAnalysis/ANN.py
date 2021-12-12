@@ -17,9 +17,9 @@ from OfflineAnalysis.PlottingUtils import *
 def create_model(dataframe):
     model = keras.Sequential([
     keras.layers.Input(shape=(len(dataframe.T),)),
-    keras.layers.Dense(8096, activation='relu', name='1Hidden'),
-    keras.layers.Dense(2048, activation='relu', name='2Hidden'),
-    keras.layers.Dense(512, activation='relu', name='3Hidden'),
+    # keras.layers.Dense(8096, activation='relu', name='1Hidden'),
+    # keras.layers.Dense(2048, activation='relu', name='2Hidden'),
+    # keras.layers.Dense(512, activation='relu', name='3Hidden'),
     keras.layers.Dense(126, activation='relu', name='4Hidden'),
     keras.layers.Dense(32, activation='relu', name='5Hidden'),
     keras.layers.Dense(16, activation='relu', name='6Hidden'),

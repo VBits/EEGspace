@@ -36,7 +36,7 @@ def get_mouse(strain,pos,load=True):
 
 
         m.multitaper(resolution=2)
-        m.process_spectrum(smooth_iter=1,window_size=21,polynomial=4)
+        m.process_spectrum(window_size=21)
 
         # Save normalized Dataframe to experimental folder
         m.Sxx_df.to_pickle(EphysDir + Folder + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(Folder[:6], File[:6], m.genotype, m.pos))

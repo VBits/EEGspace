@@ -143,22 +143,24 @@ class Mouse:
         # self.multitaper_df = pd.DataFrame(index=freqs, data=psd_est.T)
         time_idx = pd.date_range(start=self.start[0], freq='{}ms'.format(window_step/self.EEG_fs*1000), periods=len(psd_est))
         self.multitaper_df = pd.DataFrame(index=time_idx, data=psd_est,columns=freqs)
+        self.multitaper_df = 10 * np.log(self.multitaper_df)
 
     #Smoothen the multitaper data with Savgol
-    def process_spectrum(self,smooth_iter=1, window_size=21,polynomial=4):
-        ## Normalize the data and plot density spectrogram
-        def SG_filter(x):
-            return scipy.signal.savgol_filter(x, window_size, polynomial)
-
-        # Log scale
-        Sxx_df = 10 * np.log(self.multitaper_df.T)
-
-        # horizontal axis (time)
-        for i in range(smooth_iter):
-            Sxx_df = Sxx_df.apply(SG_filter, axis=1, result_type='expand')
-
-        self.Sxx_df = pd.DataFrame(data=Sxx_df.T.values, columns=self.multitaper_df.columns,
-                                     index=self.multitaper_df.index)
+    def process_spectrum(self, window_size=21):
+        # ## Normalize the data and plot density spectrogram
+        # def SG_filter(x):
+        #     return scipy.signal.savgol_filter(x, window_size, polynomial)
+        #
+        # # Log scale
+        # Sxx_df = 10 * np.log(self.multitaper_df.T)
+        #
+        # # horizontal axis (time)
+        # for i in range(smooth_iter):
+        #     Sxx_df = Sxx_df.apply(SG_filter, axis=1, result_type='expand')
+        #
+        # self.Sxx_df = pd.DataFrame(data=Sxx_df.T.values, columns=self.multitaper_df.columns,
+        #                              index=self.multitaper_df.index)
+        self.Sxx_df = self.multitaper_df.rolling(window_size, center=True, win_type=None, min_periods=2).median()
 
     def PCA(self, window_size = 11,normalizer=False,robust =False):
         if self.LP_filter:

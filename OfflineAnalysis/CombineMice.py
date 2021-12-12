@@ -21,7 +21,7 @@ def combine_files(EphysDir,Folder,save=True):
             #trim the Sxx file to match the states file length
             Sxx_file = Sxx_file[:len(states_file)]
             #process with log 10
-            multitaper_file = 10*np.log(multitaper_file[:len(states_file)])
+            # multitaper_file = 10*np.log(multitaper_file[:len(states_file)])
             Sxx_combined = Sxx_combined.append(Sxx_file,ignore_index=True)
             states_combined = states_combined.append(states_file, ignore_index=True)
             multitaper_combined = multitaper_combined.append(multitaper_file, ignore_index=True)
@@ -48,9 +48,9 @@ multitaper_combined = multitaper_combined[states_combined['states']!='Wake']
 states_combined = states_combined[states_combined['states']!='Wake']
 
 rand_idx = get_random_idx(Sxx_combined,size=200000)
-m.state_df = states_combined.loc[rand_idx]
-m.Sxx_df = Sxx_combined.loc[rand_idx]
-m.multitaper_df = multitaper_combined.loc[rand_idx]
+m.state_df = states_combined#.loc[rand_idx]
+m.Sxx_df = Sxx_combined#.loc[rand_idx]
+m.multitaper_df = multitaper_combined#.loc[rand_idx]
 
 
 ######################################
@@ -61,6 +61,8 @@ rand_idx = get_random_idx(Sxx_extended,size=199000)
 
 ############################################################
 # 2. Get temporary SVM labels
+clf = create_svm(m.Sxx_df,m.state_df,rand_idx,return_score=True,save=False)
+
 # Recover previously saved model
 svm_clf = load_svm(offline_data_path)
 m.svm_labels = get_svm_labels(m.Sxx_df,svm_clf)

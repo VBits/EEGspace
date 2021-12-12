@@ -1,7 +1,7 @@
 """
 v.20211116 - Not finalized yet
 """
-# import OfflineAnalysis.ANN as ANN
+import OfflineAnalysis.ANN as ANN
 from OfflineAnalysis.GeneralUtils import get_random_idx
 from OfflineAnalysis.ProcessSmrx import get_mouse
 from OfflineAnalysis.Config import *
@@ -18,20 +18,36 @@ from SVM import *
 
 
 # m = get_mouse('SertCre-CS',1)
-# for i in range(1, 9):
-for i in range(9, 17):
+for i in range(1, 9):
+# for i in range(9, 17):
     print (i)
-    m = get_mouse('Vglut2Cre-CS',i,load=True)
+    m = get_mouse('SertCre-CS',i,load=False)
 
 m = get_mouse('B6J',1,load=True)
 ######################################
 # 1. Label the multitaper_df using an ANN (use 50 epochs, centered around the epoch of interest)
 #Create the Sxx_extended
 Sxx_extended = expand_epochs(m,smoothed_data=True,win=81)
-rand_idx = get_random_idx(Sxx_extended,size=40000)
+rand_idx = get_random_idx(Sxx_extended,size=80000)
+
 
 ############################################################
-# 2. Get temporary SVM labels
+# 2a. Train SVM
+svm_clf = create_svm(m.Sxx_df3,m.state_df_corr,return_score=True,save=False)
+svm_filename = offline_data_path + 'svm_B6J_m1.joblib'
+joblib.dump(svm_clf, svm_filename)
+
+
+NNetwork = ANN(multitaper_extended,labels_extended,rand_idx)
+NNetwork.initialize()
+NNetwork.train_model()
+NNetwork.get_labels()
+NNetwork.save_weights(EphysDir + Folder, 'weights_Multitaper_df_51epochs_centered.h5')
+NNetwork.load_weights(EphysDir+Folder,'weights_Sxx_df.h5')
+NNetwork.test_accuracy()
+
+############################################################
+# 2b. Get temporary SVM labels
 # Recover previously saved model
 svm_clf = load_svm(offline_data_path)
 m.svm_labels = get_svm_labels(m.Sxx_df3,svm_clf)
@@ -43,9 +59,10 @@ m.svm_labels = get_svm_labels(m.multitaper_df,svm_clf)
 #train an LDA based on the SVM labels
 lda, X_train = train_lda(Sxx_extended,m.svm_labels['svm_labels'],rand_idx,components=3)
 lda, X_train = train_lda(Sxx_extended,m.state_df['states'],rand_idx,components=3)
-lda, X_train = train_lda(Sxx_extended,m.state_df_corr['states'],rand_idx,components=3)
+lda, X_train = train_lda(Sxx_extended.loc['2021-04-09 13:55:04':'2021-04-13 14:01:54'],m.state_df_corr['states'],rand_idx,components=3)
 lda, X_train = train_lda(m.Sxx_df3,m.state_df_corr['states'],rand_idx,components=3)
 lda, X_train = train_lda(m.Sxx_df3,m.svm_labels['svm_labels'],rand_idx,components=3)
+lda, X_train
 # Create dataframe for LDs
 m.LD_df = lda_transform_df(Sxx_extended,lda)
 m.LD_df = lda_transform_df(m.Sxx_df3,lda)
