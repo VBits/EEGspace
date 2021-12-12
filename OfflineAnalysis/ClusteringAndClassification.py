@@ -27,17 +27,18 @@ m = get_mouse('B6J',1,load=True)
 ######################################
 # 1. Label the multitaper_df using an ANN (use 50 epochs, centered around the epoch of interest)
 #Create the Sxx_extended
-Sxx_extended = expand_epochs(m,smoothed_data=True,win=81)
+# Sxx_extended = expand_epochs(m,smoothed_data=True,win=81)
 rand_idx = get_random_idx(Sxx_extended,size=80000)
 
 
 ############################################################
-# 2a. Train SVM
-svm_clf = create_svm(m.Sxx_df3,m.state_df_corr,return_score=True,save=False)
-svm_filename = offline_data_path + 'svm_B6J_m1.joblib'
-joblib.dump(svm_clf, svm_filename)
+# # 2a. Train SVM
+# svm_clf = create_svm(m.Sxx_df3,m.state_df_corr,return_score=True,save=False)
+# svm_filename = offline_data_path + 'svm_B6J_m1.joblib'
+# joblib.dump(svm_clf, svm_filename)
 
-
+############################################################
+# 2a. Train ANN
 NNetwork = ANN(multitaper_extended,labels_extended,rand_idx)
 NNetwork.initialize()
 NNetwork.train_model()
