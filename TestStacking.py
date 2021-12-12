@@ -1202,6 +1202,52 @@ def compare_confusion_matrices_multiple_data_shapes_mouse2(series=None, buffer=5
 
     print("stop")
 
+def compare_confusion_matrices_median_mouse2(buffer=50, set_size=200000):
+    recreate_lda_file = True
+
+    mouse_number = 2
+
+    #load up the data
+    multitaper_data_path = Config.base_path + "/Sxx_df_211011_211102_SertCre-CS_m1.pkl"
+    multitaper_df = Storage.load_from_file(multitaper_data_path)[25:-26]
+    overfit_states_file_path = Config.base_path + "/states-corr_211011_211102_SertCre-CS_m1.pkl"
+    overfit_states = np.array(Storage.load_from_file(overfit_states_file_path))
+    overfit_states_numeric = Common.states_to_numeric_version(overfit_states)
+
+    #convert to medians
+    medians = multitaper_df.rolling(21, center=True, win_type=None, min_periods=2).median()
+
+    combined_data = np.hstack((np.array(multitaper_df[:-11]), np.array(medians[11:])))
+    series = combined_data[:set_size]
+    validation_series = np.array(combined_data[set_size:])
+    states_numeric = overfit_states_numeric[:set_size]
+    states_numeric_validation = overfit_states_numeric[set_size:-11]
+
+    # load or create the lda
+    params = {'series': series, 'numerical_states': states_numeric, 'show_plot': True}
+    lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path +
+        "/lda_for_median_values_" + str(mouse_number) + ".pkl",
+        train_lda_for_object_retrieval, recreate_lda_file, params)
+
+    lda_transformed = lda_result_prev_epoch["lda"].transform(series)
+    lda_transformed_validation = lda_result_prev_epoch["lda"].transform(validation_series)
+
+    # create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed, states_numeric, test_size=0.20)
+
+    neigh = KNeighborsClassifier(n_neighbors=8)
+    neigh.fit(X_train, y_train)
+    lda_states_numeric = neigh.predict(X_test)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric))
+
+    lda_states_validation = neigh.predict(lda_transformed_validation)
+    Common.print_confusion_matrix(states_numeric_validation, lda_states_validation)
+    print(Common.compare_states_for_accuracy(states_numeric_validation, lda_states_validation))
+    Common.plot_lda(lda_transformed_validation, states_numeric_validation)
+
 if __name__ == '__main__':
     multitaper, unsmoothed, smoothed, states = load_offline_data()
     if False:
@@ -1214,5 +1260,6 @@ if __name__ == '__main__':
     # create_statespace_from_last_epoch_averages(unsmoothed, states)
     #compare_confusion_matrices_multiple_data_shapes(unsmoothed)
     #compare_mirror_technique_with_general_data(unsmoothed)
-    compare_confusion_matrices_multiple_data_shapes_mouse2()
+    #compare_confusion_matrices_multiple_data_shapes_mouse2()
     #compare_mirror_technique_with_general_data_mouse2()
+    compare_confusion_matrices_median_mouse2()
