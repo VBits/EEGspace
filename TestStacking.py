@@ -104,10 +104,9 @@ def mirror_transform(series):
     buffer = np.asarray(buffer)
     return buffer
 
-def mirror_transform_faster(series):
+def mirror_transform_faster(series, smooth_iter = 3):
 
     chunk_len = 41
-    smooth_iter = 3
     window_size = 41
 
     series = np.array(series)
@@ -683,7 +682,7 @@ def compare_confusion_matrices_multiple_data_shapes(series, buffer=50, subset_si
                                                 params)[25:-26]
 
     #load or create the lda
-    params = {'series': prev_epochs_smoothed[:100000], 'numerical_states': overfit_states_numeric_prev_epochs[:100000],
+    params = {'series': prev_epochs_smoothed[:50000], 'numerical_states': overfit_states_numeric_prev_epochs[:50000],
               'show_plot': True}
     lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs.pkl",
                                                           train_lda_for_object_retrieval, recreate_lda_file, params)
@@ -692,13 +691,16 @@ def compare_confusion_matrices_multiple_data_shapes(series, buffer=50, subset_si
 
 
     #create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_prev_epoch, overfit_states_numeric_prev_epochs,
+                                                         test_size=0.20)
+
     neigh_prev_epochs = KNeighborsClassifier(n_neighbors=8)
-    neigh_prev_epochs.fit(lda_transformed_prev_epoch, overfit_states_numeric_prev_epochs)
-    lda_states_numeric_prev_epoch = neigh_prev_epochs.predict(lda_transformed_prev_epoch)
+    neigh_prev_epochs.fit(X_train, y_train)
+    lda_states_numeric_prev_epoch = neigh_prev_epochs.predict(X_test)
 
     #get the confusion matrix
-    Common.print_confusion_matrix(overfit_states_numeric_prev_epochs, lda_states_numeric_prev_epoch)
-    print(Common.compare_states_for_accuracy(overfit_states_numeric_prev_epochs, lda_states_numeric_prev_epoch))
+    Common.print_confusion_matrix(y_test, lda_states_numeric_prev_epoch)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_prev_epoch))
 
     #*get the log10 prev 50 epochs*
     #-----------------------------------------------------------------------------------------------------------------
@@ -709,38 +711,42 @@ def compare_confusion_matrices_multiple_data_shapes(series, buffer=50, subset_si
     prev_epochs_log10 = Storage.load_or_recreate_file(save_file_path, get_prev_epochs, not load_from_file, params)[25:-26]
 
     # load or create the lda
-    params = {'series': prev_epochs_log10[:100000], 'numerical_states': overfit_states_numeric_prev_epochs[:100000], 'show_plot': True}
+    params = {'series': prev_epochs_log10[:50000], 'numerical_states': overfit_states_numeric_prev_epochs[:50000], 'show_plot': True}
     lda_result_prev_epochs_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs_log10.pkl",
                                                           train_lda_for_object_retrieval, recreate_lda_file, params)
     lda_transformed_log10 = lda_result_prev_epochs_log10["lda"].transform(prev_epochs_log10)
 
     # create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_log10, overfit_states_numeric_prev_epochs,
+                                                         test_size=0.20)
     neigh_prev_epoch_log10 = KNeighborsClassifier(n_neighbors=8)
-    neigh_prev_epoch_log10.fit(lda_transformed_log10, overfit_states_numeric_prev_epochs)
-    lda_states_numeric_prev_epoch_log10 = neigh_prev_epoch_log10.predict(lda_transformed_log10)
+    neigh_prev_epoch_log10.fit(X_train, y_train)
+    lda_states_numeric_prev_epoch_log10 = neigh_prev_epoch_log10.predict(X_test)
 
     # get the confusion matrix
-    Common.print_confusion_matrix(overfit_states_numeric_prev_epochs, lda_states_numeric_prev_epoch_log10)
-    print(Common.compare_states_for_accuracy(overfit_states_numeric_prev_epochs, lda_states_numeric_prev_epoch_log10))
+    Common.print_confusion_matrix(y_test, lda_states_numeric_prev_epoch_log10)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_prev_epoch_log10))
 
     #*single log10 is the series itself*
     # -----------------------------------------------------------------------------------------------------------------
     log10 = np.array(series)[25:-26]
 
     # load or create the lda
-    params = {'series': log10[:100000], 'numerical_states': overfit_states_numeric[:100000], 'show_plot': True}
+    params = {'series': log10[:50000], 'numerical_states': overfit_states_numeric[:50000], 'show_plot': True}
     lda_result_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_log10.pkl",
                                                      train_lda_for_object_retrieval, recreate_lda_file, params)
     lda_transformed_log10 = lda_result_log10["lda"].transform(log10)
 
     # create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_log10, overfit_states_numeric,
+                                                         test_size=0.20)
     neigh_log10 = KNeighborsClassifier(n_neighbors=8)
-    neigh_log10.fit(lda_transformed_log10, overfit_states_numeric)
-    lda_states_numeric_log10 = neigh_log10.predict(lda_transformed_log10)
+    neigh_log10.fit(X_train, y_train)
+    lda_states_numeric_log10 = neigh_log10.predict(X_test)
 
     # get the confusion matrix
-    Common.print_confusion_matrix(overfit_states_numeric, lda_states_numeric_log10)
-    print(Common.compare_states_for_accuracy(overfit_states_numeric, lda_states_numeric_log10))
+    Common.print_confusion_matrix(y_test, lda_states_numeric_log10)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_log10))
 
     #Prev50 smoothed + prev 50 log 10
     # -----------------------------------------------------------------------------------------------------------------
@@ -777,14 +783,422 @@ def compare_confusion_matrices_multiple_data_shapes(series, buffer=50, subset_si
         .transform(prev_epochs_smoothed_and_log_10)
 
     # create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_prev_epochs_smoothed_and_log_10, overfit_states_numeric_prev_epochs,
+                                                         test_size=0.20)
+
     neigh_prev_epochs_smoothed_and_log_10 = KNeighborsClassifier(n_neighbors=8)
-    neigh_prev_epochs_smoothed_and_log_10.fit(lda_transformed_prev_epochs_smoothed_and_log_10, overfit_states_numeric_prev_epochs)
+    neigh_prev_epochs_smoothed_and_log_10.fit(X_train, y_train)
     lda_states_numeric_prev_epochs_smoothed_and_log_10 = neigh_prev_epochs_smoothed_and_log_10 \
-        .predict_(lda_transformed_prev_epochs_smoothed_and_log_10)
+        .predict(X_test)
 
     # get the confusion matrix
-    Common.print_confusion_matrix(overfit_states_numeric_prev_epochs, lda_states_numeric_prev_epochs_smoothed_and_log_10)
-    print(Common.compare_states_for_accuracy(overfit_states_numeric_prev_epochs, lda_states_numeric_prev_epochs_smoothed_and_log_10))
+    Common.print_confusion_matrix(y_test, lda_states_numeric_prev_epochs_smoothed_and_log_10)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_prev_epochs_smoothed_and_log_10))
+
+    print("stop")
+
+from sklearn.model_selection import train_test_split
+
+def compare_mirror_technique_with_general_data(series, buffer=50, subset_size=None, load_from_file=True):
+    #try the mirror technique with the savgol
+    #try the mirror technique without the savgol
+    #try combining the probabilites
+
+    recreate_lda_file = False
+
+    if subset_size is None:
+        subset_size = np.array(series).shape[0]
+
+    #todo for each case we are testing we need to train a new lda and new knn and compare the outputs of the confusion matrices and see the accuracy
+
+    #get the overfit classes
+    overfit_states_file_path = Config.base_path + "/states-corr_210409_210409_B6J_m1.pkl"
+    overfit_states_numeric = Common.states_to_numeric_version(np.array(Storage.load_from_file(overfit_states_file_path)))
+    overfit_states_numeric_prev_epochs = overfit_states_numeric[buffer:]
+
+    # mirror transformed
+    # -----------------------------------------------------------------------------------------------------------------
+    smooth_iter = 3
+    save_file_path = Config.base_path + "/mirror_transformed_" + str(subset_size) + "_long_smoothed_"+str(smooth_iter)+"_times.pkl"
+    params = {'series': series, 'smooth_iter': smooth_iter }
+    mirror_transformed = Storage.load_or_recreate_file(save_file_path, mirror_transform_faster, not load_from_file,
+                                                       params)
+
+    mirror_transformed = mirror_transformed[buffer:subset_size][25:-26]
+
+    params = {'series': mirror_transformed[:100000], 'numerical_states': overfit_states_numeric_prev_epochs[:100000],
+              'show_plot': True}
+
+    lda_result_mirror_transformed = Storage.load_or_recreate_file(Config.base_path + "/lda_for_mirror_transformed.pkl",
+                                                     train_lda_for_object_retrieval, False, params)
+    lda_transformed_mirror_transformed = lda_result_mirror_transformed["lda"].transform(mirror_transformed)
+
+    indices = np.arange(len(lda_transformed_mirror_transformed))
+
+    X_train, X_test, y_train, y_test, indices_train, indices_test = train_test_split(lda_transformed_mirror_transformed, overfit_states_numeric_prev_epochs,
+                                                        indices, test_size=0.20)
+
+    neigh_mirror_transformed = KNeighborsClassifier(n_neighbors=8)
+    neigh_mirror_transformed.fit(X_train, y_train)
+
+    lda_states_numeric_mirror_transformed = neigh_mirror_transformed.predict(X_test)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric_mirror_transformed)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_mirror_transformed))
+
+    state_predictions_probability_mirror_transformed = neigh_mirror_transformed.predict_proba(X_test)
+
+    #*get the log10 prev 50 epochs*
+    #-----------------------------------------------------------------------------------------------------------------
+    #load the data
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        subset_size) + "_long_not_smoothed.pkl"
+    params = {'series': series, 'buffer': buffer, 'subset_size': subset_size, 'with_smoothing': False}
+    prev_epochs_log10 = Storage.load_or_recreate_file(save_file_path, get_prev_epochs, not load_from_file, params)[25:-26]
+
+    # load or create the lda
+    params = {'series': prev_epochs_log10[:100000], 'numerical_states': overfit_states_numeric_prev_epochs[:100000], 'show_plot': True}
+    lda_result_prev_epochs_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs_log10.pkl",
+                                                          train_lda_for_object_retrieval, recreate_lda_file, params)
+    lda_transformed_log10 = lda_result_prev_epochs_log10["lda"].transform(prev_epochs_log10)    #todo this is slow, load it up
+
+    X_train = lda_transformed_log10[indices_train]
+    X_test = lda_transformed_log10[indices_test]
+
+    # create the knn and apply it
+    neigh_prev_epoch_log10 = KNeighborsClassifier(n_neighbors=8)
+    neigh_prev_epoch_log10.fit(X_train, y_train)
+    lda_states_numeric_prev_epoch_log10 = neigh_prev_epoch_log10.predict(X_test)
+
+    lda_states_numeric_probabilities_prev_epoch_log10 = neigh_prev_epoch_log10.predict_proba(X_test)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric_prev_epoch_log10)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_prev_epoch_log10))
+
+    new_probabilities = np.dstack((state_predictions_probability_mirror_transformed, lda_states_numeric_probabilities_prev_epoch_log10))
+
+    new_probabilities = new_probabilities.reshape(new_probabilities.shape[0], new_probabilities.shape[1] * new_probabilities.shape[2])
+
+    # state_predictions_combined_probabilities = try_ann(pd.DataFrame(new_probabilities), states_numeric, False, False)
+
+    # params = {'series': new_probabilities[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    #
+    # lda_for_combined_probabilities = Storage.load_or_recreate_file(Config.base_path + "/lda_for_combined_probabilites.pkl",
+    #                                                train_lda_for_object_retrieval, True, params)
+    #
+    # lda_combined_probabilities_transformed = lda_for_combined_probabilities['lda'].transform(new_probabilities)
+    #
+    X_train, X_test, y_train, y_test, = train_test_split(new_probabilities, y_test, test_size=0.20)
+
+    neigh_combined_probabilities = KNeighborsClassifier(n_neighbors=8)
+    neigh_combined_probabilities.fit(X_train, y_train)
+    state_predictions_combined_probabilities = neigh_combined_probabilities.predict(X_test)
+    Storage.dump_to_file(Config.base_path + "/state_predictions_for_combined_probabilities.pkl", state_predictions_combined_probabilities)
+
+    Common.print_confusion_matrix(y_test, state_predictions_combined_probabilities)
+    print(Common.compare_states_for_accuracy(y_test, state_predictions_combined_probabilities))
+
+from line_profiler_pycharm import profile
+
+def compare_mirror_technique_with_general_data_mouse2(series=None, buffer=50, subset_size=200000, load_from_file=False):
+    #try the mirror technique with the savgol
+    #try the mirror technique without the savgol
+    #try combining the probabilites
+    recreate_lda_file = False
+
+    mouse_number = 2
+
+    multitaper_data_path = Config.base_path + "/Sxx_df_211011_211102_SertCre-CS_m1.pkl"
+    series = Storage.load_from_file(multitaper_data_path)
+
+    if subset_size is None:
+        subset_size = np.array(series).shape[0]
+
+    #todo for each case we are testing we need to train a new lda and new knn and compare the outputs of the confusion matrices and see the accuracy
+
+    #get the overfit classes
+    overfit_states_file_path = Config.base_path + "/states-corr_211011_211102_SertCre-CS_m1.pkl"
+    overfit_states_numeric = Common.states_to_numeric_version(np.array(Storage.load_from_file(overfit_states_file_path)))
+    extra_set_states_numeric = overfit_states_numeric[subset_size:][buffer:]
+    extra_set_series = series[25:-26][subset_size:]
+    overfit_states_numeric_prev_epochs = overfit_states_numeric[:subset_size][buffer:]
+    series = series[25:-26][:subset_size]
+
+    # mirror transformed
+    # -----------------------------------------------------------------------------------------------------------------
+    smooth_iter = 3
+    save_file_path = Config.base_path + "/mirror_transformed_" + str(len(series)) + "_long_smoothed_"\
+                     +str(smooth_iter)+"_times_mouse_"+str(mouse_number)+".pkl"
+    params = {'series': series, 'smooth_iter': smooth_iter }
+    mirror_transformed = Storage.load_or_recreate_file(save_file_path, mirror_transform_faster, not load_from_file,
+                                                       params)[buffer:]
+
+    save_file_path = Config.base_path + "/mirror_transformed_" + str(len(extra_set_series)) + "_long_smoothed_"\
+                     +str(smooth_iter)+"_times_mouse_"+str(mouse_number)+"_extra_test_set.pkl"
+    params = {'series': extra_set_series, 'smooth_iter': smooth_iter }
+    mirror_transformed_extra_set = Storage.load_or_recreate_file(save_file_path, mirror_transform_faster, not load_from_file,
+                                                       params)[buffer:]
+
+
+    params = {'series': mirror_transformed[:50000], 'numerical_states': overfit_states_numeric_prev_epochs[:50000],
+              'show_plot': True}
+
+    lda_result_mirror_transformed = Storage.load_or_recreate_file(Config.base_path + "/lda_for_mirror_transformed_mouse_"+str(mouse_number)+".pkl",
+                                                     train_lda_for_object_retrieval, not load_from_file, params)
+    lda_transformed_mirror_transformed = lda_result_mirror_transformed["lda"].transform(mirror_transformed)
+    lda_transformed_mirror_transformed_extra_set = lda_result_mirror_transformed["lda"].transform(mirror_transformed_extra_set)
+
+    indices = np.arange(len(lda_transformed_mirror_transformed))
+
+    X_train, X_test, y_train, y_test, indices_train, indices_test = train_test_split(lda_transformed_mirror_transformed, overfit_states_numeric_prev_epochs,
+                                                        indices, test_size=0.20)
+
+    neigh_mirror_transformed = KNeighborsClassifier(n_neighbors=8)
+    neigh_mirror_transformed.fit(X_train, y_train)
+
+    lda_states_numeric_mirror_transformed = neigh_mirror_transformed.predict(X_test)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric_mirror_transformed)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_mirror_transformed))
+
+    state_predictions_probability_mirror_transformed = neigh_mirror_transformed.predict_proba(lda_transformed_mirror_transformed_extra_set)
+
+    #*get the log10 prev 50 epochs*
+    #-----------------------------------------------------------------------------------------------------------------
+    #load the data
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        subset_size) + "_long_not_smoothed_mouse_"+str(mouse_number)+".pkl"
+    params = {'series': series, 'buffer': buffer, 'subset_size': subset_size, 'with_smoothing': False}
+    prev_epochs_log10 = Storage.load_or_recreate_file(save_file_path, get_prev_epochs, not load_from_file, params)
+
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        subset_size) + "_long_not_smoothed_mouse_"+str(mouse_number)+"_extra_test_set.pkl"
+    params = {'series': extra_set_series, 'buffer': buffer, 'subset_size': len(extra_set_series), 'with_smoothing': False}
+    prev_epochs_log10_extra_set = Storage.load_or_recreate_file(save_file_path, get_prev_epochs, not load_from_file, params)
+
+    # load or create the lda
+    params = {'series': prev_epochs_log10[:50000], 'numerical_states': overfit_states_numeric_prev_epochs[:50000], 'show_plot': True}
+    lda_result_prev_epochs_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs_log10_mouse_"+str(mouse_number)+".pkl",
+                                                          train_lda_for_object_retrieval, recreate_lda_file, params)
+
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + \
+                     "_epochs_long_not_smoothed_mouse_" + str(mouse_number) + "_lda_transformed.pkl"
+    if Storage.no_file_exists_at_location(save_file_path):
+        lda_transformed_log10 = lda_result_prev_epochs_log10["lda"].transform(prev_epochs_log10)
+        Storage.dump_to_file(save_file_path, lda_transformed_log10)
+    else:
+        lda_transformed_log10 = Storage.load_from_file(save_file_path)
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + \
+                     "_epochs_long_not_smoothed_mouse_" + str(mouse_number) + "_lda_transformed_extra_set.pkl"
+    if Storage.no_file_exists_at_location(save_file_path):
+        lda_transformed_log10_extra_set = lda_result_prev_epochs_log10["lda"].transform(prev_epochs_log10_extra_set)
+        Storage.dump_to_file(save_file_path, lda_transformed_log10_extra_set)
+    else:
+        lda_transformed_log10_extra_set = Storage.load_from_file(save_file_path)
+
+    X_train = lda_transformed_log10[indices_train]
+    X_test = lda_transformed_log10[indices_test]
+
+    Common.plot_lda(lda_transformed_log10_extra_set, extra_set_states_numeric)
+
+    # create the knn and apply it
+    neigh_prev_epoch_log10 = KNeighborsClassifier(n_neighbors=8)
+    neigh_prev_epoch_log10.fit(X_train, y_train)
+    lda_states_numeric_prev_epoch_log10 = neigh_prev_epoch_log10.predict(lda_transformed_log10_extra_set)
+
+    lda_states_numeric_probabilities_prev_epoch_log10 = neigh_prev_epoch_log10.predict_proba(lda_transformed_log10_extra_set)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(extra_set_states_numeric, lda_states_numeric_prev_epoch_log10)
+    print(Common.compare_states_for_accuracy(extra_set_states_numeric, lda_states_numeric_prev_epoch_log10))
+
+    new_probabilities = np.dstack((state_predictions_probability_mirror_transformed, lda_states_numeric_probabilities_prev_epoch_log10))
+
+    new_probabilities = new_probabilities.reshape(new_probabilities.shape[0], new_probabilities.shape[1] * new_probabilities.shape[2])
+
+    # state_predictions_combined_probabilities = try_ann(pd.DataFrame(new_probabilities), states_numeric, False, False)
+
+    # params = {'series': new_probabilities[:100000], 'numerical_states': states_numeric[:100000], 'show_plot': True}
+    #
+    # lda_for_combined_probabilities = Storage.load_or_recreate_file(Config.base_path + "/lda_for_combined_probabilites.pkl",
+    #                                                train_lda_for_object_retrieval, True, params)
+    #
+    # lda_combined_probabilities_transformed = lda_for_combined_probabilities['lda'].transform(new_probabilities)
+    #
+    X_train, X_test, y_train, y_test, = train_test_split(new_probabilities, extra_set_states_numeric, test_size=0.20)
+
+    neigh_combined_probabilities = KNeighborsClassifier(n_neighbors=8)
+    neigh_combined_probabilities.fit(X_train, y_train)
+    state_predictions_combined_probabilities = neigh_combined_probabilities.predict(X_test)
+    Storage.dump_to_file(Config.base_path + "/state_predictions_for_combined_probabilities_mouse_"+str(mouse_number)+".pkl", state_predictions_combined_probabilities)
+
+    Common.print_confusion_matrix(y_test, state_predictions_combined_probabilities)
+    print(Common.compare_states_for_accuracy(y_test, state_predictions_combined_probabilities))
+
+
+@profile
+def compare_confusion_matrices_multiple_data_shapes_mouse2(series=None, buffer=50, subset_size=200000, load_from_file=True):
+
+    recreate_lda_file = False
+
+    mouse_number = 2
+
+    multitaper_data_path = Config.base_path + "/Sxx_df_211011_211102_SertCre-CS_m1.pkl"
+    series = Storage.load_from_file(multitaper_data_path)
+
+    if subset_size is None:
+        subset_size = np.array(series).shape[0]
+
+    #todo for each case we are testing we need to train a new lda and new knn and compare the outputs of the confusion matrices and see the accuracy
+
+    #get the overfit classes
+    overfit_states_file_path = Config.base_path + "/states-corr_211011_211102_SertCre-CS_m1.pkl"
+    overfit_states_numeric = Common.states_to_numeric_version(np.array(Storage.load_from_file(overfit_states_file_path)))
+    extra_set_states_numeric = overfit_states_numeric[subset_size:][buffer:]
+    trimmed_series = series[25:-26]
+    extra_set_series = trimmed_series[subset_size:]
+    overfit_states_numeric_prev_epochs = overfit_states_numeric[:subset_size][buffer:]
+    series = trimmed_series[:subset_size]
+
+    # #*get the prev epochs savgol*
+    # #-----------------------------------------------------------------------------------------------------------------
+    # #load the data
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        len(series)) + "_long_savgol_smoothed_mouse_"+str(mouse_number)+".pkl"
+    params = {'series': series, 'buffer': buffer, 'subset_size': len(series)}
+    prev_epochs_smoothed = Storage.load_or_recreate_file(save_file_path, smooth_prev_epochs_with_savgol, not load_from_file,
+                                                params)
+
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        len(extra_set_series)) + "_long_savgol_smoothed_mouse_" + str(mouse_number) + "_extra_set.pkl"
+    params = {'series': extra_set_series, 'buffer': buffer, 'subset_size': len(extra_set_series)}
+    prev_epochs_smoothed_extra_set = Storage.load_or_recreate_file(save_file_path, smooth_prev_epochs_with_savgol,
+                                                         not load_from_file,
+                                                         params)
+
+    #load or create the lda
+    params = {'series': prev_epochs_smoothed[:50000], 'numerical_states': overfit_states_numeric_prev_epochs[:50000],
+              'show_plot': True}
+    lda_result_prev_epoch = Storage.load_or_recreate_file(Config.base_path +
+                          "/lda_for_prev_epochs_savgol_smoothed_mouse_"+str(mouse_number)+".pkl",
+                          train_lda_for_object_retrieval, recreate_lda_file, params)
+    lda_transformed_prev_epoch = lda_result_prev_epoch["lda"].transform(prev_epochs_smoothed)
+    lda_transformed_prev_epoch_extra_set = lda_result_prev_epoch["lda"].transform(prev_epochs_smoothed_extra_set)
+
+
+
+    #create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_prev_epoch, overfit_states_numeric_prev_epochs,
+                                                         test_size=0.20)
+
+    neigh_prev_epochs = KNeighborsClassifier(n_neighbors=8)
+    neigh_prev_epochs.fit(X_train, y_train)
+    lda_states_numeric_prev_epoch = neigh_prev_epochs.predict(X_test)
+
+    #get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric_prev_epoch)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_prev_epoch))
+
+    lda_states_numeric_prev_epoch_extra_set = neigh_prev_epochs.predict(lda_transformed_prev_epoch_extra_set)
+    Common.print_confusion_matrix(extra_set_states_numeric, lda_states_numeric_prev_epoch_extra_set)
+    print(Common.compare_states_for_accuracy(extra_set_states_numeric, lda_states_numeric_prev_epoch_extra_set))
+    Common.plot_lda(lda_transformed_prev_epoch_extra_set, extra_set_states_numeric)
+
+    #*get the log10 prev 50 epochs*
+    #-----------------------------------------------------------------------------------------------------------------
+    #load the data
+    save_file_path = Config.base_path + "/prev_" + str(buffer) + "_epochs_" + str(
+        subset_size) + "_long_not_smoothed_mouse_"+str(mouse_number)+".pkl"
+    params = {'series': series, 'buffer': buffer, 'subset_size': subset_size, 'with_smoothing': False}
+    prev_epochs_log10 = Storage.load_or_recreate_file(save_file_path, get_prev_epochs, not load_from_file, params)
+
+    # load or create the lda
+    params = {'series': prev_epochs_log10[:50000], 'numerical_states': overfit_states_numeric_prev_epochs[:50000], 'show_plot': True}
+    lda_result_prev_epochs_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_prev_epochs_log10_mouse_"+str(mouse_number)+".pkl",
+                                                          train_lda_for_object_retrieval, recreate_lda_file, params)
+    lda_transformed_log10 = lda_result_prev_epochs_log10["lda"].transform(prev_epochs_log10)
+
+    # create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_log10, overfit_states_numeric_prev_epochs,
+                                                         test_size=0.20)
+    neigh_prev_epoch_log10 = KNeighborsClassifier(n_neighbors=8)
+    neigh_prev_epoch_log10.fit(X_train, y_train)
+    lda_states_numeric_prev_epoch_log10 = neigh_prev_epoch_log10.predict(X_test)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric_prev_epoch_log10)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_prev_epoch_log10))
+
+    #*single log10 is the series itself*
+    # -----------------------------------------------------------------------------------------------------------------
+    log10 = np.array(series)[25:-26]
+
+    # load or create the lda
+    params = {'series': log10[:50000], 'numerical_states': overfit_states_numeric[:50000], 'show_plot': True}
+    lda_result_log10 = Storage.load_or_recreate_file(Config.base_path + "/lda_for_log10_mouse_"+str(mouse_number)+".pkl",
+                                                     train_lda_for_object_retrieval, recreate_lda_file, params)
+    lda_transformed_log10 = lda_result_log10["lda"].transform(log10)
+
+    # create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_log10, overfit_states_numeric,
+                                                         test_size=0.20)
+    neigh_log10 = KNeighborsClassifier(n_neighbors=8)
+    neigh_log10.fit(X_train, y_train)
+    lda_states_numeric_log10 = neigh_log10.predict(X_test)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric_log10)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_log10))
+
+    #Prev50 smoothed + prev 50 log 10
+    # -----------------------------------------------------------------------------------------------------------------
+    # prev_epochs_smoothed_and_prev_epochs_log_10 = np.hstack((prev_epochs_smoothed, prev_epochs_log10))
+    #
+    # # load or create the lda
+    # params = {'series': prev_epochs_smoothed_and_prev_epochs_log_10[:100000],
+    #           'numerical_states': overfit_states_numeric[:100000], 'show_plot': True}
+    # lda_result_prev_epoch_smoothed_and_log10 = Storage.load_or_recreate_file(
+    #     Config.base_path + "/lda_for_prev_epoch_smoothed_and_log10.pkl", train_lda_for_object_retrieval, False, params)
+    # lda_transformed_prev_epochs_smoothed_and_log_10 = lda_result_prev_epoch_smoothed_and_log10["lda"]\
+    #     .transform(prev_epochs_smoothed_and_prev_epochs_log_10)
+    #
+    # # create the knn and apply it
+    # neigh_prev_epochs_smoothed_and_prev_epochs_log_10 = KNeighborsClassifier(n_neighbors=8)
+    # neigh_prev_epochs_smoothed_and_prev_epochs_log_10.fit(lda_transformed_prev_epochs_smoothed_and_log_10, overfit_states_numeric)
+    # lda_states_numeric_prev_epochs_smoothed_and_prev_epochs_log_10 = neigh_prev_epochs_smoothed_and_prev_epochs_log_10\
+    #     .predict(prev_epochs_smoothed_and_prev_epochs_log_10)
+    #
+    # # get the confusion matrix
+    # Common.print_confusion_matrix(overfit_states_numeric,
+    #                               lda_states_numeric_prev_epochs_smoothed_and_prev_epochs_log_10)
+
+    #Prev 50 smoothed + single log10 epoch
+    # -----------------------------------------------------------------------------------------------------------------
+    prev_epochs_smoothed_and_log_10 = np.hstack((prev_epochs_smoothed, log10[buffer:]))#todo check the dimensions
+
+    # load or create the lda
+    params = {'series': prev_epochs_smoothed_and_log_10[:50000], 'numerical_states': overfit_states_numeric_prev_epochs[:50000],
+              'show_plot': True}
+    lda_result_prev_epoch_smoothed_and_log10 = Storage.load_or_recreate_file(
+        Config.base_path + "/lda_for_prev_epoch_smoothed_and_log10_mouse_"+str(mouse_number)+".pkl", train_lda_for_object_retrieval, recreate_lda_file, params)
+    lda_transformed_prev_epochs_smoothed_and_log_10 = lda_result_prev_epoch_smoothed_and_log10["lda"] \
+        .transform(prev_epochs_smoothed_and_log_10)
+
+    # create the knn and apply it
+    X_train, X_test, y_train, y_test, = train_test_split(lda_transformed_prev_epochs_smoothed_and_log_10, overfit_states_numeric_prev_epochs,
+                                                         test_size=0.20)
+
+    neigh_prev_epochs_smoothed_and_log_10 = KNeighborsClassifier(n_neighbors=8)
+    neigh_prev_epochs_smoothed_and_log_10.fit(X_train, y_train)
+    lda_states_numeric_prev_epochs_smoothed_and_log_10 = neigh_prev_epochs_smoothed_and_log_10 \
+        .predict(X_test)
+
+    # get the confusion matrix
+    Common.print_confusion_matrix(y_test, lda_states_numeric_prev_epochs_smoothed_and_log_10)
+    print(Common.compare_states_for_accuracy(y_test, lda_states_numeric_prev_epochs_smoothed_and_log_10))
 
     print("stop")
 
@@ -798,4 +1212,7 @@ if __name__ == '__main__':
     #try_knn_with_prev_and_current_epoch_probabiliites(unsmoothed, states)
     # create_statespace_from_prev_savgol(unsmoothed, states)
     # create_statespace_from_last_epoch_averages(unsmoothed, states)
-    compare_confusion_matrices_multiple_data_shapes(unsmoothed)
+    #compare_confusion_matrices_multiple_data_shapes(unsmoothed)
+    #compare_mirror_technique_with_general_data(unsmoothed)
+    compare_confusion_matrices_multiple_data_shapes_mouse2()
+    #compare_mirror_technique_with_general_data_mouse2()
