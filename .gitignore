@@ -3,6 +3,6 @@ venv/
 mouse_object
 *.pkl
 *.h5
-Data/
-data/
+OnlineAnalysis/data/
+OnlineAnalysis/data/
 Old Pickle Files 10172021/

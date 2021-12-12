@@ -21,6 +21,8 @@ standardized_states = {
     "SWS": 1,
     "LTwake": 2,
     "HTwake": 3,
+    "LMwake": 2,
+    "HMwake": 3,
 }
 
 #Remap state numbers

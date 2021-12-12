@@ -5,16 +5,11 @@ plt.rc('lines', linewidth=0.5)
 import numpy as np
 import pandas as pd
 import h5py
-import scipy
-import scipy.signal
-import bottleneck as bn
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler, RobustScaler
 from sklearn.preprocessing import Normalizer
-from scipy.spatial import cKDTree
 from scipy.signal import decimate, butter, dlti
 import inspect
-from tslearn.preprocessing import TimeSeriesResampler
 import nitime.algorithms as tsa
 from scipy.signal import detrend
 import datetime
@@ -64,7 +59,7 @@ class Mouse:
             self.EMG_fs = 1 / self.f["{}".format(self.Mouse_Ch[1])]['interval'][0][0]
 
     #Load file if in .smrx format
-    def read_smrx(self,Filepath):
+    def read_smrx(self, Filepath):
         # Get file path
         self.figure_tail = ' - {} - {}.png'.format(self.pos, self.genotype)
         self.FilePath = Filepath
