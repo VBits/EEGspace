@@ -18,18 +18,18 @@ from SVM import *
 
 
 # m = get_mouse('SertCre-CS',1)
-for i in range(1, 9):
-# for i in range(9, 17):
-    print (i)
-    m = get_mouse('SertCre-CS',i,load=False)
-
-m = get_mouse('B6J',1,load=True)
+# for i in range(1, 9):
+# # for i in range(9, 17):
+#     print (i)
+#     m = get_mouse('SertCre-CS',i,load=False)
+#
+# m = get_mouse('B6J',1,load=True)
 m = get_mouse('SertCre-CS',1,load=True)
 ######################################
 # 1. Label the multitaper_df using an ANN (use 50 epochs, centered around the epoch of interest)
 #Create the Sxx_extended
 # Sxx_extended = expand_epochs(m,smoothed_data=True,win=81)
-rand_idx = get_random_idx(m.Sxx_df,size=80000)
+rand_idx = get_random_idx(m.Sxx_df,size=40000)
 
 
 ############################################################
@@ -56,9 +56,10 @@ classWeight = ANN.calculate_weights(m,rand_idx)
 model = ANN.train_model(model,m.Sxx_df,m.state_df,classWeight,rand_idx)
 
 
-model.save_weights(EphysDir + Folder+ 'weights_Sxx_df_51epochs_centered_final.h5')
-# model.load_weights(EphysDir+Folder,'weights_Sxx_df_51epochs_centered_final.h5')
-m.state_df['ann_labels'] = ANN.get_labels(model, m,m.Sxx_df)
+model.save_weights(offline_data_path+ 'weights_Sxx_df_sert_m1_medianfiltered.h5')
+model.load_weights(offline_data_path + 'weights_Sxx_df_sert_m1_medianfiltered.h5')
+m.state_df = pd.DataFrame(index=m.Sxx_df.index)
+m.state_df['ann_labels'] = ANN.get_labels(model,m,m.Sxx_df)
 
 ############################################################
 # 2b. Get temporary SVM labels
@@ -225,7 +226,7 @@ labels ='states'
 title= 'LDA dpc labels'
 plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
 plot_LDA(m,rand_idx,m.state_df_corr['states'],savefigure=False)
-plot_LDA(m,rand_idx,m.svm_labels['svm_labels'])
+plot_LDA(m,rand_idx,m.state_df['ann_labels'])
 plt.savefig(m.figureFolder+'LDA corr labels multitaper data another rand_idx' + m.figure_tail, dpi=dpi)
 
 # ### -------------------

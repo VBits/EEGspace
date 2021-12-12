@@ -56,19 +56,18 @@ def calculate_weights(m,rand_idx):
     #     classWeight[state_codes[i]] = classWeight.pop(i)
     return classWeight
 
-def train_model(model,dataframe,states,classWeight,rand_idx):
+def train_model(model,dataframe,states,classWeight,rand_idx,epochs=5):
     # Train the model
-    model.fit(dataframe.iloc[rand_idx].values, states['state_codes'].iloc[rand_idx].values,
+    model.fit(dataframe.loc[rand_idx].values, states['state_codes'].loc[rand_idx].values,
                    class_weight=classWeight,
-                   epochs=5)
+                   epochs=epochs)
     return model
 
 def get_labels(model,m,Sxx_extended):
     # classify dataframe using ANN
     probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
     predictions = probability_model.predict(Sxx_extended.values)
-    m.state_df = pd.DataFrame(index=Sxx_extended.index)
-    m.state_df['ann_states'] = np.argmax(predictions, axis=1)
+    return np.argmax(predictions, axis=1)
 
 
 
