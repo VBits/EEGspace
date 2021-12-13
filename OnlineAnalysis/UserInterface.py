@@ -159,4 +159,3 @@ def create_user_interface(input_queue, output_queue):
     p.show()
     plot_app.exec_()
     output_queue.put("Quit")
-    plot_app.quit()

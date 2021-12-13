@@ -55,7 +55,7 @@ if __name__ == '__main__':
             if output == "Quit":
                 for p in jobs:
                     p.terminate()
-                break
+                sys.exit(1)
         while not file_queue.empty():
             next_status = file_queue.get()
             #stimulus_queues[next_status.mouse_number - 1].put(next_status)
