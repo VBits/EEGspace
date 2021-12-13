@@ -1217,11 +1217,11 @@ def compare_confusion_matrices_median_mouse2(buffer=50, set_size=200000):
     #convert to medians
     medians = multitaper_df.rolling(21, center=True, win_type=None, min_periods=2).median()
 
-    combined_data = np.hstack((np.array(multitaper_df[:-11]), np.array(medians[11:])))
+    combined_data = np.hstack((np.array(multitaper_df[11:]), np.array(medians[:-11])))
     series = combined_data[:set_size]
     validation_series = np.array(combined_data[set_size:])
-    states_numeric = overfit_states_numeric[:set_size]
-    states_numeric_validation = overfit_states_numeric[set_size:-11]
+    states_numeric = overfit_states_numeric[11:set_size+11]
+    states_numeric_validation = overfit_states_numeric[set_size+11:]
 
     # load or create the lda
     params = {'series': series, 'numerical_states': states_numeric, 'show_plot': True}
