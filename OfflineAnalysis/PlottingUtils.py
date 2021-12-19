@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib
 from mpl_toolkits.mplot3d import Axes3D
 from cycler import cycler
-
+import pandas as pd
 
 def get_cmap_colors(labels,rand_idx,cmap='tab10'):
     cm = plt.get_cmap(cmap)
@@ -19,17 +19,23 @@ def plot_LDA(m,rand_idx,labels=None,alpha=0.2,size=5,linewidths=0,savefigure=Fal
     if labels is None:
         print(1)
         c_data = 'k'
-    elif "SWS" in labels.values:
-        print(4)
-        c_data = labels.loc[rand_idx].apply(lambda x: m.colors[x])
-    else:
-        print(5)
-        c_data = get_cmap_colors(labels, rand_idx, 'tab10')
+    elif isinstance(labels, (pd.core.series.Series,pd.core.frame.DataFrame)):
+        print('labels are provided in a DataFrame')
+        if "SWS" in labels.values:
+            c_data = labels.loc[rand_idx].apply(lambda x: m.colors[x])
+        else:
+            c_data = get_cmap_colors(labels, rand_idx, 'tab10')
+    elif isinstance(labels, (np.ndarray)):
+        print('labels are provided in a numpy array. Use a pandas dataframe with timestamps instead.')
+        return None
+        # if "SWS" in labels:
+        #     c_data = labels[rand_idx].apply(lambda x: m.colors[x])
+        # else:
+        #     c_data = get_cmap_colors(labels, rand_idx, 'tab10')
     if len(LD_df) != len(rand_idx):
         print ('selecting a subsample of input data to plot')
         LD_df = LD_df.loc[rand_idx]
     if LD_df.shape[1] == 3:
-        print(7)
         fig = plt.figure()
         ax = Axes3D(fig)
         ax.scatter(LD_df['LD1'],LD_df['LD2'], LD_df['LD3'],

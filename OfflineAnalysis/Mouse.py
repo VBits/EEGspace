@@ -14,7 +14,7 @@ from sklearn.preprocessing import Normalizer
 from scipy.spatial import cKDTree
 from scipy.signal import decimate, butter, dlti
 import inspect
-from tslearn.preprocessing import TimeSeriesResampler
+# from tslearn.preprocessing import TimeSeriesResampler
 import nitime.algorithms as tsa
 from scipy.signal import detrend
 import datetime
@@ -183,9 +183,9 @@ class Mouse:
         self.pC_df = pd.DataFrame(data=self.pC,columns=['pC1','pC2'],index=self.df.index)
 
     #Expand the sample labels to the rest of the data using
-    def knn_pred(self, clf, Sxx_extended,state_averages_path):
+    def knn_pred(self, clf, dataframe,state_averages_path):
         # predict states
-        self.state_df = pd.DataFrame(index=Sxx_extended.index)
+        self.state_df = pd.DataFrame(index=dataframe.index)
         self.state_df['clusters_knn'] = clf.predict(self.LD_df)
 
 
@@ -204,12 +204,16 @@ class Mouse:
         #determine which knn labels match each state
         if Nclusters == 4:
             state_dict = {}
-            for state in state_averages:
+            for state in ['SWS','REM','HTwake','LTwake']:
                 state_correlations = label_averages.corrwith(state_averages[state])
-                state_dict[state_correlations.argmax()] = state
+                state_dict[int(state_correlations.idxmax())] = state
+                print (state)
+                print (state_correlations.idxmax())
+                label_averages.drop(columns=state_correlations.idxmax(),inplace=True)
 
             self.state_df['states'] = self.state_df['clusters_knn']
-            self.state_df.replace({"states": state_dict},inplace=True)
+            self.state_df.replace(to_replace={"states": dict(state_dict)},inplace=True)
+            # self.state_df['states'].replace(to_replace=dict(state_dict))#, inplace=True)
         else:
             print('Number of clusters not recognized. Automatic state assignment failed')
 

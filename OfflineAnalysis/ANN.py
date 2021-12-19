@@ -63,16 +63,16 @@ def train_model(model,dataframe,states,classWeight,rand_idx,epochs=5):
                    epochs=epochs)
     return model
 
-def get_labels(model,m,Sxx_extended):
+def get_labels(model,dataframe):
     # classify dataframe using ANN
     probability_model = tf.keras.Sequential([model, tf.keras.layers.Softmax()])
-    predictions = probability_model.predict(Sxx_extended.values)
+    predictions = probability_model.predict(dataframe.values)
     return np.argmax(predictions, axis=1)
 
 
 
 def test_accuracy(model,m):
-    test_loss, test_acc = model.evaluate(m.Sxx_df.values, m.state_df['state_codes'].values, verbose=2)
+    test_loss, test_acc = model.evaluate(m.Sxx_ext.values, m.state_df['state_codes'].values, verbose=2)
     print('\nTest accuracy:', test_acc)
 
 
