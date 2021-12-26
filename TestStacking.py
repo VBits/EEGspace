@@ -1209,8 +1209,8 @@ def compare_confusion_matrices_median_mouse2(buffer=50, set_size=200000):
 
     #load up the data
     multitaper_data_path = Config.base_path + "/Sxx_df_211011_211102_SertCre-CS_m1.pkl"
-    multitaper_df = Storage.load_from_file(multitaper_data_path)[25:-26]
-    overfit_states_file_path = Config.base_path + "/states-corr_211011_211102_SertCre-CS_m1.pkl"
+    multitaper_df = Storage.load_from_file(multitaper_data_path)#[25:-26]
+    overfit_states_file_path = Config.base_path + "/states_211011_211102_SertCre-CS_m1_halosDPA.pkl"
     overfit_states = np.array(Storage.load_from_file(overfit_states_file_path))
     overfit_states_numeric = Common.states_to_numeric_version(overfit_states)
 
