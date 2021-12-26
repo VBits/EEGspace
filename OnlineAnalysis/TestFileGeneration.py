@@ -27,9 +27,11 @@ def cycle_test_files(file_lock, use_random=False):
             random_sample_size = epoch_size * 100
             random_index = randint(0, len(eeg_data) - random_sample_size)
             random_sample = eeg_data[random_index:random_index + random_sample_size]
-            threading.Thread(target=file_creation, args=(random_sample, epoch_size, channel_number, file_lock)).start()
+            thread = threading.Thread(target=file_creation, args=(random_sample, epoch_size, channel_number, file_lock))
         else:
-            threading.Thread(target=file_creation, args=(eeg_data, epoch_size, channel_number, file_lock)).start()
+            thread = threading.Thread(target=file_creation, args=(eeg_data, epoch_size, channel_number, file_lock))
+        thread.setDaemon(True)
+        thread.start()
 
 
 def file_creation(data_points, epoch_size, channel_number, file_lock):

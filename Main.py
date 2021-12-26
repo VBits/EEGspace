@@ -21,15 +21,15 @@ if __name__ == '__main__':
 
     p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue, ui_output_queue))
     p.daemon = True
-    jobs.append(p)
     p.start()
+    jobs.append(p)
 
     #start processing EEG data
     for mouse_number in ConfigOnline.rig_position:
         p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_number, file_queue))
         p.daemon = True
-        jobs.append(p)
         p.start()
+        jobs.append(p)
         sys.stdout.flush()
         #TODO change only if you're delivering stimuli to mice at diffirent times
         #for later when we have other forms of stimulus
@@ -62,3 +62,4 @@ if __name__ == '__main__':
             stimulus_input_queue.put(next_status)
             ui_input_queue.put(next_status)
             print(next_status)
+
