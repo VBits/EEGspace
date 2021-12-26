@@ -19,7 +19,7 @@ def cycle_test_files(file_lock, use_random=False):
     for mouse_num in Config.rig_position:
         channel_number = mouse_num-1
         path = Config.channel_file_base_path.format(channel_number=channel_number)
-        eeg_data = Storage.get_downsampled_smrx_data(f, mouse_num, Config.downsample_fs)
+        eeg_data = Storage.get_smrx_data(f, mouse_num, Config.downsample_fs)
         with file_lock:
             if os.path.isfile(path):
                 os.remove(path)

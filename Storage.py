@@ -120,7 +120,7 @@ def read_smrx(file_path):
     return file
 
 
-def get_downsampled_smrx_data(file, mouse_num, target_fs):
+def get_smrx_data(file, mouse_num, target_fs, downsample=False):
     wave_chan = mouse_num - 1
 
     dMaxSeconds = file.ChannelMaxTime(wave_chan) * file.GetTimeBase()
@@ -132,5 +132,6 @@ def get_downsampled_smrx_data(file, mouse_num, target_fs):
 
     EEG_fs = 1 / dPeriod
 
-    downsampled, _ = downsample_EGG(EEG_data, EEG_fs, target_fs)
-    return downsampled
+    if downsample:
+        EEG_data, _ = downsample_EGG(EEG_data, EEG_fs, target_fs)
+    return EEG_data

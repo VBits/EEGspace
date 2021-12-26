@@ -140,7 +140,7 @@ class PlotWindow(QtWidgets.QMainWindow):
 
             data = result.transformed_data
             self.ax2.clear()
-            self.ax2.plot([x for x in range(1, 202)], [point for point in data[0]])
+            self.ax2.plot([x for x in range(1, np.array(data).shape[1] + 1)], [point for point in data[0]])
             self.ax2.set_title("Transformed data")
             self.ax2.set_xlim([0, 200])
             self.ax2.set_ylim([-5, 35])

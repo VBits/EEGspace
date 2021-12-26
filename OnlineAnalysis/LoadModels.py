@@ -46,7 +46,7 @@ def load_training_data_states(mouse_num):
 
 #Load multitaper data from offline analysis
 def load_training_data(mouse_num):
-    return Storage.load_from_file(Config.multitaper_data_file_path.format(mouse_num=mouse_num))
+    return Storage.load_from_file(Config.combined_data_file_path.format(mouse_num=mouse_num))
 
 #Load LDA model from offline analysis
 def get_lda_model(mouse_num, training_data, training_data_states):
