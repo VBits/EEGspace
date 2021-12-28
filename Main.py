@@ -58,14 +58,10 @@ if __name__ == '__main__':
     # stimulus_thread.start()
     # stimulus_thread.join()
 
-    map(lambda p: p.join(), jobs)
-
     while True:
         if not ui_output_queue.empty():
             output = ui_output_queue.get()
             if output == "Quit":
-                for p in jobs:
-                    p.terminate()
                 sys.exit(1)
         while not file_queue.empty():
             next_status = file_queue.get()
