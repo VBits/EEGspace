@@ -19,8 +19,9 @@ from Pipeline import DPA
 import time
 
 ######################################
-#1. Get data for indicated genotype and channel
-m = get_mouse('Vglut2Cre-CS',13,load=True)
+#1. Get data for indicated genotype and channel.
+# Specify if you want to load preprocessed data
+m = get_mouse('Vglut2Cre-CS',9,load=True)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
@@ -67,7 +68,7 @@ plt.savefig(m.figureFolder+title + m.figure_tail, dpi=dpi)
 ######################################
 # 4. Density peak clustering
 # # Find density peaks in low dimensional space
-est = DPA.DensityPeakAdvanced(Z=0.9,k_max=201)
+est = DPA.DensityPeakAdvanced(Z=1.1,k_max=201)
 start=time.time()
 est.fit(m.LD_df.loc[rand_idx])
 end=time.time()
@@ -75,8 +76,6 @@ print(end-start)
 
 #plot DPA clusters on LDA
 plot_DPA_LDA(m, rand_idx, est)
-
-np.unique(est.labels_,return_counts=True)
 
 #Train new LDA based on DPA clusters
 lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)
