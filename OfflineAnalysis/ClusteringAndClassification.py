@@ -18,10 +18,11 @@ from Expand import *
 from Pipeline import DPA
 import time
 
-#
-m = get_mouse('Vglut2Cre-CS',13,load=True)
 ######################################
-#Create the Sxx_extended
+#1. Get data for indicated genotype and channel
+m = get_mouse('Vglut2Cre-CS',13,load=True)
+
+#Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
 rand_idx = get_random_idx(m.Sxx_ext,size=20000)
 
@@ -45,12 +46,11 @@ m.state_df['ann_labels'] = ANN.get_labels(model,m.Sxx_ext)
 
 ############################################################
 # 3a. Train an LDA on temporary ANN labels
-# Recover previously saved model
 #train an LDA based on the ANN labels
 lda, X_train = train_lda(m.Sxx_ext,m.state_df['ann_labels'],rand_idx,components=3)
-
 # Create dataframe for LDs
 m.LD_df = lda_transform_df(m.Sxx_ext,lda)
+
 ############################################################
 # 3b. Load a previously created LDA
 lda_filename = offline_data_path +'lda_211014_211102_Vglut2Cre-CS_m9.joblib'
@@ -58,9 +58,7 @@ lda_filename = EphysDir+Folder + 'lda_210409_210409_B6J_m1.joblib'
 lda = joblib.load(lda_filename)
 # Create dataframe for LDs
 m.LD_df = lda_transform_df(m.Sxx_ext,lda)
-#Evaluate SVM labels
-plot_LDA(m,rand_idx,savefigure=False)
-#Or evaluate LDA shape seperately
+#Evaluate LDA transformation labels
 title= 'LDA no labels'
 plot_LDA(m,rand_idx,savefigure=False)
 plt.savefig(m.figureFolder+title + m.figure_tail, dpi=dpi)
