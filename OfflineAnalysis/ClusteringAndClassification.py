@@ -72,16 +72,10 @@ est.fit(m.LD_df.loc[rand_idx])
 end=time.time()
 print(end-start)
 
-#TODO incorporate into plotting utils
-fig = plt.figure()
-ax = Axes3D(fig)
-ax.scatter(m.LD_df.loc[rand_idx].values[:,0], m.LD_df.loc[rand_idx].values[:,1], m.LD_df.loc[rand_idx].values[:,2],
-           s=4,alpha=0.6,c=est.labels_,cmap='Accent')
-ax.set_xlabel('LD1')
-ax.set_ylabel('LD2')
-ax.set_zlabel('LD3')
+#plot DPA clusters on LDA
+def plot_DPA_LDA(m, rand_idx, dpa=est)
 
-#TODO repeat and refine LDA based on DPA labels
+#Train new LDA based on DPA clusters
 lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)
 m.LD_df = lda_transform_df(m.Sxx_ext,lda)
 
@@ -106,23 +100,16 @@ joblib.dump(clf, knn_file)
 # Recover previously saved file
 clf = joblib.load(knn_file)
 
+
+#######################################
+#5. Check DPA labels
+plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
+plt.savefig(m.figureFolder+'LDA corr labels multitaper data another rand_idx' + m.figure_tail, dpi=dpi)
 ### -------------------
 #Save State Dataframe
 m.state_df.to_pickle(EphysDir + Folder + 'states_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
 # #Load previously saved Dataframe from experimental folder
 m.state_df = pd.read_pickle(EphysDir + Folder + 'states_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
-
-# ######################################
-# # 5. Use DPC labels to update LDA
-lda, X_train = train_lda(m.Sxx_exp,m.state_df['states'],rand_idx,components=3)
-# Create dataframe for LDs
-m.LD_df = lda_transform_df(m.Sxx_exp,lda)
-
-
-
-plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
-plt.savefig(m.figureFolder+'LDA corr labels multitaper data another rand_idx' + m.figure_tail, dpi=dpi)
-
 # ### -------------------
 # Store or load LDA transformation
 lda_filename = EphysDir+Folder + 'lda_{}_{}_{}_m{}.joblib'.format(Folder[:6],File[:6],m.genotype,m.pos)
@@ -131,6 +118,8 @@ joblib.dump(lda, lda_filename)
 # # Recover previously saved file
 lda = joblib.load(lda_filename)
 
+#-------------------------------------------------
+#Optional
 #-------------------------------------------------
 from sklearn.metrics import confusion_matrix
 m.state_df = pd.read_pickle(EphysDir + Folder + 'states_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))
