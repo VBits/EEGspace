@@ -20,7 +20,7 @@ import time
 
 ######################################
 #1. Get data for indicated genotype and channel.
-# Specify if you want to load preprocessed data
+# Will preprocess data, unless you specify to load preprocessed data
 m = get_mouse('Vglut2Cre-CS',9,load=True)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
@@ -76,6 +76,12 @@ print(end-start)
 
 #plot DPA clusters on LDA
 plot_DPA_LDA(m, rand_idx, est)
+
+
+#OPTIONAL Manually merge clusters
+spurious_label = 1
+correct_label = 0
+est.labels_[est.labels_==spurious_label] = correct_label
 
 #Train new LDA based on DPA clusters
 lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)
