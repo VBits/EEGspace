@@ -18,32 +18,16 @@ from Expand import *
 from Pipeline import DPA
 import time
 
+#
 m = get_mouse('Vglut2Cre-CS',13,load=True)
 ######################################
-# 1. Label the multitaper_df using an ANN (use 50 epochs, centered around the epoch of interest)
 #Create the Sxx_extended
 m.Sxx_ext = expand_epochs(m)
 rand_idx = get_random_idx(m.Sxx_ext,size=20000)
 
-
-############################################################
-# # 2a. Train SVM
-# svm_clf = create_svm(m.Sxx_df3,m.state_df_corr,return_score=True,save=False)
-# svm_filename = offline_data_path + 'svm_B6J_m1.joblib'
-# joblib.dump(svm_clf, svm_filename)
-
 ############################################################
 # 2a. Train ANN
-# NNetwork = ANN(multitaper_extended,labels_extended,rand_idx)
-# NNetwork.initialize()
-# NNetwork.train_model()
-# NNetwork.get_labels()
-# NNetwork.save_weights(EphysDir + Folder, 'weights_Multitaper_df_51epochs_centered.h5')
-# NNetwork.load_weights(EphysDir+Folder,'weights_Sxx_df.h5')
-# NNetwork.test_accuracy()
-
 model = ANN.create_model(m.Sxx_ext)
-# ANN.standardize_state_codes(m.state_df)
 ANN.standardize_state_codes(m.state_df)
 # ANN.plot_model(EphysDir+Folder)
 classWeight = ANN.calculate_weights(m,rand_idx)
@@ -51,27 +35,24 @@ model = ANN.train_model(model,m.Sxx_ext,m.state_df,classWeight,rand_idx)
 
 
 model.save_weights(offline_data_path+ 'weights_Sxx_df_sert_m1_medianfiltered.h5')
+
+############################################################
+# 2b. Get temporary labels from ANN
 model.load_weights(offline_data_path + 'weights_Sxx_df_sert_m1_medianfiltered.h5')
 m.state_df = pd.DataFrame(index=m.Sxx_ext.index)
 m.state_df['ann_labels'] = ANN.get_labels(model,m.Sxx_ext)
 
-############################################################
-# 2b. Get temporary SVM labels
-# Recover previously saved model
-# svm_clf = load_svm(offline_data_path)
-# m.svm_labels = get_svm_labels(m.Sxx_df3,svm_clf)
-# m.svm_labels = get_svm_labels(m.multitaper_df,svm_clf)
 
 ############################################################
-# 3. Train an LDA or load a previously created LDA
+# 3a. Train an LDA on temporary ANN labels
 # Recover previously saved model
 #train an LDA based on the ANN labels
 lda, X_train = train_lda(m.Sxx_ext,m.state_df['ann_labels'],rand_idx,components=3)
 
 # Create dataframe for LDs
 m.LD_df = lda_transform_df(m.Sxx_ext,lda)
-
-#load previously saved LDA
+############################################################
+# 3b. Load a previously created LDA
 lda_filename = offline_data_path +'lda_211014_211102_Vglut2Cre-CS_m9.joblib'
 lda_filename = EphysDir+Folder + 'lda_210409_210409_B6J_m1.joblib'
 lda = joblib.load(lda_filename)
