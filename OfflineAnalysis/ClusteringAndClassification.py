@@ -76,6 +76,8 @@ print(end-start)
 #plot DPA clusters on LDA
 plot_DPA_LDA(m, rand_idx, est)
 
+np.unique(est.labels_,return_counts=True)
+
 #Train new LDA based on DPA clusters
 lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)
 m.LD_df = lda_transform_df(m.Sxx_ext,lda)
