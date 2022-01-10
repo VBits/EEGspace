@@ -52,15 +52,16 @@ def plot_LDA(m,rand_idx,labels=None,alpha=0.2,size=5,linewidths=0,savefigure=Fal
     if savefigure:
         plt.savefig(m.figureFolder+'LDA 3D states DPC labels {}_{}'.format(Folder[:6],File[:6]) + m.figure_tail, dpi=dpi)
 
-def plot_DPA_LDA(m, rand_idx, dpa=est, alpha=0.6, size=4, linewidths=0, savefigure=False):
+def plot_DPA_LDA(m, rand_idx, est, alpha=0.6, size=4, linewidths=0, savefigure=False):
     fig = plt.figure()
     ax = Axes3D(fig)
     ax.scatter(m.LD_df.loc[rand_idx].values[:, 0], m.LD_df.loc[rand_idx].values[:, 1],
                m.LD_df.loc[rand_idx].values[:, 2],
-               alpha=alpha, s=size,linewidths=linewidths, c=dpa.labels_, cmap='Accent')
+               alpha=alpha, s=size,linewidths=linewidths, c=est.labels_, cmap='Accent')
     ax.set_xlabel('LD1')
     ax.set_ylabel('LD2')
     ax.set_zlabel('LD3')
+    ax.legend(loc=1)
     if savefigure:
         plt.savefig(m.figureFolder + 'LDA 3D states DPC labels {}_{}'.format(Folder[:6], File[:6]) + m.figure_tail,dpi=dpi)
 

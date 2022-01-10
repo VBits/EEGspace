@@ -48,12 +48,13 @@ m.state_df['ann_labels'] = ANN.get_labels(model,m.Sxx_ext)
 # 3a. Train an LDA on temporary ANN labels
 #train an LDA based on the ANN labels
 lda, X_train = train_lda(m.Sxx_ext,m.state_df['ann_labels'],rand_idx,components=3)
+# lda, X_train = train_lda(m.Sxx_ext,m.state_df['states'],rand_idx,components=3)
 # Create dataframe for LDs
 m.LD_df = lda_transform_df(m.Sxx_ext,lda)
 
 ############################################################
 # 3b. Load a previously created LDA
-lda_filename = offline_data_path +'lda_211014_211102_Vglut2Cre-CS_m9.joblib'
+lda_filename = offline_data_path +'lda_extended_211014_211102_Vglut2Cre-CS_m9.joblib'
 lda_filename = EphysDir+Folder + 'lda_210409_210409_B6J_m1.joblib'
 lda = joblib.load(lda_filename)
 # Create dataframe for LDs
@@ -66,14 +67,14 @@ plt.savefig(m.figureFolder+title + m.figure_tail, dpi=dpi)
 ######################################
 # 4. Density peak clustering
 # # Find density peaks in low dimensional space
-est = DPA.DensityPeakAdvanced(Z=0.90,k_max=201)
+est = DPA.DensityPeakAdvanced(Z=0.9,k_max=201)
 start=time.time()
 est.fit(m.LD_df.loc[rand_idx])
 end=time.time()
 print(end-start)
 
 #plot DPA clusters on LDA
-def plot_DPA_LDA(m, rand_idx, dpa=est)
+plot_DPA_LDA(m, rand_idx, est)
 
 #Train new LDA based on DPA clusters
 lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)

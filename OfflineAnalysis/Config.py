@@ -21,6 +21,6 @@ plot_kwds = {'alpha': 0.25, 's': 20, 'linewidths': 0}
 dpi = 500
 
 base_path = os.getcwd().replace("\\", "/") + "/"
-base_path = r'C:\Users\bitsik0000\PycharmProjects\ClosedLoopEEG'
+base_path = 'C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG'
 offline_data_path = base_path + '/OfflineAnalysis/data/'
 state_averages_path = offline_data_path + 'StateAverages.pkl'
