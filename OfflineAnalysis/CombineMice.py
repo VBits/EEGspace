@@ -18,8 +18,8 @@ def combine_files(EphysDir,Folder,save=True):
             file_id = file.split("_",2)[-1]
             states_file = pd.read_pickle('states_{}'.format(file_id))
             multitaper_file = pd.read_pickle('Multitaper_df_{}'.format(file_id))
-            #trim the Sxx file to match the states file length
-            Sxx_file = Sxx_file[:len(states_file)]
+            # #trim the Sxx file to match the states file length
+            # Sxx_file = Sxx_file[:len(states_file)]
             #process with log 10
             # multitaper_file = 10*np.log(multitaper_file[:len(states_file)])
             Sxx_combined = Sxx_combined.append(Sxx_file,ignore_index=True)
