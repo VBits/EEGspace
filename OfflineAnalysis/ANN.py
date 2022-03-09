@@ -1,11 +1,7 @@
 # Initial classification with ANN
 import tensorflow as tf
 from tensorflow import keras
-#TODO uncomment
-# from Config import *
-import numpy as np
 from sklearn.utils import compute_class_weight
-import pandas as pd
 from OfflineAnalysis.PlottingUtils import *
 
 

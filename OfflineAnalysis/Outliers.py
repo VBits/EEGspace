@@ -17,37 +17,30 @@ ax.set_zlabel('LD3')
 plt.title('LDA')
 plt.savefig(figureFolder+'LDA and labeled outliers' + m.figure_tail, dpi=dpi)
 
+#How many outliers exist in the rand_idx data
 np.unique(dbscan_model.labels_,return_counts=True)
 
-
+### -----
+# Predict outliers in the rest of the data
 clf_outlier = KNeighborsClassifier(n_neighbors=5)
 sample_data = np.ascontiguousarray(m.LD_df.loc[rand_idx].values)
 clf_outlier.fit(sample_data, dbscan_model.labels_)
-
-
-### -----
 # predict states
 m.state_df['outliers'] = clf_outlier.predict(m.LD_df)
 
 
-fig = plt.figure()
-ax = Axes3D(fig)
-ax.scatter(m.LD_df['LD1'].loc[rand_idx],m.LD_df['LD2'].loc[rand_idx],m.LD_df['LD3'].loc[rand_idx],c=m.state_df['outliers'].loc[rand_idx],cmap='bwr',alpha=0.5, s=5)
-ax.set_xlabel('LD1')
-ax.set_ylabel('LD2')
-ax.set_zlabel('LD3')
-plt.title('LDA')
+plot_LDA(m,rand_idx,m.state_df['outliers'],savefigure=False)
 plt.savefig(figureFolder+'LDA and KNN outliers' + m.figure_tail, dpi=dpi)
 
+#How many outliers exist in all the data
 np.unique(m.state_df['outliers'],return_counts=True)
-
 
 
 
 # Annotate the state dataframe
 m.state_df.loc[m.state_df['outliers']!=0,'states']= 'ambiguous'
-
+#How many labels exist in all the data
 np.unique(m.state_df['states'],return_counts=True)
 
-#TEMP
+#OPTIONAL save the file including epochs labeled as embiguous
 m.state_df.to_pickle(EphysDir + Folder + 'states_{}_{}_{}_m{}.pkl'.format(Folder[:6],File[:6],m.genotype,m.pos))

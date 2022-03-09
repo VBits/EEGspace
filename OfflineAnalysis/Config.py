@@ -1,19 +1,12 @@
 import os
 
-EphysDir = 'D:/Project_Mouse/Ongoing_analysis/'
+BaseDir = 'D:/Project_Mouse/Ongoing_analysis/'
 
-# Folder = '210409_White_noise/Ephys/'
-# File = '210409_000.smrx'
-# Folder = '211014_Vglut2-Cre_CS_Casp3/Ephys/'
-# Folder = '211011_Sert-Cre_Ai14_CS_Casp3/Ephys/'
-# Folder = '211019_Gad2-Cre_CS_Casp3/Ephys/'
-Folder = '211209_Smad1_PVcre/rig2/Ephys/'
+
+ExpDir = '211209_Smad1_PVcre/rig2/Ephys/'
 # File = '211221_000.smrx'
 File = '220103_000.smrx'
-# File = '211102_000.smrx'
-# File = '211111_000.smrx'
-# File = '211119_000.smrx'
-FilePath = EphysDir+Folder+File
+
 
 ANNfolder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
 

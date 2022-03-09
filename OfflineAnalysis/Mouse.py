@@ -5,16 +5,8 @@ plt.rc('lines', linewidth=0.5)
 import numpy as np
 import pandas as pd
 import h5py
-import scipy
-import scipy.signal
-import bottleneck as bn
-from sklearn.decomposition import PCA
-from sklearn.preprocessing import StandardScaler, RobustScaler
-from sklearn.preprocessing import Normalizer
-from scipy.spatial import cKDTree
 from scipy.signal import decimate, butter, dlti
 import inspect
-# from tslearn.preprocessing import TimeSeriesResampler
 import nitime.algorithms as tsa
 from scipy.signal import detrend
 import datetime
@@ -27,9 +19,13 @@ def inspect_function(f):
     code, line_no = inspect.getsourcelines(f)
     print(''.join(code))
 
-# The mouse class object ()
+
 class Mouse:
+    """
+    # The mouse class object, holds data and information for each mouse
+    """
     def __init__(self, genotype, pos):
+
         self.genotype = genotype  # instance variable unique to each instance
         self.pos = pos
         self.colors ={'Wake': '#80a035',  # green
@@ -47,8 +43,14 @@ class Mouse:
     def __repr__(self):
         return "Mouse in position {}, genotype {}".format(self.pos, self.genotype)
 
-    #Load file if in .mat format
+
     def add_data(self, Folder, FileMat):
+        """
+        Load data from .mat file format
+        :param Folder: folder containing the EEG data
+        :param FileMat: the .mat file
+        :return:
+        """
         self.f = h5py.File(Folder + FileMat,'r')
         self.Ch_name = list(self.f.keys())
         self.Mouse_Ch = [s for s in self.Ch_name if "G{}".format(self.pos) in s]
@@ -63,15 +65,20 @@ class Mouse:
             self.EMG_data = self.f["{}".format(self.Mouse_Ch[1])]["values"][0, :]
             self.EMG_fs = 1 / self.f["{}".format(self.Mouse_Ch[1])]['interval'][0][0]
 
-    #Load file if in .smrx format
-    def read_smrx(self,Filepath):
+    def read_smrx(self,BaseDir, ExpDir, File):
+        """
+        Load file from .smrx file format
+        :param BaseDir: Base directory that contains different experiments
+        :param ExpDir: Directory containing the experiment analyzed
+        :return:
+        """
         # Get file path
         self.figure_tail = ' - {} - {}.png'.format(self.pos, self.genotype)
-        self.FilePath = Filepath
+        self.FilePath = BaseDir + ExpDir
         print('Loading Mouse {} from {}'.format(self.pos,self.FilePath))
 
         # Open file
-        self.File = sp.SonFile(self.FilePath, True)
+        self.File = sp.SonFile(self.FilePath + File, True)
 
         if self.File.GetOpenError() != 0:
             print('Error opening file:', sp.GetErrorString(self.File.GetOpenError()))
@@ -96,18 +103,19 @@ class Mouse:
         self.EEG_ideal_fs = self.File.GetIdealRate(WaveChan)
 
     #Generate folder to store figures for mouse
-    def gen_folder(self,EphysDir,Folder,all_mice=None):
+    def gen_folder(self, BaseDir, ExpDir, all_mice=None):
         date = datetime.datetime.now().strftime("%y%m%d")
         if all_mice is None:
-            figureFolder = EphysDir + Folder + 'Mouse_{}_{}/'.format(self.pos, date)
+            self.figureFolder = BaseDir + ExpDir + 'Mouse_{}_{}/'.format(self.pos, date)
         else:
-            figureFolder = EphysDir + Folder + 'All_Mice_{}/'.format(date)
-        if not os.path.exists(figureFolder):
+            self.figureFolder = BaseDir + ExpDir + 'All_Mice_{}/'.format(date)
+
+        if not os.path.exists(self.figureFolder):
             print('Directory for m{} created'.format(self.pos))
-            os.makedirs(os.path.dirname(figureFolder), exist_ok=True)
+            os.makedirs(os.path.dirname(self.figureFolder), exist_ok=True)
         else:
             print('Directory for m{} exists'.format(self.pos))
-        return figureFolder
+
 
     #Downsample EEG and
     def downsample_EGG(self,target_fs=100):
@@ -145,45 +153,24 @@ class Mouse:
         self.multitaper_df = pd.DataFrame(index=time_idx, data=psd_est,columns=freqs)
         self.multitaper_df = 10 * np.log(self.multitaper_df)
 
-    #Smoothen the multitaper data with Savgol
+    #Smoothen the multitaper data with median filter
     def process_spectrum(self, window_size=21):
-        # ## Normalize the data and plot density spectrogram
-        # def SG_filter(x):
-        #     return scipy.signal.savgol_filter(x, window_size, polynomial)
-        #
-        # # Log scale
-        # Sxx_df = 10 * np.log(self.multitaper_df.T)
-        #
-        # # horizontal axis (time)
-        # for i in range(smooth_iter):
-        #     Sxx_df = Sxx_df.apply(SG_filter, axis=1, result_type='expand')
-        #
-        # self.Sxx_df = pd.DataFrame(data=Sxx_df.T.values, columns=self.multitaper_df.columns,
-        #                              index=self.multitaper_df.index)
+        """
+        Smoothen the multitaper data with median filter. Non linear filtering preserves transitions better than
+        savgol filtering
+        :param window_size: 21 provides a good compromise between smoothing and retaining information
+        :return:
+        """
         self.Sxx_df = self.multitaper_df.rolling(window_size, center=True, win_type=None, min_periods=2).median()
 
-    def PCA(self, window_size = 11,normalizer=False,robust =False):
-        if self.LP_filter:
-            if normalizer:
-                self.x = Normalizer().fit_transform(self.df)
-                print('Using Normalizer')
-            elif robust:
-                self.x = RobustScaler(quantile_range=(1, 99)).fit_transform(self.df)
-                print('Using Robust Scaler')
-            else:
-                self.x = StandardScaler().fit_transform(self.df)
-                print('Using Standard Scaler')
-        else:
-            self.x = StandardScaler().fit_transform(self.df.rolling(window_size, center=True,
-                                                     win_type=None, min_periods=2).mean())
-            print('Using Standard Scaler and rolling mean')
-        print('LP filter was set to {}'.format(self.LP_filter))
-        pca = PCA(n_components=2)
-        self.pC = pca.fit_transform(self.x)
-        self.pC_df = pd.DataFrame(data=self.pC,columns=['pC1','pC2'],index=self.df.index)
-
-    #Expand the sample labels to the rest of the data using
     def knn_pred(self, clf, dataframe,state_averages_path):
+        """
+        Expand the DPC labels to the rest of the dataset using KNN
+        :param clf:
+        :param dataframe:
+        :param state_averages_path:
+        :return:
+        """
         # predict states
         self.state_df = pd.DataFrame(index=dataframe.index)
         self.state_df['clusters_knn'] = clf.predict(self.LD_df)

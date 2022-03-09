@@ -68,8 +68,6 @@ def plot_DPA_LDA(m, rand_idx, est, alpha=0.6, size=4, linewidths=0, savefigure=F
         plt.savefig(m.figureFolder + 'LDA 3D states DPC labels {}_{}'.format(Folder[:6], File[:6]) + m.figure_tail,dpi=dpi)
 
 
-
-
 def plot_EEG(m, File, hide_figure=True):
     if hide_figure:
         print('saving without displaying')
