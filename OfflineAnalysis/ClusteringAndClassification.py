@@ -12,8 +12,10 @@ import joblib
 
 ######################################
 #1. Get data for indicated genotype and channel.
-# Will preprocess data, unless you specify to load preprocessed data
-m = get_mouse('cKO',13,load=True)
+# Preprocess data, or specify to load preprocessed data
+for p in [10,12,14,16]:
+    m = get_mouse('VgatCre_CS_Casp3',10,load=True)
+    m = get_mouse('VgatCre_CS_YFP', 11, load=True)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
@@ -55,18 +57,17 @@ plt.savefig(m.figureFolder+ 'LDA no labels' + m.figure_tail, dpi=dpi)
 
 ######################################
 # 4. Density peak clustering
-# Find density peaks in low dimensional space
-est = DPA.DensityPeakAdvanced(Z=0.7,k_max=201)
+# Find density peaks in low dimensional space, tweak Z
+est = DPA.DensityPeakAdvanced(Z=1.2,k_max=201)
 est.fit(m.LD_df.loc[rand_idx])
 
 # Plot DPA clusters on LDA
 plot_DPA_LDA(m, rand_idx, est)
 
 
-# OPTIONAL merge spurious clusters into 4 labels, keys = labels, values = merged_labels
-label_dict = {0:0,1:0,2:2,3:1,4:2,5:3,6:1}
+# OPTIONAL merge spurious clusters into 4 labels, labels:merged_labels
+label_dict = {0:0,1:1,2:2,3:3,4:0,5:0}
 est.labels_ = np.vectorize(label_dict.get)(est.labels_)
-est.labels_[est.labels_==spurious_label] = correct_label
 
 # OPTIONAL Update LDA using the DPA clusters
 lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)

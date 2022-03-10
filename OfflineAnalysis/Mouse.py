@@ -190,6 +190,7 @@ class Mouse:
             label_averages[label] = self.Sxx_df_norm.loc[self.state_df[self.state_df['clusters_knn'] == label].index].mean(axis=0)
         #determine which knn labels match each state
         if Nclusters == 4:
+            state_averages = state_averages.drop(['Wake'], axis=1)
             state_dict = {}
             for state in ['SWS','REM','HTwake','LTwake']:
                 state_correlations = label_averages.corrwith(state_averages[state])
@@ -200,7 +201,18 @@ class Mouse:
 
             self.state_df['states'] = self.state_df['clusters_knn']
             self.state_df.replace(to_replace={"states": dict(state_dict)},inplace=True)
-            # self.state_df['states'].replace(to_replace=dict(state_dict))#, inplace=True)
+        if Nclusters == 3:
+            state_averages = state_averages.drop(['HTwake', 'LTwake'], axis=1)
+            state_dict = {}
+            for state in ['SWS','REM','Wake']:
+                state_correlations = label_averages.corrwith(state_averages[state])
+                state_dict[int(state_correlations.idxmax())] = state
+                print (state)
+                print (state_correlations.idxmax())
+                label_averages.drop(columns=state_correlations.idxmax(),inplace=True)
+
+            self.state_df['states'] = self.state_df['clusters_knn']
+            self.state_df.replace(to_replace={"states": dict(state_dict)},inplace=True)
         else:
             print('Number of clusters not recognized. Automatic state assignment failed')
 

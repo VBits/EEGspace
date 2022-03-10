@@ -3,9 +3,9 @@ import os
 BaseDir = 'D:/Project_Mouse/Ongoing_analysis/'
 
 
-ExpDir = '211209_Smad1_PVcre/rig2/Ephys/'
+ExpDir = '220113_VgatCre_CS_casp3_round1/Ephys/'
 # File = '211221_000.smrx'
-File = '220103_000.smrx'
+File = '220223_000.smrx'
 
 
 ANNfolder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
