@@ -14,8 +14,8 @@ import joblib
 #1. Get data for indicated genotype and channel.
 # Preprocess data, or specify to load preprocessed data
 for p in [10,12,14,16]:
-    m = get_mouse('VgatCre_CS_Casp3',10,load=True)
-    m = get_mouse('VgatCre_CS_YFP', 11, load=True)
+    m = get_mouse('VgatCre_CS_Casp3',13,load=True)
+    m = get_mouse('VgatCre_CS_YFP', 13, load=True)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
@@ -58,7 +58,7 @@ plt.savefig(m.figureFolder+ 'LDA no labels' + m.figure_tail, dpi=dpi)
 ######################################
 # 4. Density peak clustering
 # Find density peaks in low dimensional space, tweak Z
-est = DPA.DensityPeakAdvanced(Z=1.2,k_max=201)
+est = DPA.DensityPeakAdvanced(Z=1.8,k_max=201)
 est.fit(m.LD_df.loc[rand_idx])
 
 # Plot DPA clusters on LDA
@@ -66,7 +66,7 @@ plot_DPA_LDA(m, rand_idx, est)
 
 
 # OPTIONAL merge spurious clusters into 4 labels, labels:merged_labels
-label_dict = {0:0,1:1,2:2,3:3,4:0,5:0}
+label_dict = {0:0,1:1,2:2,3:3,4:2}
 est.labels_ = np.vectorize(label_dict.get)(est.labels_)
 
 # OPTIONAL Update LDA using the DPA clusters
@@ -102,9 +102,9 @@ lda = joblib.load(lda_filename)
 # Load OR Save knn model
 knn_file = BaseDir + ExpDir + 'knn_{}_{}_{}_m{}.joblib'.format(ExpDir[:6], File[:6], m.genotype, m.pos)
 # Save file
-joblib.dump(clf, knn_file)
+joblib.dump(knn_clf, knn_file)
 # Recover previously saved file
-clf = joblib.load(knn_file)
+knn_clf = joblib.load(knn_file)
 
 
 #######################################
