@@ -16,6 +16,7 @@ def create_required_files_for_online_mode(mouse_num):
     states_numeric = Common.states_to_numeric_version(states)
 
     # convert to medians
+    #TODO MG change center to False, eliminate transformation bellow
     medians = multitaper_df.rolling(OnlineConfig.median_filter_buffer, center=True, win_type=None, min_periods=2).median()
     mid = OnlineConfig.median_filter_buffer_middle
     set_size=200000

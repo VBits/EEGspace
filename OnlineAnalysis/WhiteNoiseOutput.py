@@ -5,11 +5,12 @@ Online analysis - Stimulus delivery
 import serial
 import time
 import datetime
+from OnlineAnalysis import Config
 
 
 def get_white_noise_function():
 
-    audio = serial.Serial("COM4")
+    audio = serial.Serial(Config.comport)
     is_open = audio.is_open
     if is_open:
         audio.close()
