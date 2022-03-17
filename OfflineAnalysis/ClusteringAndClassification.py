@@ -46,7 +46,7 @@ m.state_df['ann_labels'] = ANN.get_labels(model,m.Sxx_ext)
 lda, X_train = train_lda(m.Sxx_ext,m.state_df['ann_labels'],rand_idx,components=3)
 
 # b. Load a previously created LDA
-lda_filename = offline_data_path +'lda_extended_211014_211102_Vglut2Cre-CS_m9.joblib'
+lda_filename = offline_data_path +'lda_average.joblib'
 lda = joblib.load(lda_filename)
 
 # Reduce dimensionality of data and save in a new dataframe

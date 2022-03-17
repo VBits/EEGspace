@@ -15,10 +15,15 @@ def report_states(EphysDir,Folder):
         states_file = pd.read_pickle(file)
         print(np.unique(states_file['states'],return_counts=True))
 
-def combine_files(EphysDir,Folder,save=True):
+def combine_files(EphysDir,Folder,load=True):
     # Generate a file to be used for models while avoiding overfitting
     os.chdir(EphysDir+Folder)
-    if save:
+    if load:
+        print ('loading file with states for all the mice')
+        Sxx_combined = pd.read_pickle(EphysDir + Folder + 'All_mice_Sxx_combined.pkl')
+        states_combined = pd.read_pickle(EphysDir + Folder + 'All_mice_states_combined.pkl')
+        multitaper_combined = pd.read_pickle(EphysDir + Folder + 'All_mice_multitaper_combined.pkl')
+    else:
         print ('saving file with states for all the mice')
         Sxx_combined = pd.DataFrame()
         states_combined = pd.DataFrame()
@@ -40,12 +45,6 @@ def combine_files(EphysDir,Folder,save=True):
         Sxx_combined.to_pickle(EphysDir + Folder + 'All_mice_Sxx_combined.pkl')
         multitaper_combined.to_pickle(EphysDir + Folder + 'All_mice_multitaper_combined.pkl')
         states_combined.to_pickle(EphysDir + Folder + 'All_mice_states_combined.pkl')
-
-    else:
-        print ('loading file with states for all the mice')
-        Sxx_combined = pd.read_pickle(EphysDir + Folder + 'All_mice_Sxx_combined.pkl')
-        states_combined = pd.read_pickle(EphysDir + Folder + 'All_mice_states_combined.pkl')
-        multitaper_combined = pd.read_pickle(EphysDir + Folder + 'All_mice_multitaper_combined.pkl')
     return Sxx_combined, multitaper_combined, states_combined
 
 
@@ -54,7 +53,7 @@ Folder = 'Avoid_overfitting/'
 #Optional: Check if any datasets have 3 states and get rid of them
 report_states(EphysDir,Folder)
 #combine files to use for the training
-Sxx_combined, multitaper_combined,states_combined = combine_files(EphysDir,Folder,save=False)
+Sxx_combined, multitaper_combined,states_combined = combine_files(EphysDir,Folder,load=True)
 
 # get rid of any states that are artifacts
 Sxx_combined = Sxx_combined[states_combined['states']!='ambiguous']
