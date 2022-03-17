@@ -57,7 +57,7 @@ def plot_DPA_LDA(m, rand_idx, est, alpha=0.6, size=4, linewidths=0, savefigure=F
     ax = Axes3D(fig)
     scatter = ax.scatter(m.LD_df.loc[rand_idx].values[:, 0], m.LD_df.loc[rand_idx].values[:, 1],
                m.LD_df.loc[rand_idx].values[:, 2],
-               alpha=alpha, s=size,linewidths=linewidths, c=est.labels_, cmap='Accent')
+               alpha=alpha, s=size,linewidths=linewidths, c=est.labels_, cmap='tab20b')
     ax.set_xlabel('LD1')
     ax.set_ylabel('LD2')
     ax.set_zlabel('LD3')
