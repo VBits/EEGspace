@@ -21,6 +21,10 @@ plot_kwds = {'alpha': 0.25, 's': 20, 'linewidths': 0}
 dpi = 500
 
 base_path = os.getcwd().replace("\\", "/") + "/"
-base_path = r'C:\Users\bitsik0000\PycharmProjects\ClosedLoopEEG'
-offline_data_path = base_path + '/OfflineAnalysis/data/'
+# base_path = r'C:\Users\bitsik0000\PycharmProjects\ClosedLoopEEG'
+offline_data_path = base_path + 'data/'
 state_averages_path = offline_data_path + 'StateAverages.pkl'
+
+run_name = "211011_211102_SertCre-CS"
+multitaper_data_file_path = offline_data_path + 'Sxx_df_'+run_name+'_m{mouse_num}.pkl'
+states_file_path = offline_data_path + 'states_'+run_name+'_m{mouse_num}.pkl'

@@ -8,6 +8,8 @@ from OnlineAnalysis import Config
 import numpy as np
 import pandas as pd
 import scipy
+import math
+
 
 def smooth_prev_epochs_with_savgol(series, buffer, subset_size):
     epoch_size = series.shape[1]
@@ -32,12 +34,9 @@ def transform_data(data_points, timer):
     downsampled_data_points = downsample_EGG(data_points)
     multitaper_df = apply_multitaper(downsampled_data_points)
     timer.print_duration_since("start_multitaper", "Time for multitaper")
-    timer.set_time_point("start_smoothing")
-    sxx_df = do_smoothing(multitaper_df, timer)
-    sxx_norm = pd.DataFrame(data=sxx_df.T.values, columns=multitaper_df.columns, index=multitaper_df.index)
-    timer.print_duration_since("start_smoothing", "Time to process spectrum")
-    return sxx_norm
-
+    medians = multitaper_df.rolling(Config.median_filter_buffer, center=True, win_type=None, min_periods=2).median()
+    combined_data = np.hstack((np.array(multitaper_df)[-1], np.array(medians)[-Config.median_filter_buffer_middle]))
+    return combined_data
 
 def downsample_EGG(eeg_data):
     '''
@@ -57,14 +56,16 @@ def downsample_EGG(eeg_data):
 
 
 def apply_multitaper(data_points):
-    eeg_fs = Config.eeg_fs
+    eeg_fs = Config.downsample_fs
     eeg_data = np.array(data_points)
     start = [pd.to_datetime('today')]
     window_length = 4 * int(eeg_fs)
     window_step = 2 * int(eeg_fs)
     window_starts = np.arange(0, len(eeg_data) - window_length + 1, window_step)
-
-    eeg_segs = detrend(eeg_data[list(map(lambda x: np.arange(x, x + window_length), window_starts))])
+    eeg_dat_to_detrend = []
+    for indexes in list(map(lambda x: np.arange(x, x + window_length), window_starts)):
+        eeg_dat_to_detrend.append(eeg_data[indexes])
+    eeg_segs = detrend(eeg_dat_to_detrend)
 
     freqs, psd_est, var_or_nu = tsa.multi_taper_psd(eeg_segs, Fs=eeg_fs, NW=4, adaptive=False, jackknife=False,
                                                     low_bias=True)

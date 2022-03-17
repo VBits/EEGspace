@@ -15,11 +15,11 @@ import Storage
 
 def cycle_test_files(file_lock, use_random=False):
     epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
-    f = h5py.File(Config.raw_data_file, 'r') #don't load file multiple times
+    f = Storage.read_smrx(Config.raw_data_file) #don't load file multiple times
     for mouse_num in Config.rig_position:
         channel_number = mouse_num-1
         path = Config.channel_file_base_path.format(channel_number=channel_number)
-        eeg_data = Storage.load_downsampled_raw_data(mouse_num, f)
+        eeg_data = Storage.get_smrx_data(f, mouse_num, Config.downsample_fs)
         with file_lock:
             if os.path.isfile(path):
                 os.remove(path)
@@ -27,9 +27,11 @@ def cycle_test_files(file_lock, use_random=False):
             random_sample_size = epoch_size * 100
             random_index = randint(0, len(eeg_data) - random_sample_size)
             random_sample = eeg_data[random_index:random_index + random_sample_size]
-            threading.Thread(target=file_creation, args=(random_sample, epoch_size, channel_number, file_lock)).start()
+            thread = threading.Thread(target=file_creation, args=(random_sample, epoch_size, channel_number, file_lock))
         else:
-            threading.Thread(target=file_creation, args=(eeg_data, epoch_size, channel_number, file_lock)).start()
+            thread = threading.Thread(target=file_creation, args=(eeg_data, epoch_size, channel_number, file_lock))
+        thread.setDaemon(True)
+        thread.start()
 
 
 def file_creation(data_points, epoch_size, channel_number, file_lock):

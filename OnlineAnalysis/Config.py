@@ -2,7 +2,7 @@
 Inputs defined by user
 Online analysis
 """
-
+import math
 import os
 
 #Digitization frequency
@@ -12,6 +12,8 @@ downsample_fs = 100
 num_seconds_per_epoch = 2
 #Specify the buffer length
 epoch_buffer = 50
+median_filter_buffer = 21
+median_filter_buffer_middle = math.ceil(median_filter_buffer / 2)
 #Savgol filtering parameters
 savgol_window=41
 savgol_order=2
@@ -26,7 +28,7 @@ print_timer_info_for_mice = [1]#[1, 2, 3, 4, 5, 6, 7]
 # boolean
 cycle_test_data = True
 recreate_model_file = True
-recreate_lda = False
+recreate_lda = True
 recreate_knn = True
 
 # file paths and file names
@@ -41,18 +43,20 @@ mouse_object_path = data_path + "mouse_object.pkl"
 lda_model_path = data_path + "lda_model.pkl"
 mouse_model_path = data_path + "Models/{mouse_num}/mouse_model.pkl"
 training_data_path = data_path + "CombinedData/"
-raw_data_file = training_data_path + "200724_000_B6J_burrowingSD.mat"
+raw_data_file = training_data_path + "210526_000_m1.smrx"
 raw_data_pkl_file = data_path + "raw_test_data.pkl"
-run_name = "210409_210409_B6J"
-multitaper_data_file_path = training_data_path + 'Sxx_norm_'+run_name+'_m1.pkl'
-state_file_path = training_data_path + 'states_'+run_name+'_m1.pkl'
-lda_file_path = training_data_path + 'lda_'+run_name+'_m1.joblib'
-knn_file_path = training_data_path + 'knn_'+run_name+'_m1.joblib'
-norm_file_path = training_data_path + 'norm_'+run_name+'_m1.npy'
+run_name = "211011_211102_SertCre-CS"
+multitaper_data_file_path = training_data_path + 'Sxx_df_'+run_name+'_m{mouse_num}.pkl'
+combined_data_file_path = training_data_path + 'Sxx_df_'+run_name+'_combined_with_medians_m{mouse_num}.pkl'
+state_file_path = training_data_path + 'states_'+run_name+'_m{mouse_num}.pkl'
+lda_file_path = training_data_path + 'lda_'+run_name+'_m{mouse_num}.joblib'
+knn_file_path = training_data_path + 'knn_'+run_name+'_m{mouse_num}.joblib'
 
 state_colors = {
     "REM": "#443e99",
     "SWS": "#3e8399",
     "LMwake": "#3e9944",
     "HMwake": "#f2ef30",
+    "LTwake": "#3e9944",
+    "HTwake": "#f2ef30",
 }

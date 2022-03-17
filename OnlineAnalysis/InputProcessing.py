@@ -72,7 +72,7 @@ def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, confi
 
             if iteration > config.epoch_buffer:
                 timer.set_time_point("start_data_analysis")
-                transformed_data = Preprocessing.transform_data(data_points, timer, model.norm)
+                transformed_data = Preprocessing.transform_data(data_points, timer)
                 transformed_data = [np.array(transformed_data)]
                 lda_point = model.lda.transform(transformed_data)
                 predicted_class = model.classifier.predict(lda_point)
