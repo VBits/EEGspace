@@ -42,10 +42,10 @@ m.state_df['ann_labels'] = ANN.get_labels(model,m.Sxx_ext)
 ############################################################
 # 3. Create the LDA space
 
-# a. Create LDA using the ANN labels
+# a. Create LDA using the ANN labels (works better with noise free data)
 lda, X_train = train_lda(m.Sxx_ext,m.state_df['ann_labels'],rand_idx,components=3)
 
-# b. Load a previously created LDA
+# b. Load a previously created LDA (works better with noisy data)
 lda_filename = offline_data_path +'lda_average.joblib'
 lda = joblib.load(lda_filename)
 
@@ -58,7 +58,7 @@ plt.savefig(m.figureFolder+ 'LDA no labels' + m.figure_tail, dpi=dpi)
 ######################################
 # 4. Density peak clustering
 # Find density peaks in low dimensional space, tweak Z
-est = DPA.DensityPeakAdvanced(Z=1.8,k_max=201)
+est = DPA.DensityPeakAdvanced(Z=1.2,k_max=201)
 est.fit(m.LD_df.loc[rand_idx])
 
 # Plot DPA clusters on LDA

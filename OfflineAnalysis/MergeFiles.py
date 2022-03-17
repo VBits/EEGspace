@@ -65,12 +65,6 @@ m.state_df = states_combined.loc[rand_idx]
 m.Sxx_df = Sxx_combined.loc[rand_idx]
 m.multitaper_df = multitaper_combined.loc[rand_idx]
 
-
-######################################
-# 1. Create the Sxx_extended
-Sxx_extended = expand_epochs(m,smoothed_data=False)
-rand_idx = get_random_idx(Sxx_extended,size=199000)
-
 ############################################################
 
 
