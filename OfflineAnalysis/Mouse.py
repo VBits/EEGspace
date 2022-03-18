@@ -201,7 +201,7 @@ class Mouse:
 
             self.state_df['states'] = self.state_df['clusters_knn']
             self.state_df.replace(to_replace={"states": dict(state_dict)},inplace=True)
-        if Nclusters == 3:
+        elif Nclusters == 3:
             state_averages = state_averages.drop(['HTwake', 'LTwake'], axis=1)
             state_dict = {}
             for state in ['SWS','REM','Wake']:
