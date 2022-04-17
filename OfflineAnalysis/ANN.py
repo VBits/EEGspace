@@ -3,6 +3,7 @@ import tensorflow as tf
 from tensorflow import keras
 from sklearn.utils import compute_class_weight
 from OfflineAnalysis.PlottingUtils import *
+from OfflineAnalysis import Config as OfflineConfig
 
 
 def create_model(dataframe):
@@ -20,7 +21,7 @@ def create_model(dataframe):
               metrics=['SparseCategoricalAccuracy'])
     return model
 
-def plot_model(model,Folder):
+def plot_ANN_model(model,Folder):
     tf.keras.utils.plot_model(model, to_file=Folder + 'ANN_model.png', show_shapes=True)
 
 def standardize_state_codes(state_df):
@@ -57,6 +58,21 @@ def test_accuracy(model,m):
     test_loss, test_acc = model.evaluate(m.Sxx_ext.values, m.state_df['state_codes'].values, verbose=2)
     print('\nTest accuracy:', test_acc)
 
+def label_data(m,reuse_weights=True):
+    model = create_model(m.Sxx_ext)
 
+    if reuse_weights:
+        # Load previously determined ANN weights
+        model.load_weights(OfflineConfig.offline_data_path + 'weights_Sxx_ext.h5')
+    else:
+        # Train ANN and save weights
+        standardize_state_codes(m.state_df)
+        plot_ANN_model(model, BaseDir + ExpDir)
+        classWeight = calculate_weights(m,OfflineConfig.rand_idx)
+        model = train_model(model,m.Sxx_ext,m.state_df,classWeight,OfflineConfig.rand_idx)
+        model.save_weights(OfflineConfig.offline_data_path + 'weights_Sxx_ext.h5')
 
+    # Get labels from ANN
+    m.state_df = pd.DataFrame(index=m.Sxx_ext.index)
+    m.state_df['ann_labels'] = get_labels(model,m.Sxx_ext)
 

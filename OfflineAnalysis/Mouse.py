@@ -24,10 +24,10 @@ class Mouse:
     """
     # The mouse class object, holds data and information for each mouse
     """
-    def __init__(self, genotype, pos):
+    def __init__(self, description, mouse_id):
 
-        self.genotype = genotype  # instance variable unique to each instance
-        self.pos = pos
+        self.description = description  # instance variable unique to each instance
+        self.mouse_id = mouse_id
         self.colors ={'Wake': '#80a035',  # green
                       'HMwake':'#80a035',
                       'HTwake': '#80a035',
@@ -38,10 +38,10 @@ class Mouse:
                   'REM': '#aa6339',  # orange
                   'ambiguous': '#ff0000',  # red
                   }
-        self.figure_tail = ' - {} - {}.png'.format(self.pos, self.genotype)
+        self.figure_tail = ' - {} - {}.png'.format(self.mouse_id, self.description)
 
     def __repr__(self):
-        return "Mouse in position {}, genotype {}".format(self.pos, self.genotype)
+        return "Mouse id {}, description {}".format(self.mouse_id, self.description)
 
 
     def add_data(self, Folder, FileMat):
@@ -53,7 +53,7 @@ class Mouse:
         """
         self.f = h5py.File(Folder + FileMat,'r')
         self.Ch_name = list(self.f.keys())
-        self.Mouse_Ch = [s for s in self.Ch_name if "G{}".format(self.pos) in s]
+        self.Mouse_Ch = [s for s in self.Ch_name if "G{}".format(self.mouse_id) in s]
         self.EEG_data = self.f["{}".format(self.Mouse_Ch[0])]["values"][0, :]
 
         start = pd.DataFrame(self.f['file']['start'][0].reshape(6,1).T, columns = ['year',
@@ -73,9 +73,9 @@ class Mouse:
         :return:
         """
         # Get file path
-        self.figure_tail = ' - {} - {}.png'.format(self.pos, self.genotype)
+        self.figure_tail = ' - {} - {}.png'.format(self.mouse_id, self.description)
         self.FilePath = BaseDir + ExpDir
-        print('Loading Mouse {} from {}'.format(self.pos,self.FilePath))
+        print('Loading Mouse {} from {}'.format(self.mouse_id,self.FilePath))
 
         # Open file
         self.File = sp.SonFile(self.FilePath + File, True)
@@ -83,7 +83,7 @@ class Mouse:
         if self.File.GetOpenError() != 0:
             print('Error opening file:', sp.GetErrorString(self.File.GetOpenError()))
             quit()
-        WaveChan = self.pos - 1
+        WaveChan = self.mouse_id - 1
         self.Ch_units = self.File.GetChannelUnits(WaveChan)
         self.Ch_name = self.File.GetChannelTitle(WaveChan)
 
@@ -106,15 +106,15 @@ class Mouse:
     def gen_folder(self, BaseDir, ExpDir, all_mice=None):
         date = datetime.datetime.now().strftime("%y%m%d")
         if all_mice is None:
-            self.figureFolder = BaseDir + ExpDir + 'Mouse_{}_{}/'.format(self.pos, date)
+            self.figureFolder = BaseDir + ExpDir + 'Mouse_{}_{}/'.format(self.mouse_id, date)
         else:
             self.figureFolder = BaseDir + ExpDir + 'All_Mice_{}/'.format(date)
 
         if not os.path.exists(self.figureFolder):
-            print('Directory for m{} created'.format(self.pos))
+            print('Directory for m{} created'.format(self.mouse_id))
             os.makedirs(os.path.dirname(self.figureFolder), exist_ok=True)
         else:
-            print('Directory for m{} exists'.format(self.pos))
+            print('Directory for m{} exists'.format(self.mouse_id))
 
 
     #Downsample EEG and
@@ -154,7 +154,7 @@ class Mouse:
         self.multitaper_df = 10 * np.log(self.multitaper_df)
 
     #Smoothen the multitaper data with median filter
-    def process_spectrum(self, window_size=21):
+    def smoothen_spectrum(self, window_size=21):
         """
         Smoothen the multitaper data with median filter. Non linear filtering preserves transitions better than
         savgol filtering
