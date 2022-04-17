@@ -7,8 +7,8 @@ sys.path.append('C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/OfflineAnalys
 from OfflineAnalysis.Mouse import Mouse
 from OfflineAnalysis.Config import *
 
-def get_mouse(strain,pos,load=True):
-    m = Mouse(strain, pos)
+def get_mouse(genotype,pos,load=True):
+    m = Mouse(genotype, pos)
 
     # Create directory to save figures
     m.gen_folder(BaseDir, ExpDir)
