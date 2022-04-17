@@ -14,9 +14,7 @@ num_seconds_per_epoch = 2
 epoch_buffer = 50
 median_filter_buffer = 21
 median_filter_buffer_middle = math.ceil(median_filter_buffer / 2)
-#Savgol filtering parameters
-savgol_window=41
-savgol_order=2
+
 #Savgol iterations (recommended range 0-4)
 smoothing_iterations = 4
 #Specify number of epochs used for dimensionality reduction

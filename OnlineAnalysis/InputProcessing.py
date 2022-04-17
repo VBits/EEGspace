@@ -70,7 +70,7 @@ def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, confi
             print("total points for mouse " + str(mouse_number) + " is " + str(total_points))
             timer.print_duration_since("start_reading_file", "Time doing file reading")
 
-            if iteration > config.epoch_buffer:
+            if iteration > config.median_filter_buffer:
                 timer.set_time_point("start_data_analysis")
                 transformed_data = Preprocessing.transform_data(data_points, timer)
                 transformed_data = [np.array(transformed_data)]

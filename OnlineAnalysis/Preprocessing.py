@@ -8,26 +8,6 @@ from OnlineAnalysis import Config
 import numpy as np
 import pandas as pd
 import scipy
-import math
-
-
-def smooth_prev_epochs_with_savgol(series, buffer, subset_size):
-    epoch_size = series.shape[1]
-    subset = np.array(series[:subset_size])
-
-    new_series = []
-    subset_flattened = subset.flatten()
-    for i in range(0, subset_size):
-        if i < buffer:
-            continue
-        buffer_expanded = buffer * epoch_size
-        index_expanded = i * epoch_size
-        subseries = np.array(subset_flattened[index_expanded - buffer_expanded:index_expanded])
-        subseries_smoothed = apply_savgol(subseries, 41, 4)
-        new_series.append(subseries_smoothed)
-
-    new_series = np.array(new_series).flatten().reshape(subset_size - buffer, epoch_size * buffer)
-    return new_series
 
 def transform_data(data_points, timer):
     timer.set_time_point("start_multitaper")
@@ -35,7 +15,7 @@ def transform_data(data_points, timer):
     multitaper_df = apply_multitaper(downsampled_data_points)
     timer.print_duration_since("start_multitaper", "Time for multitaper")
     medians = multitaper_df.rolling(Config.median_filter_buffer, center=True, win_type=None, min_periods=2).median()
-    combined_data = np.hstack((np.array(multitaper_df)[-1], np.array(medians)[-Config.median_filter_buffer_middle]))
+    combined_data = np.hstack((np.array(medians)[-Config.median_filter_buffer_middle], np.array(multitaper_df)[-1]))
     return combined_data
 
 def downsample_EGG(eeg_data):
@@ -72,25 +52,9 @@ def apply_multitaper(data_points):
 
     time_idx = pd.date_range(start=start[0], freq='{}ms'.format(window_step / eeg_fs * 1000),
                              periods=len(psd_est))
-    return pd.DataFrame(index=time_idx, data=psd_est, columns=freqs)
+    multitaper_df = pd.DataFrame(index=time_idx, data=psd_est, columns=freqs)
+    return 10 * np.log(multitaper_df)
 
 
-def apply_savgol_filter(x):
-    return scipy.signal.savgol_filter(x, Config.savgol_window, Config.savgol_order)
-
-
-def do_smoothing(multitaper_df, timer, iterations=Config.smoothing_iterations):
-    timer.set_time_point("start_log_calc")
-    # Log scale
-    sxx_df = 10 * np.log(multitaper_df.T)
-    timer.print_duration_since("start_log_calc")
-
-    timer.set_time_point("start_savgol")
-    # horizontal axis (time)
-    for i in range(iterations):
-        sxx_df = sxx_df.apply(apply_savgol_filter, axis=1, result_type='expand')
-
-    timer.print_duration_since("start_savgol")
-    return sxx_df
 
 

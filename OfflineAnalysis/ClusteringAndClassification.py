@@ -13,7 +13,7 @@ import joblib
 ######################################
 #1. Get data for indicated genotype and channel.
 # Preprocess data, or specify to load preprocessed data
-m = get_mouse('VgatCre_CS_Casp3',14,load=True)
+m = get_mouse('VgatCre_CS_YFP',13,load=True)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)

@@ -17,12 +17,10 @@ import Storage
 
 #Standard behavioral state numbers
 standardized_states = {
-    "REM": 0,
+    "REM": 2,
     "SWS": 1,
-    "LTwake": 2,
+    "LTwake": 0,
     "HTwake": 3,
-    "LMwake": 2,
-    "HMwake": 3,
 }
 
 #Remap state numbers

@@ -22,16 +22,18 @@ def create_required_files_for_online_mode(mouse_num):
     set_size=200000
 
     #combine data
-    combined_data = np.hstack((np.array(multitaper_df[mid:]), np.array(medians[:-mid])))
+    combined_data = np.hstack((np.array(medians[:-mid]),np.array(multitaper_df[mid:])))
     series = combined_data[:set_size]
     states_numeric = states_numeric[mid:set_size + mid]
     Storage.dump_to_file(OnlineConfig.combined_data_file_path.format(mouse_num=mouse_num), combined_data)
 
-    #create and save lda
-    lda = LDA(n_components=3)
-    lda_transformed = lda.fit_transform(series, states_numeric)
-    Storage.dump_to_file(OnlineConfig.lda_file_path.format(mouse_num=mouse_num), lda)
-
+    lda = Storage.load_from_file(OnlineConfig.lda_file_path.format(mouse_num=mouse_num))
+    lda_transformed = lda.transform(series)
+    # #create and save lda
+    # lda = LDA(n_components=3)
+    # lda_transformed = lda.fit_transform(series, states_numeric)
+    # Storage.dump_to_file(OnlineConfig.lda_file_path.format(mouse_num=mouse_num), lda)
+    #
     #create and save knn
     neigh = KNeighborsClassifier(n_neighbors=8)
     neigh.fit(lda_transformed, states_numeric)
