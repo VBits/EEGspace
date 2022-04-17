@@ -44,9 +44,9 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.ax3 = self.figure3.add_subplot(111, projection='3d')
 
         self.queue = queue
-        self.mouse_num = Config.rig_position[0]#initialize to the first mouse number
-        self.models = {str(num):MouseModel(num) for num in Config.rig_position}
-        self.model = self.models[str(self.mouse_num)]
+        self.mouse_id = Config.mouse_ids[0]#initialize to the first mouse number
+        self.models = {str(num):MouseModel(num) for num in Config.mouse_ids}
+        self.model = self.models[str(self.mouse_id)]
         self.lda_encoded = self.model.lda.transform(self.model.training_data)
 
         n = 40000
@@ -72,14 +72,14 @@ class PlotWindow(QtWidgets.QMainWindow):
         self.mouse_select_label = QLabel("Mouse number:")
 
         self.mouse_select = QComboBox()
-        self.mouse_select.addItems([str(num) for num in Config.rig_position])
+        self.mouse_select.addItems([str(num) for num in Config.mouse_ids])
         self.mouse_select.activated[str].connect(self.mouse_change)
 
         self.indicator_layout = QGridLayout()
         self.indicator_panel_stylesheet = "text-align: center; border: none; padding: 5px; font-size: 20px;";
         self.indicator_panels = []
-        for mouse_num in Config.rig_position:
-            indicator_panel = QLabel("Reading buffer for mouse " + str(mouse_num) + "...")
+        for mouse_id in Config.mouse_ids:
+            indicator_panel = QLabel("Reading buffer for mouse " + str(mouse_id) + "...")
             indicator_panel.setStyleSheet(self.indicator_panel_stylesheet)
             indicator_panel.setAlignment(QtCore.Qt.AlignCenter)
             self.indicator_panels.append(indicator_panel)
@@ -108,9 +108,9 @@ class PlotWindow(QtWidgets.QMainWindow):
         timer.start(500)
 
 
-    def mouse_change(self, mouse_num):
-        self.mouse_num = mouse_num
-        self.model = self.models[str(mouse_num)]
+    def mouse_change(self, mouse_id):
+        self.mouse_id = mouse_id
+        self.model = self.models[str(mouse_id)]
         self.ax1.clear()
         self.ax2.clear()
         #self.spot.remove()#broken
@@ -120,14 +120,14 @@ class PlotWindow(QtWidgets.QMainWindow):
             result = self.queue.get()
 
             class_name = result.standardized_class_name
-            indicator_panel = self.indicator_panels[Config.rig_position.index(result.mouse_number)]
-            indicator_panel.setText("Predicted class for mouse " + str(result.mouse_number) + " at timepoint" +
+            indicator_panel = self.indicator_panels[Config.mouse_ids.index(result.mouse_id)]
+            indicator_panel.setText("Predicted class for mouse " + str(result.mouse_id) + " at timepoint" +
                                     str(result.time_point) + " :" + class_name)
             stylesheet = self.indicator_panel_stylesheet + "color: black; background-color: " \
                          + Config.state_colors[class_name]
             indicator_panel.setStyleSheet(stylesheet)
 
-            if result.mouse_number is not self.mouse_num:
+            if result.mouse_id is not self.mouse_id:
                 return
 
             raw_data = result.raw_data

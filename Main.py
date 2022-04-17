@@ -17,8 +17,8 @@ if __name__ == '__main__':
 
     if '--create-online-files' in args:
         print("creating required files to run the online mode, this might take a while")
-        for mouse_num in ConfigOnline.rig_position:
-            OnlineFiles.create_required_files_for_online_mode(mouse_num)
+        for mouse_id in ConfigOnline.mouse_ids:
+            OnlineFiles.create_required_files_for_online_mode(mouse_id)
 
     lock = threading.Lock()
     if ConfigOnline.cycle_test_data:
@@ -36,8 +36,8 @@ if __name__ == '__main__':
     jobs.append(p)
 
     #start processing EEG data
-    for mouse_number in ConfigOnline.rig_position:
-        p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_number, file_queue))
+    for mouse_id in ConfigOnline.mouse_ids:
+        p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_id, file_queue))
         p.daemon = True
         p.start()
         jobs.append(p)
@@ -46,7 +46,7 @@ if __name__ == '__main__':
         #for later when we have other forms of stimulus
         # stimulus_input_queue = queue.Queue()
         # stimulus_output_queue = queue.Queue()
-        # stimulus_queues[mouse_number - 1] = queue
+        # stimulus_queues[mouse_id - 1] = queue
         # threading.Thread(target=StimulusOutput.randomize_stimulus_output,
         #                  args=(stimulus_input_queue, stimulus_output_queue, "BrainLaser"))
 
@@ -65,7 +65,7 @@ if __name__ == '__main__':
                 sys.exit(1)
         while not file_queue.empty():
             next_status = file_queue.get()
-            #stimulus_queues[next_status.mouse_number - 1].put(next_status)
+            #stimulus_queues[next_status.mouse_id - 1].put(next_status)
             #stimulus_input_queue.put(next_status)
             ui_input_queue.put(next_status)
             print(next_status)

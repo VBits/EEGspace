@@ -82,11 +82,11 @@ def consume_spike2_output_data_file(path):
     return time_point, total_points, data_points
 
 
-def load_downsampled_raw_data(mouse_num, f=None):
+def load_downsampled_raw_data(mouse_id, f=None):
     if f is None:
         f = read_smrx(Config.raw_data_file)
     ch_name = list(f.keys())
-    mouse_ch = [s for s in ch_name if "G{}".format(mouse_num) in s]
+    mouse_ch = [s for s in ch_name if "G{}".format(mouse_id) in s]
     fs = 1 / f["{}".format(mouse_ch[0])]['interval'][0][0]
     downsample_rate = fs / Config.eeg_fs
     eeg_data = f[str(mouse_ch[0])]["values"][0, :]
@@ -120,8 +120,8 @@ def read_smrx(file_path):
     return file
 
 
-def get_smrx_data(file, mouse_num, target_fs, downsample=False):
-    wave_chan = mouse_num - 1
+def get_smrx_data(file, mouse_id, target_fs, downsample=False):
+    wave_chan = Config.get_channel_number_from_mouse_id(mouse_id)
 
     dMaxSeconds = file.ChannelMaxTime(wave_chan) * file.GetTimeBase()
 

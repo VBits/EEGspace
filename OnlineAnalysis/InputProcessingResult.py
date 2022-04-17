@@ -5,9 +5,9 @@ Online analysis
 
 class InputProcessingResult:
 
-    def __init__(self, mouse_number, epoch_count, standardized_class_number, standardized_class_name,
+    def __init__(self, mouse_id, epoch_count, standardized_class_number, standardized_class_name,
                  original_class_number, transformed_data, lda_point, raw_data, time_point):
-        self.mouse_number = mouse_number
+        self.mouse_id = mouse_id
         self.epoch_count = epoch_count
         self.standardized_class_number = standardized_class_number
         self.standardized_class_name = standardized_class_name

@@ -12,10 +12,10 @@ from OnlineAnalysis.LoadModels import MouseModel
 
 
 # arguments include defaulted libraries that can be replaced for the purposes of mocking in tests
-def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, config=Config):
+def run_loop(mouse_id, queue, storage=Storage, load_models=LoadModels, config=Config):
 
     # set up variables
-    model = MouseModel(mouse_number)
+    model = MouseModel(mouse_id)
 
     data_points = []
     time_points = []
@@ -24,9 +24,10 @@ def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, confi
     total_points = 0
     iteration = 1
     seconds_per_iteration = config.num_seconds_per_epoch
-    spike_output_file_path = config.channel_file_base_path.format(channel_number=(mouse_number - 1))  # zero indexed
+    channel_number = Config.get_channel_number_from_mouse_id(mouse_id)
+    spike_output_file_path = config.channel_file_base_path.format(channel_number=channel_number)  # zero indexed
 
-    timer = Timer("start_time", mouse_number, iteration)
+    timer = Timer("start_time", mouse_id, iteration)
 
     # remove any existing file
     storage.remove_file_if_exists(spike_output_file_path)
@@ -58,7 +59,7 @@ def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, confi
         try:
             iteration_deadline += seconds_per_iteration
             timer.print_duration_since("start_time", "Time for iteration was")
-            timer = Timer("start_time", mouse_number, iteration)
+            timer = Timer("start_time", mouse_id, iteration)
 
             timer.set_time_point("start_reading_file")
             time_point, number_of_points_read, data_read = storage.consume_spike2_output_data_file(
@@ -67,7 +68,7 @@ def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, confi
             time_points.append(time_point)
             total_points += number_of_points_read
             data_points += data_read
-            print("total points for mouse " + str(mouse_number) + " is " + str(total_points))
+            print("total points for mouse " + str(mouse_id) + " is " + str(total_points))
             timer.print_duration_since("start_reading_file", "Time doing file reading")
 
             if iteration > config.median_filter_buffer:
@@ -79,12 +80,12 @@ def run_loop(mouse_number, queue, storage=Storage, load_models=LoadModels, confi
                 original_class_number = predicted_class[0]
                 standardized_class_number = model.state_mappings[original_class_number]
                 standardized_class_name = model.get_standard_state_name(standardized_class_number)
-                input_processing_result = InputProcessingResult(mouse_number, iteration, standardized_class_number,
+                input_processing_result = InputProcessingResult(mouse_id, iteration, standardized_class_number,
                                                                 standardized_class_name, original_class_number,
                                                                 transformed_data, lda_point, data_read, time_point)
                 queue.put(input_processing_result)
                 data_points = data_points[config.eeg_fs * config.num_seconds_per_epoch:]
-                if mouse_number in config.print_timer_info_for_mice:
+                if mouse_id in config.print_timer_info_for_mice:
                     print(len(data_points))
                     print(dropped_epochs)
                 timer.print_duration_since("start_data_analysis", "Time doing data analysis")
