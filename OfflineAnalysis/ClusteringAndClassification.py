@@ -63,8 +63,14 @@ est.fit(m.LD_df.loc[rand_idx])
 plot_DPA_LDA(m, rand_idx, est)
 
 
-# OPTIONAL merge spurious clusters into 4 labels, labels:merged_labels
-label_dict = {0:2,1:3,2:0,3:2,4:2,5:0,6:3,7:1}
+# remap the spurious clusters into 4 labels,
+# the order is merged_labels:spurious cluster labels
+label_dict = {0:{2,1},
+            1:{0},
+            2:{3,5},
+            3:{4}}
+label_dict = {vi: k for k, v in label_dict.items() for vi in v}
+
 est.labels_ = np.vectorize(label_dict.get)(est.labels_)
 
 # OPTIONAL Update LDA using the DPA clusters
