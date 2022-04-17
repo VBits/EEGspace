@@ -12,8 +12,10 @@ if __name__ == '__main__':
 
     args = sys.argv
     if '--run-offline-anaysis' in args:
-        #todo later
-        pass
+        print("Analysing files in offline mode")
+        for rig_pos in ConfigOffline.rig_position:
+            ClusteringAndClassification.process_EEG_data()
+
 
     if '--create-online-files' in args:
         print("creating required files to run the online mode, this might take a while")
