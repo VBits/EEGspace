@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import sys
 
 def get_random_idx(array, size=40000, Repeat=False):
     rand_idx = np.random.choice(array[100:-100].index, size, replace=Repeat)

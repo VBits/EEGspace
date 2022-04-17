@@ -7,13 +7,15 @@ from OnlineAnalysis import Config as ConfigOnline, InputProcessing, TestFileGene
 import multiprocessing
 import threading
 from OfflineAnalysis import OnlineFiles
+from OfflineAnalysis import Config as OfflineConfig
+from OfflineAnalysis import ClusteringAndClassification
 
 if __name__ == '__main__':
 
     args = sys.argv
     if '--run-offline-anaysis' in args:
         print("Analysing files in offline mode")
-        for rig_pos in ConfigOffline.rig_position:
+        for mouse_id in OfflineConfig.mouse_id:
             ClusteringAndClassification.process_EEG_data()
 
 
