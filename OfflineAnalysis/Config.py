@@ -4,19 +4,17 @@ base_path = 'D:/Project_Mouse/Ongoing_analysis/'
 experimental_path = '220113_VgatCre_CS_casp3_round1/Ephys/'
 file = '220223_000.smrx'
 mouse_description = 'VgatCre_CS_YFP'
-mouse_id = '13'
+mouse_id = 13
 experiment_id = experimental_path[:6]
 file_id = file[:6]
-load_previously_analyzed_data = True
+dpa_z=0.9
+
 
 target_fs=100
 epoch_seconds = 2
 smoothing_window = 21
 random_epoch_size = 20000
-use_ann= False
-save_figures = False
 lda_components = 3
-dpa_z=0.9
 dpa_k_max=201
 knn_n_neighbors = 201
 
@@ -36,10 +34,9 @@ plot_kwds = {'alpha': 0.25, 's': 20, 'linewidths': 0}
 # Set figure resolution
 dpi = 500
 
-#base_path = os.getcwd().replace("\\", "/") + "/"
-base_path = 'C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG'
-base_path = 'C:/Users/matthew.grant/source/repos/ClosedLoopEEG'
-offline_data_path = base_path + '/OfflineAnalysis/data/'
+# base_path = os.getcwd().replace("\\", "/") + "/"
+project_path = 'C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG'
+offline_data_path = project_path + '/OfflineAnalysis/data/'
 state_averages_path = offline_data_path + 'StateAverages.pkl'
 
 
