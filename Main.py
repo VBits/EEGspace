@@ -3,20 +3,21 @@ Online analysis
 """
 import queue
 import sys
-from OnlineAnalysis import Config as ConfigOnline, InputProcessing, TestFileGeneration, StimulusOutput, UserInterface
+from OnlineAnalysis import Config as ConfigOnline, InputProcessing, TestFileGeneration, StimulusOutput
+from GUI import UserInterface
 import multiprocessing
 import threading
 from OfflineAnalysis import OnlineFiles
-from OfflineAnalysis import Config as OfflineConfig
-from OfflineAnalysis import ClusteringAndClassification
+# from OfflineAnalysis import Config as OfflineConfig
+# from OfflineAnalysis import ClusteringAndClassification
 
 if __name__ == '__main__':
 
     args = sys.argv
     if '--run-offline-anaysis' in args:
         print("Analysing files in offline mode")
-        for mouse_id in OfflineConfig.mouse_id:
-            ClusteringAndClassification.process_EEG_data()
+        # for mouse_id in OfflineConfig.mouse_id:
+        #     ClusteringAndClassification.process_EEG_data()
 
 
     if '--create-online-files' in args:

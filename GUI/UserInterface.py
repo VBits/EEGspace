@@ -19,7 +19,84 @@ from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
 
-class PlotWindow(QtWidgets.QMainWindow):
+
+#window for the master page window
+class Window(QtWidgets.QMainWindow):
+    def __init__(self, queue, parent=None):
+        super().__init__(parent)
+
+        self.stacked_widget = QtWidgets.QStackedWidget()
+        self.setCentralWidget(self.stacked_widget)
+
+        self.m_pages = {}
+
+        self.register(StartWindow(), "start")
+        self.register(OnlineSettingsWindow(), "online_settings")
+        self.register(PlotWindow(queue), "plot")
+        self.register(OfflineSettingsWindow(), "offline_settings")
+        self.register(ModelCreationWindow(), "offline_settings")
+
+        self.goto("start")
+
+    def register(self, widget, name):
+        self.m_pages[name] = widget
+        self.stacked_widget.addWidget(widget)
+        if isinstance(widget, PageWindow):
+            widget.gotoSignal.connect(self.goto)
+
+    @QtCore.pyqtSlot(str)
+    def goto(self, name):
+        if name in self.m_pages:
+            widget = self.m_pages[name]
+            self.stacked_widget.setCurrentWidget(widget)
+            self.setWindowTitle(widget.windowTitle())
+
+
+class PageWindow(QtWidgets.QMainWindow):
+    gotoSignal = QtCore.pyqtSignal(str)
+
+    def goto(self, name):
+        self.gotoSignal.emit(name)
+
+
+#window for start page with two options, create the model or run a closed loop experiment with existing model => StartWindow
+class StartWindow(PageWindow):
+    def __init__(self):
+        super().__init__()
+
+        self.offlineButton = QtWidgets.QPushButton("Offline Analysis", self)
+        self.offlineButton.setGeometry(QtCore.QRect(5, 5, 100, 20))
+        self.offlineButton.clicked.connect(self.goToOfflineSettings)
+        self.onlineButton = QtWidgets.QPushButton("Closed Loop Experiment", self)
+        self.onlineButton.setGeometry(QtCore.QRect(110, 5, 100, 20))
+        self.onlineButton.clicked.connect(self.goToOnlineSettings)
+
+    def goToOfflineSettings(self):
+        self.goto("offline_settings")
+
+    def goToOnlineSettings(self):
+        self.goto("online_settings")
+
+#window for online mode settings, use QSettings and with a back button to the first screen => OnlineSettingsWindow
+class OnlineSettingsWindow(PageWindow):
+    def __init__(self):
+        super().__init__()
+
+
+#window for offline mode settings => OfflineSettingsWindow
+class OfflineSettingsWindow(PageWindow):
+    def __init__(self):
+        super().__init__()
+
+
+#window 6 for offline mode cycle of adjustment => ModelCreationWindow
+class ModelCreationWindow(PageWindow):
+    def __init__(self):
+        super().__init__()
+
+
+#window for now to just be the current online screen that we already have => PlotWindow
+class PlotWindow(PageWindow):
     def __init__(self, queue):
         super().__init__()
 
@@ -153,7 +230,7 @@ class PlotWindow(QtWidgets.QMainWindow):
 
 def create_user_interface(input_queue, output_queue):
     plot_app = QtWidgets.QApplication(sys.argv)
-    p = PlotWindow(input_queue)
+    p = Window(input_queue)
     p.resize(1200, 700)
     p.show()
     plot_app.exec_()
