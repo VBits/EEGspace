@@ -162,6 +162,9 @@ class Mouse:
         :return:
         """
         self.Sxx_df = self.multitaper_df.rolling(window_size, center=True, win_type=None, min_periods=2).median()
+        #normalize spectrum
+        normalization = self.Sxx_df.quantile(q=0.01, axis=0)
+        self.Sxx_norm = self.Sxx_df - normalization
 
     def knn_pred(self, clf, dataframe,state_averages_path):
         """
@@ -180,14 +183,12 @@ class Mouse:
 
         #read previously calculated state averages (normalized data)
         state_averages = pd.read_pickle(state_averages_path)
-        #normalize spectrum
-        normalization = self.Sxx_df.quantile(q=0.01, axis=0)
-        self.Sxx_df_norm = self.Sxx_df - normalization
+
 
         #compute knn state averages
         label_averages = pd.DataFrame()
         for label in np.unique(self.state_df['clusters_knn']):
-            label_averages[label] = self.Sxx_df_norm.loc[self.state_df[self.state_df['clusters_knn'] == label].index].mean(axis=0)
+            label_averages[label] = self.Sxx_norm.loc[self.state_df[self.state_df['clusters_knn'] == label].index].mean(axis=0)
         #determine which knn labels match each state
         if Nclusters == 4:
             state_averages = state_averages.drop(['Wake'], axis=1)

@@ -16,6 +16,7 @@ def get_mouse(strain,pos,load=True):
         print('Loading previously analysed file _{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
         # Load previously saved Dataframe from experimental folder
         m.Sxx_df = pd.read_pickle(BaseDir + ExpDir + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
+        m.Sxx_norm = pd.read_pickle(BaseDir + ExpDir + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
         m.multitaper_df = pd.read_pickle(BaseDir + ExpDir + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
     else:
         print('Processing EEG data and storing files: _{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
@@ -35,6 +36,7 @@ def get_mouse(strain,pos,load=True):
 
         # Save normalized Dataframe to experimental folder
         m.Sxx_df.to_pickle(BaseDir + ExpDir + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
+        m.Sxx_norm.to_pickle(BaseDir + ExpDir + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
         m.multitaper_df.to_pickle(BaseDir + ExpDir + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
 
     return m

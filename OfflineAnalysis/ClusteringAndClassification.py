@@ -13,7 +13,7 @@ import joblib
 ######################################
 #1. Get data for indicated genotype and channel.
 # Preprocess data, or specify to load preprocessed data
-m = get_mouse('VgatCre_CS_Casp3',14,load=True)
+m = get_mouse('B6Jv',16,load=False)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
@@ -56,7 +56,7 @@ plt.savefig(m.figureFolder+ 'LDA no labels' + m.figure_tail, dpi=dpi)
 ######################################
 # 4. Density peak clustering
 # Find density peaks in low dimensional space, tweak Z
-est = DPA.DensityPeakAdvanced(Z=0.9,k_max=201)
+est = DPA.DensityPeakAdvanced(Z=0.6,k_max=201)
 est.fit(m.LD_df.loc[rand_idx])
 
 # Plot DPA clusters on LDA
@@ -64,7 +64,7 @@ plot_DPA_LDA(m, rand_idx, est)
 
 
 # OPTIONAL merge spurious clusters into 4 labels, labels:merged_labels
-label_dict = {0:2,1:3,2:0,3:2,4:2,5:0,6:3,7:1}
+label_dict = {0:0,1:1,2:1,3:3,4:4}
 est.labels_ = np.vectorize(label_dict.get)(est.labels_)
 
 # OPTIONAL Update LDA using the DPA clusters

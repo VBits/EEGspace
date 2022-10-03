@@ -28,7 +28,7 @@ m.state_df['outliers'] = clf_outlier.predict(m.LD_df)
 
 
 
-
+np.unique(m.state_df['outliers'],return_counts=True)
 
 # Annotate the state dataframe
 m.state_df.loc[m.state_df['outliers']!=0,'states']= 'ambiguous'
