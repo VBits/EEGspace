@@ -154,7 +154,7 @@ class Mouse:
         self.multitaper_df = 10 * np.log(self.multitaper_df)
 
     #Smoothen the multitaper data with median filter
-    def smoothen_spectrum(self, window_size=21):
+    def smoothen_and_norm_spectrum(self, window_size=21,quantile=0.01):
         """
         Smoothen the multitaper data with median filter. Non linear filtering preserves transitions better than
         savgol filtering
@@ -162,6 +162,9 @@ class Mouse:
         :return:
         """
         self.Sxx_df = self.multitaper_df.rolling(window_size, center=True, win_type=None, min_periods=2).median()
+        #normalize spectrum
+        normalization = self.Sxx_df.quantile(q=quantile, axis=0)
+        self.Sxx_norm = self.Sxx_df - normalization
 
     def knn_pred(self, clf, dataframe,state_averages_path):
         """
@@ -180,9 +183,6 @@ class Mouse:
 
         #read previously calculated state averages (normalized data)
         state_averages = pd.read_pickle(state_averages_path)
-        #normalize spectrum
-        normalization = self.Sxx_df.quantile(q=0.01, axis=0)
-        self.Sxx_df_norm = self.Sxx_df - normalization
 
         #compute knn state averages
         label_averages = pd.DataFrame()
