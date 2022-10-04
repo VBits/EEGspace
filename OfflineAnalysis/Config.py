@@ -1,10 +1,10 @@
 import os
 
 base_path = 'D:/Project_Mouse/Ongoing_analysis/'
-experimental_path = '220113_VgatCre_CS_casp3_round1/Ephys/'
-file = '220223_000.smrx'
-mouse_description = 'VgatCre_CS_YFP'
-mouse_id = 13
+experimental_path = '211207_B6Jv_Circadian_fos/Ephys/'
+file = '211213_000.smrx'
+mouse_description = 'B6Jv'
+mouse_id = 16
 experiment_id = experimental_path[:6]
 file_id = file[:6]
 dpa_z=0.9

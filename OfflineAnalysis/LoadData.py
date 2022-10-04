@@ -18,6 +18,7 @@ def load_EEG_data(description, mouse_id):
         print('Loading previously analysed file {}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
         # Load previously saved Dataframe from experimental folder
         m.Sxx_df = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+        m.Sxx_norm = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
         m.multitaper_df = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
     else:
         print('Processing EEG data and storing files: _{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
@@ -32,10 +33,13 @@ def load_EEG_data(description, mouse_id):
 
 
         m.multitaper(resolution=OfflineConfig.epoch_seconds)
-        m.smoothen_spectrum(window_size=OfflineConfig.smoothing_window)
+        m.smoothen_and_norm_spectrum(window_size=OfflineConfig.smoothing_window)
 
         # Save normalized Dataframe to experimental folder
         m.Sxx_df.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+        m.Sxx_norm.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
         m.multitaper_df.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
 
     return m
+
+
