@@ -11,16 +11,11 @@ downsample_fs = 100
 #Specify the time resolution for each epoch
 num_seconds_per_epoch = 2
 #Specify the buffer length
-epoch_buffer = 50
 median_filter_buffer = 21
 median_filter_buffer_middle = math.ceil(median_filter_buffer / 2)
 
-#Savgol iterations (recommended range 0-4)
-smoothing_iterations = 4
-#Specify number of epochs used for dimensionality reduction
-LDA_epochs = 51
 #rig position
-mouse_ids = [1]  # array of numbers 1-8
+mouse_ids = [1]
 mouse_id_to_channel_mapping = {1: 0}
 #this maps the mouse id to a channel which maps to the bin file location
 #e.g. mouse 13 is outputting files to bin folder 7 = mouse_id_to_channel_mapping = {13: 7}
@@ -43,12 +38,8 @@ channel_file_base_path = \
 
 #Naming and file convensions
 data_path = base_path + "data/"
-mouse_object_path = data_path + "mouse_object.pkl"
-lda_model_path = data_path + "lda_model.pkl"
-mouse_model_path = data_path + "Models/{mouse_id}/mouse_model.pkl"
 training_data_path = data_path + "CombinedData/"
 raw_data_file = training_data_path + "220202_000.smrx"
-raw_data_pkl_file = data_path + "raw_test_data.pkl"
 run_name = "220107_220202_Gad2Cre_CS_hM3"
 multitaper_data_file_path = training_data_path + 'Multitaper_df_'+run_name+'_m{mouse_id}.pkl'
 combined_data_file_path = training_data_path + 'Multitaper_df_'+run_name+'_combined_with_medians_m{mouse_id}.pkl'

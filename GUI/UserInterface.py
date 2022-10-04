@@ -2,9 +2,9 @@
 Online analysis
 """
 import sys
-from PyQt5.QtWidgets import QWidget, QComboBox, QLabel,QHBoxLayout,QVBoxLayout, \
-    QGridLayout
-from PyQt5 import QtCore, QtWidgets
+from PyQt5 import *
+from PyQt5.QtWidgets import *
+from PyQt5.QtCore import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
@@ -17,7 +17,6 @@ import numpy as np
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
-
 
 
 #window for the master page window
@@ -77,10 +76,214 @@ class StartWindow(PageWindow):
     def goToOnlineSettings(self):
         self.goto("online_settings")
 
+
+class FileEditWidget(QtWidgets.QWidget):
+    """
+    A textfield with a browse button.
+
+    """
+    def __init__(self, parent=None):
+        super().__init__(parent)
+
+        layout = QtWidgets.QHBoxLayout()
+        layout.setContentsMargins(0, 0, 0, 0)
+        self.file_line_edit = QtWidgets.QLineEdit()
+        layout.addWidget(self.file_line_edit, stretch=1)
+        browse_button = QtWidgets.QPushButton("...")
+        layout.addWidget(browse_button)
+        self.setLayout(layout)
+
+        browse_button.clicked.connect(self.browse)
+
+    def browse(self, msg = None, start_path = None):
+        directory = QtWidgets.QFileDialog.getExistingDirectory(self,
+            msg or "Find files", start_path or QtCore.QDir.currentPath())
+        if directory:
+            self.file_line_edit.setText(directory)
+
+    def setText(self, text):
+        return self.file_line_edit.setText(text)
+
+    def text(self):
+        return self.file_line_edit.text()
+
 #window for online mode settings, use QSettings and with a back button to the first screen => OnlineSettingsWindow
 class OnlineSettingsWindow(PageWindow):
     def __init__(self):
         super().__init__()
+        self.settings = QSettings("ClosedLoopEEG", "OnlineSettings")
+        self.resize(1117, 892)
+        self.centralwidget = QWidget(self)
+        self.centralwidget.setObjectName(u"centralwidget")
+        self.formLayoutWidget = QWidget(self.centralwidget)
+        self.formLayoutWidget.setObjectName(u"formLayoutWidget")
+        self.formLayoutWidget.setGeometry(QtCore.QRect(20, 30, 1071, 681))
+        self.formLayout = QFormLayout(self.formLayoutWidget)
+        self.formLayout.setObjectName(u"formLayout")
+        self.formLayout.setContentsMargins(0, 0, 0, 0)
+        self.eegFrequencyLabel = QLabel(self.formLayoutWidget)
+        self.eegFrequencyLabel.setObjectName(u"eegFrequencyLabel")
+
+        self.formLayout.setWidget(0, QFormLayout.LabelRole, self.eegFrequencyLabel)
+
+        self.eegFrequencyInput = QLineEdit(self.formLayoutWidget)
+        self.eegFrequencyInput.setObjectName(u"eegFrequencyInput")
+
+        self.formLayout.setWidget(0, QFormLayout.FieldRole, self.eegFrequencyInput)
+
+        self.downsampleFrequencyLabel = QLabel(self.formLayoutWidget)
+        self.downsampleFrequencyLabel.setObjectName(u"downsampleFrequencyLabel")
+
+        self.formLayout.setWidget(1, QFormLayout.LabelRole, self.downsampleFrequencyLabel)
+
+        self.downsampleFrequencyInput = QLineEdit(self.formLayoutWidget)
+        self.downsampleFrequencyInput.setObjectName(u"downsampleFrequencyLabel_2")
+
+        self.formLayout.setWidget(1, QFormLayout.FieldRole, self.downsampleFrequencyInput)
+
+        self.secondsLabel = QLabel(self.formLayoutWidget)
+        self.secondsLabel.setObjectName(u"secondsLabel")
+
+        self.formLayout.setWidget(2, QFormLayout.LabelRole, self.secondsLabel)
+
+        self.secondsPerEpochInput = QLineEdit(self.formLayoutWidget)
+        self.secondsPerEpochInput.setObjectName(u"secondsPerEpochInput")
+
+        self.formLayout.setWidget(2, QFormLayout.FieldRole, self.secondsPerEpochInput)
+
+        self.mouseIdLabel = QLabel(self.formLayoutWidget)
+        self.mouseIdLabel.setObjectName(u"mouseIdLabel")
+
+        self.formLayout.setWidget(3, QFormLayout.LabelRole, self.mouseIdLabel)
+
+        self.mouseIdInput = QLineEdit(self.formLayoutWidget)
+        self.mouseIdInput.setObjectName(u"mouseIdInput")
+
+        self.formLayout.setWidget(3, QFormLayout.FieldRole, self.mouseIdInput)
+
+        self.bufferLengthLabel = QLabel(self.formLayoutWidget)
+        self.bufferLengthLabel.setObjectName(u"bufferLengthLabel")
+
+        self.formLayout.setWidget(4, QFormLayout.LabelRole, self.bufferLengthLabel)
+
+        self.bufferLengthInput = QLineEdit(self.formLayoutWidget)
+        self.bufferLengthInput.setObjectName(u"bufferLengthInput")
+
+        self.formLayout.setWidget(4, QFormLayout.FieldRole, self.bufferLengthInput)
+
+        self.testDataLabel = QLabel(self.formLayoutWidget)
+        self.testDataLabel.setObjectName(u"testDataLabel")
+
+        self.formLayout.setWidget(5, QFormLayout.LabelRole, self.testDataLabel)
+
+        self.rawTestDataFileInput = FileEditWidget(self.formLayoutWidget)
+        self.rawTestDataFileInput.setObjectName(u"rawTestDataFileInput")
+
+        self.formLayout.setWidget(5, QFormLayout.FieldRole, self.rawTestDataFileInput)
+
+        self.runNameLabel = QLabel(self.formLayoutWidget)
+        self.runNameLabel.setObjectName(u"runNameLabel")
+
+        self.formLayout.setWidget(6, QFormLayout.LabelRole, self.runNameLabel)
+
+        self.runNameInput = FileEditWidget(self.formLayoutWidget)
+        self.runNameInput.setObjectName(u"runNameInput")
+
+        self.formLayout.setWidget(6, QFormLayout.FieldRole, self.runNameInput)
+
+        self.trainingDataFileLabel = QLabel(self.formLayoutWidget)
+        self.trainingDataFileLabel.setObjectName(u"trainingDataFileLabel")
+
+        self.formLayout.setWidget(7, QFormLayout.LabelRole, self.trainingDataFileLabel)
+
+        self.trainingDataFileInput = FileEditWidget(self.formLayoutWidget)
+        self.trainingDataFileInput.setObjectName(u"trainingDataFileInput")
+
+        self.formLayout.setWidget(7, QFormLayout.FieldRole, self.trainingDataFileInput)
+
+        self.trainingStatesFile = QLabel(self.formLayoutWidget)
+        self.trainingStatesFile.setObjectName(u"trainingStatesFile")
+
+        self.formLayout.setWidget(8, QFormLayout.LabelRole, self.trainingStatesFile)
+
+        self.trainingStatesFileInput = FileEditWidget(self.formLayoutWidget)
+        self.trainingStatesFileInput.setObjectName(u"trainingStatesFileInput")
+
+        self.formLayout.setWidget(8, QFormLayout.FieldRole, self.trainingStatesFileInput)
+
+        self.ldaFilePathLabel = QLabel(self.formLayoutWidget)
+        self.ldaFilePathLabel.setObjectName(u"ldaFilePathLabel")
+
+        self.formLayout.setWidget(9, QFormLayout.LabelRole, self.ldaFilePathLabel)
+
+        self.ldaFilePathInput = FileEditWidget(self.formLayoutWidget)
+        self.ldaFilePathInput.setObjectName(u"ldaFilePathInput")
+
+        self.formLayout.setWidget(9, QFormLayout.FieldRole, self.ldaFilePathInput)
+
+        self.knnFilePathLabel = QLabel(self.formLayoutWidget)
+        self.knnFilePathLabel.setObjectName(u"knnFilePathLabel")
+
+        self.formLayout.setWidget(10, QFormLayout.LabelRole, self.knnFilePathLabel)
+
+        self.knnFilePathInput = QLineEdit(self.formLayoutWidget)
+        self.knnFilePathInput.setObjectName(u"knnFilePathInput")
+
+        self.formLayout.setWidget(10, QFormLayout.FieldRole, self.knnFilePathInput)
+
+        self.startButton = QPushButton(self.centralwidget)
+        self.startButton.setObjectName(u"startButton")
+        self.startButton.setGeometry(QtCore.QRect(940, 640, 151, 28))
+        self.startButton.clicked.connect(self.start_reading)
+        self.backButton = QPushButton(self.centralwidget)
+        self.backButton.setObjectName(u"backButton")
+        self.backButton.setGeometry(QtCore.QRect(20, 640, 93, 28))
+        self.backButton.clicked.connect(self.go_back)
+        self.setCentralWidget(self.centralwidget)
+        self.menubar = QMenuBar(self)
+        self.menubar.setObjectName(u"menubar")
+        self.menubar.setGeometry(QtCore.QRect(0, 0, 1117, 26))
+        self.setMenuBar(self.menubar)
+        self.statusbar = QStatusBar(self)
+        self.statusbar.setObjectName(u"statusbar")
+        self.setStatusBar(self.statusbar)
+
+        self.inputs = [self.eegFrequencyInput, self.downsampleFrequencyInput, self.secondsPerEpochInput,
+                       self.mouseIdInput, self.bufferLengthInput, self.rawTestDataFileInput, self.runNameInput,
+                       self.trainingDataFileInput, self.trainingDataFileInput, self.ldaFilePathInput,
+                       self.knnFilePathInput]
+
+        for input in self.inputs:
+            input.setText(self.settings.value(input.objectName()))
+
+        self.retranslateUi()
+
+    def go_back(self):
+        self.goto("start")
+
+    def start_reading(self):
+        for input in self.inputs:
+            self.settings.setValue(input.objectName(), input.text())
+
+        self.goto("plot")
+
+    def retranslateUi(self):
+        self.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        self.eegFrequencyLabel.setText(QCoreApplication.translate("MainWindow", u"EEG frequency (ms)", None))
+        self.downsampleFrequencyLabel.setText(
+            QCoreApplication.translate("MainWindow", u"Downsample frequency (ms)", None))
+        self.secondsLabel.setText(QCoreApplication.translate("MainWindow", u"Seconds per epoch", None))
+        self.mouseIdLabel.setText(QCoreApplication.translate("MainWindow", u"Mouse IDs (comma seperated)", None))
+        self.bufferLengthLabel.setText(QCoreApplication.translate("MainWindow", u"Buffer length", None))
+        self.testDataLabel.setText(QCoreApplication.translate("MainWindow", u"Raw test data file", None))
+        self.runNameLabel.setText(QCoreApplication.translate("MainWindow", u"Run name", None))
+        self.trainingDataFileLabel.setText(QCoreApplication.translate("MainWindow", u"Training data file", None))
+        self.trainingStatesFile.setText(QCoreApplication.translate("MainWindow", u"Training states file", None))
+        self.ldaFilePathLabel.setText(QCoreApplication.translate("MainWindow", u"LDA file path", None))
+        self.knnFilePathLabel.setText(QCoreApplication.translate("MainWindow", u"KNN file path", None))
+        self.startButton.setText(QCoreApplication.translate("MainWindow", u"Start with these settings", None))
+        self.backButton.setText(QCoreApplication.translate("MainWindow", u"< Back", None))
+    # retranslateUi
 
 
 #window for offline mode settings => OfflineSettingsWindow
@@ -93,7 +296,6 @@ class OfflineSettingsWindow(PageWindow):
 class ModelCreationWindow(PageWindow):
     def __init__(self):
         super().__init__()
-
 
 #window for now to just be the current online screen that we already have => PlotWindow
 class PlotWindow(PageWindow):
@@ -231,7 +433,7 @@ class PlotWindow(PageWindow):
 def create_user_interface(input_queue, output_queue):
     plot_app = QtWidgets.QApplication(sys.argv)
     p = Window(input_queue)
-    p.resize(1200, 700)
+    p.resize(1200, 892)
     p.show()
     plot_app.exec_()
     output_queue.put("Quit")
