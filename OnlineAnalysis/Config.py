@@ -69,3 +69,4 @@ def get_channel_number_from_mouse_id(mouse_id):
     if mouse_id in mouse_id_to_channel_mapping:
         return mouse_id_to_channel_mapping[mouse_id]
     return mouse_id
+
