@@ -256,6 +256,12 @@ class OnlineSettingsWindow(PageWindow):
         for input in self.inputs:
             input.setText(self.settings.value(input.objectName()))
 
+        set_input_default(self.eegFrequencyInput, Config.eeg_fs)
+        set_input_default(self.downsampleFrequencyInput, Config.downsample_fs)
+        set_input_default(self.secondsPerEpochInput, Config.num_seconds_per_epoch)
+        set_input_default(self.bufferLengthInput, Config.median_filter_buffer)
+        set_input_default(self.runNameInput, Config.run_name)
+
         self.retranslateUi()
 
     def go_back(self):
@@ -429,6 +435,11 @@ class PlotWindow(PageWindow):
             self.spot = self.ax3.scatter(scatter_point[0], scatter_point[1], scatter_point[2], c='r', s=60)
             self.canvas3.draw()
 
+
+def set_input_default(input, setting):
+    text = input.text()
+    if text is None or text == "":
+        input.setText(str(setting))
 
 def create_user_interface(input_queue, output_queue):
     plot_app = QtWidgets.QApplication(sys.argv)
