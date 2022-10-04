@@ -40,20 +40,21 @@ if __name__ == '__main__':
     p.start()
     jobs.append(p)
 
-    #start processing EEG data
-    for mouse_id in ConfigOnline.mouse_ids:
-        p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_id, file_queue))
-        p.daemon = True
-        p.start()
-        jobs.append(p)
-        sys.stdout.flush()
-        #TODO change only if you're delivering stimuli to mice at diffirent times
-        #for later when we have other forms of stimulus
-        # stimulus_input_queue = queue.Queue()
-        # stimulus_output_queue = queue.Queue()
-        # stimulus_queues[mouse_id - 1] = queue
-        # threading.Thread(target=StimulusOutput.randomize_stimulus_output,
-        #                  args=(stimulus_input_queue, stimulus_output_queue, "BrainLaser"))
+    def run_loop_processes():
+        #start processing EEG data
+        for mouse_id in ConfigOnline.mouse_ids:
+            p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_id, file_queue))
+            p.daemon = True
+            p.start()
+            jobs.append(p)
+            sys.stdout.flush()
+            #TODO change only if you're delivering stimuli to mice at diffirent times
+            #for later when we have other forms of stimulus
+            # stimulus_input_queue = queue.Queue()
+            # stimulus_output_queue = queue.Queue()
+            # stimulus_queues[mouse_id - 1] = queue
+            # threading.Thread(target=StimulusOutput.randomize_stimulus_output,
+            #                  args=(stimulus_input_queue, stimulus_output_queue, "BrainLaser"))
 
     #Bulk stimulus
     # stimulus_input_queue = queue.Queue()

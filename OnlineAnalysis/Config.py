@@ -24,7 +24,7 @@ print_timer_info_for_mice = [1]#[1, 2, 3, 4, 5, 6, 7]
 comport = "COM5"
 
 # boolean
-cycle_test_data = True
+cycle_test_data = False
 recreate_model_file = True
 recreate_lda = True
 recreate_knn = True
