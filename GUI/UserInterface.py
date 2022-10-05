@@ -8,7 +8,8 @@ from PyQt5.QtCore import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
-from OnlineAnalysis import Config
+from OnlineAnalysis import Config as OnlineConfig
+from OfflineAnalysis import Config as OfflineConfig
 from OnlineAnalysis.LoadModels import MouseModel
 
 plt.style.use('seaborn')
@@ -256,11 +257,11 @@ class OnlineSettingsWindow(PageWindow):
         for input in self.inputs:
             input.setText(self.settings.value(input.objectName()))
 
-        set_input_default(self.eegFrequencyInput, Config.eeg_fs)
-        set_input_default(self.downsampleFrequencyInput, Config.downsample_fs)
-        set_input_default(self.secondsPerEpochInput, Config.num_seconds_per_epoch)
-        set_input_default(self.bufferLengthInput, Config.median_filter_buffer)
-        set_input_default(self.runNameInput, Config.run_name)
+        set_input_default(self.eegFrequencyInput, OnlineConfig.eeg_fs)
+        set_input_default(self.downsampleFrequencyInput, OnlineConfig.downsample_fs)
+        set_input_default(self.secondsPerEpochInput, OnlineConfig.num_seconds_per_epoch)
+        set_input_default(self.bufferLengthInput, OnlineConfig.median_filter_buffer)
+        set_input_default(self.runNameInput, OnlineConfig.run_name)
 
         self.retranslateUi()
 
@@ -473,19 +474,33 @@ class OfflineSettingsWindow(PageWindow):
         self.statusbar.setObjectName(u"statusbar")
         self.setStatusBar(self.statusbar)
 
-        # self.inputs = [self.eegFrequencyInput, self.downsampleFrequencyInput, self.secondsPerEpochInput,
-        #                self.mouseIdInput, self.bufferLengthInput, self.rawTestDataFileInput, self.runNameInput,
-        #                self.trainingDataFileInput, self.trainingDataFileInput, self.ldaFilePathInput,
-        #                self.knnFilePathInput]
         self.inputs = [self.basePathInput, self.experimentalPathInput, self.fileInput, self.mouseDescriptionInput,
                        self.mouseIdInput, self.experimentIdInput, self.fileIdInput, self.dpaZInput, self.targetFsInput,
                        self.epochSecondsInput, self.smoothingWindowInput, self.randomEpochSizeInput,
                        self.ldaComponentsInput, self.dpaKMaxInput, self.knnNNeighborsInput]
 
 
-
         for input in self.inputs:
             input.setText(self.settings.value(input.objectName()))
+
+
+        set_input_default(self.basePathInput, OfflineConfig.base_path)
+        set_input_default(self.experimentalPathInput, OfflineConfig.experimental_path)
+        set_input_default(self.basePathInput, OfflineConfig.base_path)
+        set_input_default(self.fileInput, OfflineConfig.file)
+        set_input_default(self.mouseDescriptionInput, OfflineConfig.mouse_description)
+        set_input_default(self.mouseIdInput,OfflineConfig.mouse_id)
+        set_input_default(self.experimentIdInput, OfflineConfig.experiment_id)
+        set_input_default(self.fileIdInput, OfflineConfig.file_id)
+        set_input_default(self.dpaZInput, OfflineConfig.dpa_z)
+        set_input_default(self.targetFsInput, OfflineConfig.target_fs)
+        set_input_default(self.epochSecondsInput, OfflineConfig.epoch_seconds)
+        set_input_default(self.smoothingWindowInput, OfflineConfig.smoothing_window)
+        set_input_default(self.randomEpochSizeInput, OfflineConfig.random_epoch_size)
+        set_input_default(self.ldaComponentsInput, OfflineConfig.lda_components)
+        set_input_default(self.dpaKMaxInput, OfflineConfig.dpa_k_max)
+        set_input_default(self.knnNNeighborsInput, OfflineConfig.knn_n_neighbors)
+
 
         self.retranslateUi()
 
@@ -504,21 +519,49 @@ class OfflineSettingsWindow(PageWindow):
         self.experimentalPathLabel.setText(
             QCoreApplication.translate("MainWindow", u"Experimental Path", None))
         self.fileLabel.setText(QCoreApplication.translate("MainWindow", u"File", None))
-        self.mouseDescriptionLabel.setText(QCoreApplication.translate("MainWindow", u" Mouse Description", None))
-        self.mouseIdLabel.setText(QCoreApplication.translate("MainWindow", u"Mouse ID", None))
+        self.mouseDescriptionLabel.setText(QCoreApplication.translate("MainWindow", u"Mouse Description (strain, mutations etc)", None))
+        self.mouseIdLabel.setText(QCoreApplication.translate("MainWindow", u"Mouse ID (position in rig)", None))
         self.experimentIdLabel.setText(QCoreApplication.translate("MainWindow", u"Experiment ID", None))
         self.fileIdLabel.setText(QCoreApplication.translate("MainWindow", u"File ID", None))
         self.dpaZLabel.setText(QCoreApplication.translate("MainWindow", u"DPA Z", None))
         self.targetFsLabel.setText(QCoreApplication.translate("MainWindow", u"Target Fs", None))
-        self.epochSecondsLabel.setText(QCoreApplication.translate("MainWindow", u"Epoch Duration ( in seconds)", None))
+        self.epochSecondsLabel.setText(QCoreApplication.translate("MainWindow", u"Epoch Duration (in seconds)", None))
         self.smoothingWindowLabel.setText(QCoreApplication.translate("MainWindow", u"Smoothing window (# of epochs)", None))
         self.randomEpochSizeLabel.setText(QCoreApplication.translate("MainWindow", u"Numbers of random epochs to process", None))
         self.ldaComponentsLabel.setText(QCoreApplication.translate("MainWindow", u"LDA components", None))
         self.dpaKMaxLabel.setText(QCoreApplication.translate("MainWindow", u"DPA k max", None))
         self.knnNNeighborsLabel.setText(QCoreApplication.translate("MainWindow", u"Numbers of knn neighbors", None))
+        self.startButton.setText(QCoreApplication.translate("MainWindow", u"Start with these settings", None))
+        self.backButton.setText(QCoreApplication.translate("MainWindow", u"< Back", None))
 
     # retranslateUi
 
+    def offline_plots(self):
+        self.setWindowTitle("Offline analysis EEG")
+
+        self.figure1 = Figure(figsize=(5, 5))
+        self.canvas1 = FigureCanvasQTAgg(self.figure1)
+        self.ax1 = self.figure1.add_subplot(111)
+        self.ax1.set_title("Raw data")
+        # self.ax1.set_xlim([0, 400])
+        # self.ax1.set_ylim([-300, 300])
+
+        self.figure2 = Figure(figsize=(5, 5))
+        self.canvas2 = FigureCanvasQTAgg(self.figure2)
+        self.ax2 = self.figure2.add_subplot(111)
+        self.ax2.set_title("Transformed data")
+        self.ax2.set_xlim([0, 200])
+        self.ax2.set_ylim([0, 80])
+
+        self.figure3 = Figure(figsize=(5, 5))
+        self.canvas3 = FigureCanvasQTAgg(self.figure3)
+        self.ax3 = self.figure3.add_subplot(111, projection='3d')
+
+        self.queue = queue
+        self.mouse_id = OnlineConfig.mouse_ids[0]  # initialize to the first mouse number
+        self.models = {str(num): MouseModel(num) for num in OnlineConfig.mouse_ids}
+        self.model = self.models[str(self.mouse_id)]
+        self.lda_encoded = self.model.lda.transform(self.model.training_data)
 
 #window 6 for offline mode cycle of adjustment => ModelCreationWindow
 class ModelCreationWindow(PageWindow):
@@ -551,8 +594,8 @@ class PlotWindow(PageWindow):
         self.ax3 = self.figure3.add_subplot(111, projection='3d')
 
         self.queue = queue
-        self.mouse_id = Config.mouse_ids[0]#initialize to the first mouse number
-        self.models = {str(num):MouseModel(num) for num in Config.mouse_ids}
+        self.mouse_id = OnlineConfig.mouse_ids[0]#initialize to the first mouse number
+        self.models = {str(num):MouseModel(num) for num in OnlineConfig.mouse_ids}
         self.model = self.models[str(self.mouse_id)]
         self.lda_encoded = self.model.lda.transform(self.model.training_data)
 
@@ -560,7 +603,7 @@ class PlotWindow(PageWindow):
         rand_idx = np.random.choice(len(self.lda_encoded), size=n, replace=False)
         subset = self.lda_encoded[rand_idx]
         subset_states = np.array([self.model.states[state] for state in self.model.training_data_states])[rand_idx]
-        subset_sate_colors = [Config.state_colors[state] for state in subset_states]
+        subset_sate_colors = [OnlineConfig.state_colors[state] for state in subset_states]
         alpha = 0.3
         size = 0.8
         self.ax3.scatter(subset[:, 0], subset[:, 1], subset[:, 2], c=subset_sate_colors, s=size, alpha=alpha)
@@ -579,13 +622,13 @@ class PlotWindow(PageWindow):
         self.mouse_select_label = QLabel("Mouse number:")
 
         self.mouse_select = QComboBox()
-        self.mouse_select.addItems([str(num) for num in Config.mouse_ids])
+        self.mouse_select.addItems([str(num) for num in OnlineConfig.mouse_ids])
         self.mouse_select.activated[str].connect(self.mouse_change)
 
         self.indicator_layout = QGridLayout()
         self.indicator_panel_stylesheet = "text-align: center; border: none; padding: 5px; font-size: 20px;";
         self.indicator_panels = []
-        for mouse_id in Config.mouse_ids:
+        for mouse_id in OnlineConfig.mouse_ids:
             indicator_panel = QLabel("Reading buffer for mouse " + str(mouse_id) + "...")
             indicator_panel.setStyleSheet(self.indicator_panel_stylesheet)
             indicator_panel.setAlignment(QtCore.Qt.AlignCenter)
@@ -626,11 +669,11 @@ class PlotWindow(PageWindow):
             result = self.queue.get()
 
             class_name = result.standardized_class_name
-            indicator_panel = self.indicator_panels[Config.mouse_ids.index(result.mouse_id)]
+            indicator_panel = self.indicator_panels[OnlineConfig.mouse_ids.index(result.mouse_id)]
             indicator_panel.setText("Predicted class for mouse " + str(result.mouse_id) + " at timepoint" +
                                     str(result.time_point) + " :" + class_name)
             stylesheet = self.indicator_panel_stylesheet + "color: black; background-color: " \
-                         + Config.state_colors[class_name]
+                         + OnlineConfig.state_colors[class_name]
             indicator_panel.setStyleSheet(stylesheet)
 
             if result.mouse_id is not self.mouse_id:
