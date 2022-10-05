@@ -10,6 +10,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 from OnlineAnalysis import Config
 from OnlineAnalysis.LoadModels import MouseModel
+from types import SimpleNamespace
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
@@ -21,7 +22,7 @@ register_matplotlib_converters()
 
 #window for the master page window
 class Window(QtWidgets.QMainWindow):
-    def __init__(self, queue, parent=None):
+    def __init__(self, queue, config_queue, parent=None):
         super().__init__(parent)
 
         self.stacked_widget = QtWidgets.QStackedWidget()
@@ -30,7 +31,7 @@ class Window(QtWidgets.QMainWindow):
         self.m_pages = {}
 
         self.register(StartWindow(), "start")
-        self.register(OnlineSettingsWindow(), "online_settings")
+        self.register(OnlineSettingsWindow(config_queue), "online_settings")
         self.register(PlotWindow(queue), "plot")
         self.register(OfflineSettingsWindow(), "offline_settings")
         self.register(ModelCreationWindow(), "offline_settings")
@@ -109,7 +110,7 @@ class FileEditWidget(QtWidgets.QWidget):
 
 #window for online mode settings, use QSettings and with a back button to the first screen => OnlineSettingsWindow
 class OnlineSettingsWindow(PageWindow):
-    def __init__(self):
+    def __init__(self, config_queue):
         super().__init__()
         self.settings = QSettings("ClosedLoopEEG", "OnlineSettings")
         self.resize(1117, 892)
@@ -270,6 +271,38 @@ class OnlineSettingsWindow(PageWindow):
     def start_reading(self):
         for input in self.inputs:
             self.settings.setValue(input.objectName(), input.text())
+
+        #todo mg, come up with a better way to have two versions of the config
+        config = SimpleNamespace(
+            eeg_fs = int(self.eegFrequencyInputtext()),
+            downsample_fs = int(self.downsampleFrequencyInputtext()),
+            num_seconds_per_epoch = int(self.secondsPerEpochInputtext()),
+            median_filter_buffer = int(self.bufferLengthInputtext()),
+            median_filter_buffer_middle = math.ceil(int(self.bufferLengthInputtext()) / 2),
+            mouse_ids = Config.mouse_ids,
+            mouse_id_to_channel_mapping = Config.mouse_id_to_channel_mapping,
+            print_timer_info_for_mice = Config.print_timer_info_for_mice,
+            comport = Config.comport,
+            cycle_test_data=Config.cycle_test_data,
+            recreate_model_file = Config.recreate_model_file,
+            recreate_lda = Config.recreate_lda,
+            recreate_knn = Config.recreate_knn,
+            base_path = Config.base_path,
+            channel_file_base_path = Config.channel_file_base_path,
+            data_path = Config.data_path,
+            training_data_path = self.trainingDataFileInputtext(),
+            raw_data_file = self.rawTestDataFileInputtext(),
+            run_name = self.runNameInputtext(),
+            multitaper_data_file_path = Config.multitaper_data_file_path,
+            combined_data_file_path = self.trainingDataFileInputtext(),
+            state_file_path = Config.state_file_path,
+            lda_file_path = self.ldaFilePathInputtext(),
+            knn_file_path = self.knnFilePathInputtext(),
+            state_colors = Config.state_colors,
+            get_channel_number_from_mouse_id = Config.get_channel_number_from_mouse_id
+        )
+
+        self.config_queue.put(config)
 
         self.goto("plot")
 
@@ -441,9 +474,9 @@ def set_input_default(input, setting):
     if text is None or text == "":
         input.setText(str(setting))
 
-def create_user_interface(input_queue, output_queue):
+def create_user_interface(input_queue, output_queue, config_queue):
     plot_app = QtWidgets.QApplication(sys.argv)
-    p = Window(input_queue)
+    p = Window(input_queue, config_queue)
     p.resize(1200, 892)
     p.show()
     plot_app.exec_()
