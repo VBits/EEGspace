@@ -1,5 +1,3 @@
-"""
-"""
 from OfflineAnalysis.Utilities.GeneralUtils import *
 from OfflineAnalysis.Utilities.LoadData import *
 from OfflineAnalysis.Utilities.PlottingUtils import *
@@ -9,7 +7,7 @@ from OfflineAnalysis.Utilities.Clustering import *
 import OfflineAnalysis.Config as OfflineConfig
 import joblib
 from sklearn.metrics import confusion_matrix,accuracy_score
-
+from multiprocessing import Process
 
 """
 Run small chunks of code as needed and follow instructions within terminal
@@ -22,10 +20,24 @@ m = process_EEG_data(OfflineConfig.mouse_description, OfflineConfig.mouse_id)
 rand_idx = get_random_idx(m.Sxx_ext, size=OfflineConfig.random_epoch_size)
 
 ########################################################################################################
+
+
+
+
+
 # 2. Create or load LDA space
 lda = get_LDA(m,rand_idx)
 # Evaluate LDA s1pace
-plot_LDA(m, rand_idx)
+# plot_LDA(m, rand_idx)
+
+
+    # savefigure = query_yes_no("Do you want to save plot? Please respond with yes or no")
+    # if savefigure:
+    #     plt.savefig(m.figureFolder + figure_title + m.figure_tail,dpi=OfflineConfig.dpi)
+
+proc = Process(target=plot_LDA, args=(m,rand_idx,))
+        # procs.append(proc)
+proc.start()
 
 #Optional: save figure
 #BugWarning: do not run together with plotting function
