@@ -34,7 +34,7 @@ lda_figure_title_outliers_labels = 'LDA state labels with outliers m{}-{}_{}'.fo
 
 eeg_figure_title = 'EEG m{}-{}_{} '.format(mouse_id, experiment_id, file_id, )
 
-ann_folder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
+# ann_folder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
 
 
 # standard functions for plotting
