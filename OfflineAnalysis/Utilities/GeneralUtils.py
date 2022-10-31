@@ -2,6 +2,11 @@ import numpy as np
 import pandas as pd
 import sys
 
+# from nonblock import nonblock_read
+# import subprocess
+#
+# pipe = subprocess.Popen(['inputLoop'], stdout=subprocess.PIPE)
+
 def get_random_idx(array, size=40000, Repeat=False):
     rand_idx = np.random.choice(array[100:-100].index, size, replace=Repeat)
     return rand_idx
@@ -39,6 +44,43 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+
+# def no_block_query_yes_no(question, default="yes"):
+#     """Ask a yes/no question via raw_input() and return their answer.
+#
+#     "question" is a string that is presented to the user.
+#     "default" is the presumed answer if the user just hits <Enter>.
+#             It must be "yes" (the default), "no" or None (meaning
+#             an answer is required of the user).
+#
+#     The "answer" return value is True for "yes" or False for "no".
+#     """
+#     valid = {"yes": True, "y": True, "ye": True, "no": False, "n": False}
+#     if default is None:
+#         prompt = " [y/n] "
+#     elif default == "yes":
+#         prompt = " [Y/n] "
+#     elif default == "no":
+#         prompt = " [y/N] "
+#     else:
+#         raise ValueError("invalid default answer: '%s'" % default)
+#
+#     sys.stdout.write(question + prompt)
+#     while True:
+#         data = nonblock_read(pipe.stdout)
+#         if data is None:
+#             # All data has been processed and subprocess closed stream
+#             pipe.wait()
+#             break
+#         elif data:
+#             # Some data has been read, process it
+#             choice = data
+#             if default is not None and choice == "":
+#                 return valid[default]
+#             elif choice in valid:
+#                 return valid[choice]
+#             else:
+#                 sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
 
 def query_option(question, valid_options=[1,2,3]):
     """Ask a question via raw_input() and return a numbered answer.
