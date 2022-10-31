@@ -22,10 +22,6 @@ if __name__ == '__main__':
 
     ########################################################################################################
 
-
-
-
-
     # 2. Create or load LDA space
     lda = get_LDA(m,rand_idx)
     # Evaluate LDA s1pace
@@ -46,7 +42,7 @@ if __name__ == '__main__':
 
     #Optional: save figure
     #BugWarning: do not run together with plotting function
-    savefigure_function_multiprocessing_version(input_queue)
+    savefigure_function_multiprocessing_version(input_queue, OfflineConfig.lda_figure_title_no_labels)
 
     ########################################################################################################
     # 3. Optional: Load additional data if this mouse has been analyzed previously and then move to step 5
@@ -77,7 +73,7 @@ if __name__ == '__main__':
 
     # Optional: save figure
     # BugWarning: do not run together with plotting function
-    savefigure_function_multiprocessing_version(input_queue)
+    savefigure_function_multiprocessing_version(input_queue, OfflineConfig.lda_figure_title_dpc_labels)
 
     #Optional: Do you want to update LDA using the DPA clusters? (only when outliers not present)
     repeat_LDA = query_yes_no("Do you want to retrain LDA using the new DPA labels?")
@@ -93,7 +89,7 @@ if __name__ == '__main__':
 
     # Optional: save figure
     # BugWarning: do not run together with plotting function
-    savefigure_function_multiprocessing_version(input_queue)
+    savefigure_function_multiprocessing_version(input_queue, OfflineConfig.lda_figure_title_state_labels)
 
     ########################################################################################################
     # 6. Detect and label outliers (if any)
@@ -107,7 +103,7 @@ if __name__ == '__main__':
 
     # Optional: save figure
     # BugWarning: do not run together with plotting function
-    savefigure_function_multiprocessing_version(input_queue)
+    savefigure_function_multiprocessing_version(input_queue, OfflineConfig.lda_figure_title_outliers_labels)
 
     ########################################################################################################
     # 7. Save files

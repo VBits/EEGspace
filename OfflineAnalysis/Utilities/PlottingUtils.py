@@ -94,15 +94,15 @@ def plot_LDA_multiprocessing_version(LD_df,rand_idx, figure_folder, figure_tail,
     create_new_plot_LDA_multiprocessing_version(LD_df,rand_idx, colors, labels, alpha, size, linewidths)
     while True:
         if not input_queue.empty():
+            sys.stdout.write("got input")
             input = input_queue.get()
-            if input == "save_plot":
-                plt.savefig(figure_folder + figure_title + figure_tail,dpi=OfflineConfig.dpi)
-            elif input == "no_save_plot":
+            if input[0] == "save_plot":
+                sys.stdout.write(figure_folder + input[1] + figure_tail)
+                plt.savefig(figure_folder + input[1] + figure_tail,dpi=OfflineConfig.dpi)
+            elif input[0] == "no_save_plot":
                 continue
-            elif type(input) == tuple:
-                create_new_plot_LDA_multiprocessing_version(input[0], input[1], colors, input[2], alpha, size, linewidths)
             else:
-                break
+                create_new_plot_LDA_multiprocessing_version(input[0], input[1], colors, input[2], alpha, size, linewidths)
 
 def plot_DPA_LDA(m, rand_idx, est, alpha=0.6, size=4, linewidths=0):
     ax = plt.figure().add_subplot(projection='3d')
@@ -141,17 +141,17 @@ def plot_outliers(m,rand_idx,outlier_model):
     plt.title('LDA')
     # plt.savefig(m.figureFolder+'LDA and labeled outliers' + m.figure_tail, dpi=dpi)
 
-def savefigure_function(m,figure_title):
+def savefigure_function(m, figure_title):
     """You can call this function and ask if you want to save the active figure"""
     savefigure = query_yes_no("Do you want to save plot? Please respond with yes or no")
     if savefigure:
         plt.savefig(m.figureFolder + figure_title + m.figure_tail,dpi=OfflineConfig.dpi)
 
-def savefigure_function_multiprocessing_version(queue):
+def savefigure_function_multiprocessing_version(queue, figure_title):
     """You can call this function and ask if you want to save the active figure"""
     savefigure = query_yes_no("Do you want to save plot? Please respond with yes or no")
     if savefigure:
-        queue.put("save_plot")
+        queue.put(("save_plot", figure_title))
         return
-    queue.put("no_save_plot")
+    queue.put(("no_save_plot",))
 
