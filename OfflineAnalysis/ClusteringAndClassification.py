@@ -1,6 +1,4 @@
 """
-oessa 0.1.20222006
-Written by Vassilis Bitsikas
 """
 from Utilities.GeneralUtils import *
 from Utilities.LoadData import *
