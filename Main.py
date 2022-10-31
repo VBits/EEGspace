@@ -7,7 +7,6 @@ from OnlineAnalysis import Config as ConfigOnline, InputProcessing, TestFileGene
 from GUI import UserInterface
 import multiprocessing
 import threading
-from OfflineAnalysis import OnlineFiles
 # from OfflineAnalysis import Config as OfflineConfig
 # from OfflineAnalysis import ClusteringAndClassification
 
@@ -18,12 +17,6 @@ if __name__ == '__main__':
         print("Analysing files in offline mode")
         # for mouse_id in OfflineConfig.mouse_id:
         #     ClusteringAndClassification.process_EEG_data()
-
-
-    if '--create-online-files' in args:
-        print("creating required files to run the online mode, this might take a while")
-        for mouse_id in ConfigOnline.mouse_ids:
-            OnlineFiles.create_required_files_for_online_mode(mouse_id)
 
     lock = threading.Lock()
     if ConfigOnline.cycle_test_data:

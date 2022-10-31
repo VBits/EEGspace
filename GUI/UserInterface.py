@@ -65,10 +65,10 @@ class StartWindow(PageWindow):
         super().__init__()
 
         self.offlineButton = QtWidgets.QPushButton("Offline Analysis", self)
-        self.offlineButton.setGeometry(QtCore.QRect(5, 5, 100, 20))
+        self.offlineButton.setGeometry(QtCore.QRect(5, 5, 200, 20))
         self.offlineButton.clicked.connect(self.goToOfflineSettings)
         self.onlineButton = QtWidgets.QPushButton("Closed Loop Experiment", self)
-        self.onlineButton.setGeometry(QtCore.QRect(110, 5, 100, 20))
+        self.onlineButton.setGeometry(QtCore.QRect(210, 5, 200, 20))
         self.onlineButton.clicked.connect(self.goToOnlineSettings)
 
     def goToOfflineSettings(self):
