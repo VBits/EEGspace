@@ -39,3 +39,20 @@ def query_yes_no(question, default="yes"):
             return valid[choice]
         else:
             sys.stdout.write("Please respond with 'yes' or 'no' " "(or 'y' or 'n').\n")
+
+def query_option(question, valid_options=[1,2,3]):
+    """Ask a question via raw_input() and return a numbered answer.
+
+    "question" is a string that is presented to the user.
+    "options" is a list with the presumed answer if the user just hits <Enter>.
+    It must be "1" , "2", "3", etc (an answer is required of the user).
+    """
+    while True:
+        sys.stdout.write(question)
+        choice = int(input())
+        if choice in valid_options:
+            print(choice)
+            return choice
+            break
+        else:
+            sys.stdout.write("Valid options include one of the following: {}.\n".format(valid_options))

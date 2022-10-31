@@ -2,8 +2,9 @@
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.utils import compute_class_weight
-# from OfflineAnalysis.PlottingUtils import *
-from OfflineAnalysis import Config as OfflineConfig
+import OfflineAnalysis.Config as OfflineConfig
+import pandas as pd
+import numpy as np
 
 
 def create_model(dataframe):
@@ -58,7 +59,7 @@ def test_accuracy(model,m):
     test_loss, test_acc = model.evaluate(m.Sxx_ext.values, m.state_df['state_codes'].values, verbose=2)
     print('\nTest accuracy:', test_acc)
 
-def label_data(m,reuse_weights=True):
+def label_data(m,rand_idx,reuse_weights=True):
     model = create_model(m.Sxx_ext)
 
     if reuse_weights:
@@ -67,9 +68,9 @@ def label_data(m,reuse_weights=True):
     else:
         # Train ANN and save weights
         standardize_state_codes(m.state_df)
-        plot_ANN_model(model, BaseDir + ExpDir)
-        classWeight = calculate_weights(m,OfflineConfig.rand_idx)
-        model = train_model(model,m.Sxx_ext,m.state_df,classWeight,OfflineConfig.rand_idx)
+        plot_ANN_model(model, OfflineConfig.base_path + OfflineConfig.experimental_path)
+        classWeight = calculate_weights(m,rand_idx)
+        model = train_model(model,m.Sxx_ext,m.state_df,classWeight,rand_idx)
         model.save_weights(OfflineConfig.offline_data_path + 'weights_Sxx_ext.h5')
 
     # Get labels from ANN
