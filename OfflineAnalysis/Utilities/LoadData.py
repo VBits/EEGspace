@@ -4,12 +4,12 @@ plt.rc('lines', linewidth=0.5)
 import pandas as pd
 # import sys
 # sys.path.append('C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/OfflineAnalysis')
-from Utilities.Mouse import Mouse
-import Config as OfflineConfig
-from Utilities.GeneralUtils import query_option, expand_epochs
-from Utilities.Transformations import train_lda,lda_transform_df
+from OfflineAnalysis.Utilities.Mouse import Mouse
+import OfflineAnalysis.Config as OfflineConfig
+from OfflineAnalysis.Utilities.GeneralUtils import query_option, expand_epochs
+from OfflineAnalysis.Utilities.Transformations import train_lda,lda_transform_df
 import joblib
-import Utilities.ANN as ANN
+import OfflineAnalysis.Utilities.ANN as ANN
 
 def process_EEG_data(description, mouse_id):
     m = Mouse(description, mouse_id)

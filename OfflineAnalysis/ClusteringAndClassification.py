@@ -6,7 +6,7 @@ from OfflineAnalysis.Utilities.PlottingUtils import *
 from OfflineAnalysis.Utilities.NearestNeighbors import *
 from OfflineAnalysis.Utilities.Outliers import *
 from OfflineAnalysis.Utilities.Clustering import *
-import Config as OfflineConfig
+import OfflineAnalysis.Config as OfflineConfig
 import joblib
 from sklearn.metrics import confusion_matrix,accuracy_score
 
