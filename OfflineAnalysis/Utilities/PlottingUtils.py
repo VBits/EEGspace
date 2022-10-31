@@ -96,7 +96,7 @@ def create_new_plot_LDA_multiprocessing_version(LD_df,rand_idx, colors, labels=N
         else:
             ax = plt.figure().add_subplot()
             scatter = ax.scatter(LD_rand.values[:, 0], LD_rand.loc[rand_idx].values[:, 1],
-                                 alpha=alpha, s=size, linewidths=linewidths, c=labels, cmap='tab20b')
+                                 alpha=alpha, s=size, linewidths=linewidths, c=c_data, cmap='tab20b')
             ax.set_xlabel('LD1')
             ax.set_ylabel('LD2')
             legend1 = ax.legend(*scatter.legend_elements(num=len(np.unique(labels)) - 1),
