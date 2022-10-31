@@ -8,7 +8,7 @@ def train_lda(dataframe,labels,rand_idx,components=3):
 
 def lda_transform_df(dataframe,lda):
     # Create dataframe for LDs
-    LD = lda.transform(dataframe)
+    LD = lda.transform(dataframe.values)
     if lda.n_components == 2:
         LD_df = pd.DataFrame(data=LD, columns=['LD1', 'LD2'], index=dataframe.index)
     elif lda.n_components == 3:
@@ -24,4 +24,4 @@ def train_lda_dpa_cores(dataframe,est,rand_idx,components=3):
 
 def train_lda_dpa_labels(dataframe,est,rand_idx,components=3):
     lda = LDA(n_components=components)
-    return lda, lda.fit_transform(dataframe.loc[rand_idx], est.labels_)
+    return lda, lda.fit_transform(dataframe.loc[rand_idx].values, est.labels_)
