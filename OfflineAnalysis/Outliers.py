@@ -37,5 +37,5 @@ m.state_df.loc[m.state_df['outliers']!=0,'states']= 'ambiguous'
 plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
 plt.savefig(m.figureFolder+'LDA DPC labels and outliers {}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
 
-#OPTIONAL save the file including epochs labeled as embiguous
+#OPTIONAL save the file including epochs labeled as ambiguous
 m.state_df.to_pickle(BaseDir + ExpDir + 'states_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
