@@ -2,7 +2,7 @@
 import tensorflow as tf
 from tensorflow import keras
 from sklearn.utils import compute_class_weight
-import Config as OfflineConfig
+import OfflineAnalysis.Config as OfflineConfig
 import pandas as pd
 import numpy as np
 

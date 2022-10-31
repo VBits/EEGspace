@@ -1,5 +1,5 @@
 import Config as OfflineConfig
-from Utilities.PlottingUtils import plot_LDA
+from OfflineAnalysis.Utilities.PlottingUtils import plot_LDA
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 

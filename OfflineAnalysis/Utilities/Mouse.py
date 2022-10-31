@@ -1,4 +1,3 @@
-from scipy.spatial import cKDTree
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)

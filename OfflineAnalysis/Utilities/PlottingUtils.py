@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import matplotlib
 from cycler import cycler
 import pandas as pd
-from Utilities.GeneralUtils import query_yes_no
-import Config as OfflineConfig
+from OfflineAnalysis.Utilities.GeneralUtils import query_yes_no
+import OfflineAnalysis.Config as OfflineConfig
 
 
 def get_cmap_colors(labels,rand_idx,cmap='tab10'):

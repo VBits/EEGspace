@@ -4,7 +4,7 @@ These labels can then be propagated using KNN to the rest of the dataset
 """
 #################
 from sklearn.cluster import DBSCAN
-from Utilities.PlottingUtils import plot_LDA, plot_outliers
+from OfflineAnalysis.Utilities.PlottingUtils import plot_LDA, plot_outliers
 from sklearn.neighbors import KNeighborsClassifier
 import numpy as np
 

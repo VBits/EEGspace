@@ -1,7 +1,7 @@
 from Pipeline import DPA
-from Utilities.PlottingUtils import plot_DPA_LDA
-from Utilities.Transformations import train_lda_dpa_labels,lda_transform_df
-import Config as OfflineConfig
+from OfflineAnalysis.Utilities.PlottingUtils import plot_DPA_LDA
+from OfflineAnalysis.Utilities.Transformations import train_lda_dpa_labels,lda_transform_df
+import OfflineAnalysis.Config as OfflineConfig
 import numpy as np
 
 

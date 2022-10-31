@@ -1,11 +1,11 @@
 """
 """
-from Utilities.GeneralUtils import *
-from Utilities.LoadData import *
-from Utilities.PlottingUtils import *
-from Utilities.NearestNeighbors import *
-from Utilities.Outliers import *
-from Utilities.Clustering import *
+from OfflineAnalysis.Utilities.GeneralUtils import *
+from OfflineAnalysis.Utilities.LoadData import *
+from OfflineAnalysis.Utilities.PlottingUtils import *
+from OfflineAnalysis.Utilities.NearestNeighbors import *
+from OfflineAnalysis.Utilities.Outliers import *
+from OfflineAnalysis.Utilities.Clustering import *
 import Config as OfflineConfig
 import joblib
 from sklearn.metrics import confusion_matrix,accuracy_score
