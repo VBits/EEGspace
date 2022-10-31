@@ -1,0 +1,260 @@
+' Author: Greg P Smith
+' Cambridge Electronic Design Limited 2020
+'
+' Script to illustrate how to pipe raw sampled data to another program or programs. In this case we expect
+' to have 8 channels of waveform input at 100 Hz. Each channel is assigned an output folder. We output the
+' previous 2 seconds worth of data to a binary file 'data.bin'. Each binary file holds:
+'
+' Bytes   Write code                    Contents (all values in little-endian format)
+'  0-7    BWrite(tGot)                  The time offset in seconds into the file of the first data point as a 64-bit
+'                                       IEEE floating point number.
+'  8-11   BWriteSize(4, nData%)         A 32-bit integer holding the number of following data points.
+' 12-...  BWriteSize(4, data[0:nData%]) The data points written as 32-bit IEEE floating point numbers.
+'
+' If you wanted the data as 64-bit floating point, change the 12-... line writing code to:
+' BWriteSize(8, data[0:nData%]) or BWrite(data[0:nData%]) - these both do the same.  Likewise, if
+' you wanted to add a channel number you could add BWriteSize(2, n%) to write a 16-bit number, or
+' whatever... see the documentation for the BWrite and BWriteSize script functions.
+'
+' Your Python code must read with exactly the same format. You could write the files as text, if you want.
+' You would use similar code to open (FileOpen(...) with type 8, not type 9) and you would write data
+' with the Print(...) script command.
+'
+' The file is not written if the file still exists in the output folder, i.e. we expect the recipient to
+' read the file and then delete it.
+'
+' The script assumes that the user has set a sampling configuration with the required ADC channels set
+' ready to sample. The script opens and displays a file and allows the user to interact with the file.
+'
+' This is written in a format to be compatible with Spike2 version 9, which means we cannot use Objects
+' to tidy up the code. It also means we cannot use FileStatus() to find out file information, which would
+' make the code less obscure when detecting if the file is still present.
+
+const ADCRate := 200;   ' The expected sample rate of the output files
+const tSave := 2.0;     ' How often to send data and the length of data to send
+var root$;              ' Path to root folder
+const data$ := "data.bin"; 'data file name (could use data%d.bin if using to create multiple files)
+var sh%;                ' Handle of sampling view
+var tNext;              ' will be set to next time at which to save all
+var flags%;             ' Save folder flags bit n is set if channel index n (0..number-1) needs saving
+var nextN% := 0;        ' next channel in sequence to test
+var mask%;              ' will be mask of bits for active channels in flags%
+var data[0];            ' space for use as a buffer
+
+HideAll();              'Hide all extra windows
+ToolbarText("Example code to pipe data to files"); ' So toolbar display does not scroll screen
+
+View(LogHandle()); EditSelectAll(); EditClear();
+Window(0, 90, 100, 100);    'display log view at the bottom of the application area
+WindowVisible(1);
+
+var chans%[0];          ' Will hold the list of channels to process during sampling
+if (ProcessConfig%() <= 0) then Message("No suitable channels"); halt endif;
+PrintLog("Found %d channels, %d\n", Len(chans%), chans%);
+
+'Find out root folder.
+' root$ := "C:\\Path\\to\\my\\folder\\";    'Set non-empty to set place to start search from.
+if (FilePathSet(root$, 0, "Set folder in which to create files", 1) <> 0) then
+    Message("No data folder set");
+    halt
+endif;
+root$ := FilePath$(0);      ' Get the current folder set by FilePathSet()
+' You can remove the "Find our root folder" code and set root$ to a fixed place (must exist) if you prefer.
+PrintLog("Root folder: %s\n", root$);
+
+'Now create the sub folders and clean out any existing data files
+if (CreateCleanFolders(root$, Len(chans%)) < 0) then halt endif;
+
+'Create the toolbar and buttons and idle routine
+ToolbarSet(0, "Idle", Idle%);   ' The idle routine, called when free time
+ToolbarSet(1, "&Quit", Quit%);  ' used to stop sampling
+ToolbarSet(2, "&Start sampling", Go%); ' Used to start sampling
+
+sh% := FileNew(0, 0);   'Create a new sample window (see doc for other options)
+if (sh% <= 0) then Message("Could not create file"); halt endif;
+XRange(0, 2*tSave);             ' Show reasonable range
+Window(0, 0, 100, 90);
+WindowVisible(1);
+
+tNext := tSave + 1.0/ADCRate;   ' Next time at which to save (1 extra point to avoid edge effects)
+mask% := (1 << Len(chans%)) - 1; 'mask of channels to process
+flags% := 0;        'No channels to process yet
+
+var status%;
+if (Toolbar("Quit or Esc to stop sampling", 1023) < 0) then  ' Allow everything
+    status% := SampleStatus();   ' see how we left
+    if (status% = 1) or (status% = 2) then
+        SampleStop();   'as user Escaped out
+    endif;
+endif
+
+View(sh%);          'Make sample document the current view
+if MaxTime() > 1.0 then
+    Message("Code here to save the file - FileSave() or user must save it");
+else
+    PrintLog("Too little data to be worth saving");
+    FileClose();
+endif
+
+RestoreAll();       'Put windows back
+halt;
+
+Func Go%()
+SampleStart();          'Can set argument for triggered start
+ToolbarEnable(2, 0);    'Disable Sample start button once used
+return 1;               'Leave Toolbar running
+end;
+
+Func Quit%()
+SampleStop();   'Cause sampling to stop (if running)
+return 0;       'will cause the toolbar to end
+end;
+
+'The Idle code is called whenever the system has a spare moment. On my machine this
+'is around once every 20 ms while we are sampling. If you spend too long in the Idle
+'code the program will feel jerky and unresponsive.
+'
+'If we are still sampling and a channel needs service we process 1 channel. You could
+'easily change this so that the repeat until loop runs round until it has tried all
+'the channels or flag% is 0. Do not wait for just flag% = 0 as this will hang if any
+'data file is not deleted in a timely way.
+Func Idle%()
+if SampleStatus() < 0 then return 0 endif; 'cancel toolbar if not sampling
+
+View(sh%);                      ' Make sampling view current
+var t := MaxTime();             ' See where sampling has got to
+if t >= tNext then              ' If time for a new sample...
+    flags% := mask%;            ' ...set all channels for processing
+    tNext += tSave;             ' ...next time at which to process
+endif
+
+if flags% = 0 then return 1 endif; ' if nothing to do exit and keep running
+
+'The following repeat until loop runs until 1 channel has been processed
+var done% := 0;                 ' flag to say we have processed a channel
+var nFirst% := nextN%;
+repeat
+    if (1 << nextN%) band flags% then   ' Does next channel need service?
+        done% := WriteChan(nextN%, t-tSave-1.0/ADCRate); ' process, removes from flags if done
+    endif;
+
+    nextN% += 1;                ' move on to next channel
+    if (nextN% >= Len(chans%)) then nextN% := 0 endif;
+until done% or (nFirst% = nextN%);
+
+'An alternative strategy would be to cycle round channels until either flags% is 0 OR
+'all flags have been tested. This would take longer and would likely cause a jerky display
+'once every tSave seconds. On my machine I hardly notice the delay caused by writing data.
+
+return 1;
+end;
+
+'Attempt to write the data for channel chans%[n%]
+' n%    Index into the channel list to the one we want to write
+' t     Time to process from
+'return 1 if file was processed else 0 if could not for any reason.
+Func WriteChan(n%, t)
+' See if the file still exists, in which case we cannot write it as
+' the last file was not processed yet.
+var path$ := root$ + Str$(n%) + "\\";   'Path to the folder
+FilePathSet(path$, 0);                  'Make this the current folder
+var got$;
+var nMatch% := FileList(got$, -1, data$);
+if (nMatch% > 0) then return 0 endif;
+path$ += data$;                         'Path to the file
+
+'In version 10, all the above code can be replaced by:
+' var path$ := root$ + Str$(n%) + "\\" + data$;
+' if FileStatus(path$) >= 0 then return 0 endif;
+
+var c% := chans%[n%];               'The channel to process
+var tGot;
+PrintLog(t);
+PrintLog(MaxTime()-tSave);
+PrintLog(MaxTime());
+var nData% := ChanData(c%, data, t, MaxTime(), tGot); 'Read data from time t
+'tGot
+PrintLog(nData%);
+PrintLog(data);
+if (nData% <= 0) then               ' If a problem
+    PrintLog("Chan %d, time %g, got %d\n", n%, t, nData%);
+    return 0;
+endif;
+
+'Create the binary file and write the data into it. This is the bit you change if
+'you want to pass other data or change the data format.
+var bh% := FileOpen(path$, 9, 1);   'create a binary file
+if (bh% <= 0) then PrintLog("Error %d creating %s\n", bh%, path$); return 0 endif;
+BWrite(tGot);                       '8 byte real value, the time
+BWriteSize(4, nData%);              '4 byte integer, the number of points
+BWriteSize(4, data[0:nData%]);      'nData% 4 byte reals, the data
+FileClose();
+flags% := flags% band ~(1 << n%);   'Clear the flag bit for this channel
+PrintLog("Chan %d, wrote %d at %g\n", c%, nData%, t);
+return 1;
+end;
+
+' Create the ...\0, ...\1 etc folders that will hold the data files and clean them
+' path$     The root folder.
+' n%        The number of sub-folders to create
+Func CreateCleanFolders(path$, n%)
+var i%, file$, err%;
+for i% := 0 to n%-1 do
+    if (FilePathSet(path$+Str$(i%), 0, 1) <> 0) then
+        Message("Failed to create/set %s%d\n", path$, i%);
+        return -1;
+    endif
+    file$ := path$+str$(i%)+"\\"+data$;
+    err% := FileDelete(file$);
+    if ((err% < 0) && (err% <> -1518)) then ' error and not file doesn't exist
+        Message("Failed to delete (%d): %s", err%, file$);
+        return -2;
+    endif;
+next;
+return 0;
+end;
+
+' Find the ADC channels with a matching sample rate
+Func ProcessConfig%()
+var nChans% := 0;
+var maxRate := 0.0;
+var n% := SampleChannels();     ' Get count of sample channels
+var i%, kind%, rate;
+for i% := 1 to n% do
+    kind% := SampleChanInfo(i%, 0);     'Get the channel kind. We want Adc or RealWave
+    if (kind% = 1) or (kind% = 7) then  ' if ADC or Realwave
+        rate := SampleChanInfo(i%, 3);  ' get ideal (= requested) rate
+        if (rate = ADCRate) then
+            nChans% += 1;
+            resize chans%[nChans%];     ' make space
+            chans%[nChans%-1] := i%;    ' add to the list
+            rate := SampleChanInfo(i%, 4); 'Get actual channel rate in case different
+            maxRate := max(maxRate, rate);
+        endif
+    endif
+next
+
+resize data[maxRate * tSave];       ' Resize buffer for fastest channel
+return nChans%;
+end;
+
+'----------------- copied from App() command help -------------------------
+var gFloat%[20];              'global for floating window states
+proc HideAll()
+var i%;
+gFloat%[0] := App(-2);        'number of windows
+for i% := 1 to gFloat%[0] do  'hide all windows and save state
+   gFloat%[i%] := View(App(i%)).WindowVisible(0);
+   next;
+end
+ 
+proc RestoreAll()
+var i%;
+for i% := 1 to gFloat%[0] do  'restore hidden windows
+   View(App(i%)).WindowVisible(gFloat%[i%]);
+   next;
+end
+
+
+
+
