@@ -1,7 +1,6 @@
 """
 Online analysis
 """
-import sys
 from PyQt5 import *
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
@@ -12,6 +11,9 @@ from OnlineAnalysis import Config
 from OfflineAnalysis import Config as OfflineConfig
 from OnlineAnalysis.LoadModels import MouseModel
 from types import SimpleNamespace
+from OfflineAnalysis.Utilities.LoadData import process_EEG_data
+import traceback
+import sys
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
@@ -22,6 +24,8 @@ register_matplotlib_converters()
 
 #window for the master page window
 class Window(QtWidgets.QMainWindow):
+    propagateStateToChildrenSignal = QtCore.pyqtSignal(object)
+
     def __init__(self, config_queue, parent=None):
         super().__init__(parent)
 
@@ -35,7 +39,7 @@ class Window(QtWidgets.QMainWindow):
         self.register(PlotWindow(config_queue), "plot")
         self.register(OfflineSettingsWindow(), "offline_settings")
 
-        self.state = {}
+        self.mainWindowState = {}
         #self.register(ModelCreationWindow(), "offline_settings")
 
         self.goto("start")
@@ -45,7 +49,8 @@ class Window(QtWidgets.QMainWindow):
         self.stacked_widget.addWidget(widget)
         if isinstance(widget, PageWindow):
             widget.gotoSignal.connect(self.goto)
-            widget.setStateSignal.connect(self.setState)
+            widget.updateParentStateSignal.connect(self.setState)
+            self.propagateStateToChildrenSignal.connect(widget.setState)
 
     @QtCore.pyqtSlot(str)
     def goto(self, name):
@@ -56,20 +61,24 @@ class Window(QtWidgets.QMainWindow):
 
     @QtCore.pyqtSlot(object)
     def setState(self, state):
-        self.state = state
+        self.mainWindowState = state
+        self.propagateStateToChildrenSignal.emit(state)
+        print("setting global state")
 
 class PageWindow(QtWidgets.QMainWindow):
     gotoSignal = QtCore.pyqtSignal(str)
-    setStateSignal = QtCore.pyqtSignal(object)
+    updateParentStateSignal = QtCore.pyqtSignal(object)
+    state = {}
 
     def goto(self, name):
         self.gotoSignal.emit(name)
 
-    def setState(self, state):
-        self.setStateSignal.emit(state)
+    def updateParentState(self, state):
+        self.updateParentStateSignal.emit(state)
 
+    @QtCore.pyqtSlot(object)
     def setState(self, state):
-        self.setStateSignal.emit(state)
+        self.state = state
 
 #window for start page with two options, create the model or run a closed loop experiment with existing model => StartWindow
 class StartWindow(PageWindow):
@@ -575,13 +584,19 @@ class OfflineSettingsWindow(PageWindow):
         for input in self.inputs:
             self.settings.setValue(input.objectName(), input.text())
 
-        # try:
-        #     mouse = process_EEG_data(self.mouseDescriptionInput.text(), self.mouseIdInput.text())
-        #     self.goto("plot")
-        # except:
-
-
-
+        try:
+            load_data = self.sxxOrigin.currentIndex() + 1
+            print(load_data, "load data index")
+            mouse = process_EEG_data(self.mouseDescriptionInput.text(), int(self.mouseIdInput.text()), load_data)
+            print("got here")
+            state = { k:v for k,v in self.state.items() }
+            state["mouse"] = mouse
+            print("New state", state)
+            self.setState(state)
+            self.goto("plot")
+        except Exception as e:
+            traceback.print_exception(*sys.exc_info())
+            print(e)
 
     def retranslateUi(self):
         self.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
@@ -629,7 +644,7 @@ class OfflineSettingsWindow(PageWindow):
 
         self.queue = queue
         self.mouse_id = OnlineConfig.mouse_ids[0]  # initialize to the first mouse number
-        self.models = {str(num): MouseModel(num) for num in OnlineConfig.mouse_ids}
+        self.models = {} #{str(num): MouseModel(num) for num in OnlineConfig.mouse_ids}
         self.model = self.models[str(self.mouse_id)]
         self.lda_encoded = self.model.lda.transform(self.model.training_data)
 

@@ -11,13 +11,14 @@ from OfflineAnalysis.Utilities.Transformations import train_lda,lda_transform_df
 import joblib
 import OfflineAnalysis.Utilities.ANN as ANN
 
-def process_EEG_data(description, mouse_id):
+def process_EEG_data(description, mouse_id, load_data=-1):
 
     m = Mouse(description, mouse_id)
 
     # Create directory to save figures
     m.gen_folder(OfflineConfig.base_path, OfflineConfig.experimental_path)
-    load_data = query_option("Pick option: \n1) Preprocess raw data \n2) Load previously stored pkl files?",valid_options=[1,2])
+    if load_data == -1:
+        load_data = query_option("Pick option: \n1) Preprocess raw data \n2) Load previously stored pkl files?",valid_options=[1,2])
     if load_data==1:
         print('Processing EEG data and storing files: _{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
         #Load EEG data
@@ -28,7 +29,6 @@ def process_EEG_data(description, mouse_id):
         if m.EEG_fs > OfflineConfig.target_fs:
             print ('downsampling mouse {} EEG data, from {}Hz to {}Hz'.format(m.mouse_id,m.EEG_fs,OfflineConfig.target_fs))
             m.downsample_EGG(target_fs=OfflineConfig.target_fs)
-
 
         m.multitaper(resolution=OfflineConfig.epoch_seconds)
         m.smoothen_and_norm_spectrum(window_size=OfflineConfig.smoothing_window,quantile=OfflineConfig.quantile_norm)
