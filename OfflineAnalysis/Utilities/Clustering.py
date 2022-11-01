@@ -34,7 +34,7 @@ def clustering_DPA_multiprocessing(m,rand_idx, queue, dpa_z=OfflineConfig.dpa_z,
     est.fit(m.LD_df.loc[rand_idx])
 
     # Plot DPA clusters on LDA
-    queue.put((m.LD_df.copy(), rand_idx, est.labels_))
+    queue.put((m.LD_df.copy(), rand_idx, est.labels_, True))
     return est
 
 
@@ -52,7 +52,7 @@ def merging_spurious_labels_multiprocessing(m,rand_idx,label_dict,est, queue):
     #merge the labels
     est.labels_ = np.vectorize(label_dict.get)(est.labels_)
     # Plot DPA clusters on LDA
-    queue.put((m.LD_df.copy(), rand_idx, est.labels_))
+    queue.put((m.LD_df, rand_idx, est.labels_, True))
 
 def retrain_LDA(m,rand_idx,est):
     lda, x_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=OfflineConfig.lda_components)

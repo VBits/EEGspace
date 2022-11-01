@@ -51,5 +51,5 @@ def predict_all_outliers_multiprocessing(m,rand_idx,outlier_model, queue, ambigu
     m.state_df.loc[m.state_df['outliers']!=ambiguous_state,'states']= 'ambiguous'
 
     # Validate annotation
-    queue.put((m.LD_df.copy(), rand_idx, m.state_df['states']))
+    queue.put((m.LD_df.copy(), rand_idx, m.state_df['states'], False))
 

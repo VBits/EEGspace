@@ -18,4 +18,4 @@ def propagate_knn_labels(m,rand_idx,knn_clf):
 def propagate_knn_labels_multiprocessing(m,rand_idx,knn_clf, input_queue):
     m.knn_pred(knn_clf, m.Sxx_ext,OfflineConfig.average_states_path)
     # Plot and evaluate state assignment 3D
-    input_queue.put((m.LD_df.copy(), rand_idx, m.state_df['states']))
+    input_queue.put((m.LD_df, rand_idx, m.state_df['states'], False))

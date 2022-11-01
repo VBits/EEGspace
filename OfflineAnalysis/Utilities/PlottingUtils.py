@@ -5,6 +5,7 @@ from cycler import cycler
 import pandas as pd
 from OfflineAnalysis.Utilities.GeneralUtils import query_yes_no
 import OfflineAnalysis.Config as OfflineConfig
+import sys
 def get_cmap_colors(labels,rand_idx,cmap='tab10'):
     cm = plt.get_cmap(cmap)
     unique_labels = np.unique(labels)
@@ -85,7 +86,7 @@ def create_new_plot_LDA_multiprocessing_version(LD_df,rand_idx, colors, labels=N
             ax = plt.figure().add_subplot(projection='3d')
             scatter = ax.scatter(LD_rand.values[:, 0], LD_rand.loc[rand_idx].values[:, 1],
                                  LD_rand.values[:, 2],
-                                 alpha=alpha, s=size, linewidths=linewidths, c=c_data, cmap='tab20b')
+                                 alpha=alpha, s=size, linewidths=linewidths, c=colors, cmap='tab20b')
             ax.set_xlabel('LD1')
             ax.set_ylabel('LD2')
             ax.set_zlabel('LD3')
@@ -106,21 +107,26 @@ def create_new_plot_LDA_multiprocessing_version(LD_df,rand_idx, colors, labels=N
     else:
         if LD_rand.shape[1] == 3:
             ax = plt.figure().add_subplot(projection='3d')
-            ax.scatter(LD_df['LD1'],LD_df['LD2'], LD_df['LD3'],
+            ax.scatter(LD_rand['LD1'],LD_rand['LD2'], LD_rand['LD3'],
                            c=c_data,alpha=alpha, s=size,linewidths=linewidths)
             ax.set_xlabel('LD1')
             ax.set_ylabel('LD2')
             ax.set_zlabel('LD3')
         else:
             plt.figure()
-            plt.scatter(LD_df['LD1'],LD_df['LD2'],
+            plt.scatter(LD_rand['LD1'],LD_rand['LD2'],
                            c=c_data,alpha=alpha, s=size,linewidths=linewidths)
             plt.xlabel('LD1')
             plt.ylabel('LD2')
+    plt.draw()
+    plt.pause(1)
     plt.show()
 
-def plot_LDA_multiprocessing_version(LD_df,rand_idx, figure_folder, figure_tail, colors, input_queue, labels=None,alpha=0.2,size=5,linewidths=0):
-    create_new_plot_LDA_multiprocessing_version(LD_df,rand_idx, colors, labels, alpha, size, linewidths)
+def plot_LDA_multiprocessing_version(LD_df,rand_idx, figure_folder, figure_tail, colors, input_queue, labels=None, DPA=False, alpha=0.2,size=5,linewidths=0):
+    sys.stdout.write("testing output 1")
+    sys.stdout.flush()
+    create_new_plot_LDA_multiprocessing_version(LD_df,rand_idx, colors, labels, DPA, alpha, size, linewidths)
+    sys.stdout.write("testing output 3")
     while True:
         if not input_queue.empty():
             sys.stdout.write("got input")
@@ -128,10 +134,11 @@ def plot_LDA_multiprocessing_version(LD_df,rand_idx, figure_folder, figure_tail,
             if input[0] == "save_plot":
                 sys.stdout.write(figure_folder + input[1] + figure_tail)
                 plt.savefig(figure_folder + input[1] + figure_tail,dpi=OfflineConfig.dpi)
+                plt.figure()
             elif input[0] == "no_save_plot":
                 continue
             else:
-                create_new_plot_LDA_multiprocessing_version(input[0], input[1], colors, input[2], alpha, size, linewidths)
+                create_new_plot_LDA_multiprocessing_version(input[0], input[1], colors, input[2], input[3], alpha, size, linewidths)
 
 def plot_DPA_LDA(m, rand_idx, est, alpha=0.6, size=4, linewidths=0):
     ax = plt.figure().add_subplot(projection='3d')
@@ -180,6 +187,7 @@ def savefigure_function_multiprocessing_version(queue, figure_title):
     """You can call this function and ask if you want to save the active figure"""
     savefigure = query_yes_no("Do you want to save plot? Please respond with yes or no")
     if savefigure:
+        print("putting in queue")
         queue.put(("save_plot", figure_title))
         return
     queue.put(("no_save_plot",))
