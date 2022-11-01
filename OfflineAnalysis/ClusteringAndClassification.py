@@ -28,7 +28,7 @@ if __name__ == '__main__':
     manager = multiprocessing.Manager()
     input_queue = manager.Queue()
     p = multiprocessing.Process(target=OfflineAnalysis.Utilities.PlottingUtils.plot_LDA_multiprocessing_version,
-                                args=(m.LD_df.copy(), rand_idx, m.figureFolder, m.figure_tail, m.colors, input_queue))
+                                args=(m.LD_df, rand_idx, m.figureFolder, m.figure_tail, m.colors, input_queue))
     p.daemon = True
     p.start()
 
