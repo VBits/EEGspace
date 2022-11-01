@@ -49,15 +49,16 @@ def process_EEG_data(description, mouse_id, load_data=-1):
     return m
 
 
-def get_LDA(m,rand_idx):
+def get_LDA(m, rand_idx, use_lda=-1):
     #2. Load the average LDA or create a new LDA
-    use_lda = query_option("Pick option \n1) Load average LDA \n2) Load previously trained LDA for this animal"
+    if use_lda == -1:
+        use_lda = query_option("Pick option \n1) Load average LDA \n2) Load previously trained LDA for this animal"
                            "\n3) Get provisional labels from ANN and train a new LDA",valid_options=[1,2,3])
-    if use_lda==1:
+    if use_lda == 1:
         print('Using an average LDA trained on multiple animals')
         #Load a previously created LDA (works better with noisy data)
         lda = joblib.load(OfflineConfig.average_lda_path)
-    elif use_lda ==2:
+    elif use_lda == 2:
         print('Using an LDA trained on this animal')
         lda = joblib.load(OfflineConfig.lda_filename)
     elif use_lda == 3:
