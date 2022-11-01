@@ -12,6 +12,7 @@ import joblib
 import OfflineAnalysis.Utilities.ANN as ANN
 
 def process_EEG_data(description, mouse_id):
+
     m = Mouse(description, mouse_id)
 
     # Create directory to save figures

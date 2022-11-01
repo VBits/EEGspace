@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from OnlineAnalysis import Config
 from OfflineAnalysis import Config as OfflineConfig
 from OnlineAnalysis.LoadModels import MouseModel
+from types import SimpleNamespace
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
@@ -19,10 +20,9 @@ sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysi
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
 
-
 #window for the master page window
 class Window(QtWidgets.QMainWindow):
-    def __init__(self, queue, parent=None):
+    def __init__(self, config_queue, parent=None):
         super().__init__(parent)
 
         self.stacked_widget = QtWidgets.QStackedWidget()
@@ -31,9 +31,11 @@ class Window(QtWidgets.QMainWindow):
         self.m_pages = {}
 
         self.register(StartWindow(), "start")
-        self.register(OnlineSettingsWindow(), "online_settings")
-        self.register(PlotWindow(queue), "plot")
+        self.register(OnlineSettingsWindow(config_queue), "online_settings")
+        self.register(PlotWindow(config_queue), "plot")
         self.register(OfflineSettingsWindow(), "offline_settings")
+
+        self.state = {}
         #self.register(ModelCreationWindow(), "offline_settings")
 
         self.goto("start")
@@ -43,6 +45,7 @@ class Window(QtWidgets.QMainWindow):
         self.stacked_widget.addWidget(widget)
         if isinstance(widget, PageWindow):
             widget.gotoSignal.connect(self.goto)
+            widget.setStateSignal.connect(self.setState)
 
     @QtCore.pyqtSlot(str)
     def goto(self, name):
@@ -51,13 +54,22 @@ class Window(QtWidgets.QMainWindow):
             self.stacked_widget.setCurrentWidget(widget)
             self.setWindowTitle(widget.windowTitle())
 
+    @QtCore.pyqtSlot(object)
+    def setState(self, state):
+        self.state = state
 
 class PageWindow(QtWidgets.QMainWindow):
     gotoSignal = QtCore.pyqtSignal(str)
+    setStateSignal = QtCore.pyqtSignal(object)
 
     def goto(self, name):
         self.gotoSignal.emit(name)
 
+    def setState(self, state):
+        self.setStateSignal.emit(state)
+
+    def setState(self, state):
+        self.setStateSignal.emit(state)
 
 #window for start page with two options, create the model or run a closed loop experiment with existing model => StartWindow
 class StartWindow(PageWindow):
@@ -110,8 +122,9 @@ class FileEditWidget(QtWidgets.QWidget):
 
 #window for online mode settings, use QSettings and with a back button to the first screen => OnlineSettingsWindow
 class OnlineSettingsWindow(PageWindow):
-    def __init__(self):
+    def __init__(self, config_queue):
         super().__init__()
+        self.config_queue = config_queue
         self.settings = QSettings("ClosedLoopEEG", "OnlineSettings")
         self.resize(1117, 892)
         self.centralwidget = QWidget(self)
@@ -271,6 +284,38 @@ class OnlineSettingsWindow(PageWindow):
     def start_reading(self):
         for input in self.inputs:
             self.settings.setValue(input.objectName(), input.text())
+
+        #todo mg, come up with a better way to have two versions of the config
+        config = SimpleNamespace(
+            eeg_fs = int(self.eegFrequencyInputtext()),
+            downsample_fs = int(self.downsampleFrequencyInputtext()),
+            num_seconds_per_epoch = int(self.secondsPerEpochInputtext()),
+            median_filter_buffer = int(self.bufferLengthInputtext()),
+            median_filter_buffer_middle = math.ceil(int(self.bufferLengthInputtext()) / 2),
+            mouse_ids = Config.mouse_ids,
+            mouse_id_to_channel_mapping = Config.mouse_id_to_channel_mapping,
+            print_timer_info_for_mice = Config.print_timer_info_for_mice,
+            comport = Config.comport,
+            cycle_test_data=Config.cycle_test_data,
+            recreate_model_file = Config.recreate_model_file,
+            recreate_lda = Config.recreate_lda,
+            recreate_knn = Config.recreate_knn,
+            base_path = Config.base_path,
+            channel_file_base_path = Config.channel_file_base_path,
+            data_path = Config.data_path,
+            training_data_path = self.trainingDataFileInputtext(),
+            raw_data_file = self.rawTestDataFileInputtext(),
+            run_name = self.runNameInputtext(),
+            multitaper_data_file_path = Config.multitaper_data_file_path,
+            combined_data_file_path = self.trainingDataFileInputtext(),
+            state_file_path = Config.state_file_path,
+            lda_file_path = self.ldaFilePathInputtext(),
+            knn_file_path = self.knnFilePathInputtext(),
+            state_colors = Config.state_colors,
+            get_channel_number_from_mouse_id = Config.get_channel_number_from_mouse_id
+        )
+
+        self.config_queue.put(config)
 
         self.goto("plot")
 
@@ -457,10 +502,30 @@ class OfflineSettingsWindow(PageWindow):
 
         self.formLayout.setWidget(14, QFormLayout.FieldRole, self.knnNNeighborsInput)
 
+        self.sxxOriginLabel = QLabel(self.formLayoutWidget)
+        self.sxxOriginLabel.setText("Load Sxx?")
+
+        self.formLayout.setWidget(15, QFormLayout.LabelRole, self.sxxOriginLabel)
+
+        self.sxxOrigin = QComboBox()
+        self.sxxOrigin.addItems(["Preprocess raw data", "Load previously previously stored .pkl files"])
+
+        self.formLayout.setWidget(15, QFormLayout.FieldRole, self.sxxOrigin)
+
+        self.statesOriginLabel = QLabel(self.formLayoutWidget)
+        self.statesOriginLabel.setText("Load states?")
+
+        self.formLayout.setWidget(16, QFormLayout.LabelRole, self.statesOriginLabel)
+
+        self.statesOrigin = QComboBox()
+        self.statesOrigin.addItems(["Don't load m.state_df", "Load m.state_df"])
+
+        self.formLayout.setWidget(16, QFormLayout.FieldRole, self.statesOrigin)
+
         self.startButton = QPushButton(self.centralwidget)
         self.startButton.setObjectName(u"startButton")
         self.startButton.setGeometry(QtCore.QRect(940, 640, 151, 28))
-        self.startButton.clicked.connect(self.start_reading)
+        self.startButton.clicked.connect(self.go_to_next)
         self.backButton = QPushButton(self.centralwidget)
         self.backButton.setObjectName(u"backButton")
         self.backButton.setGeometry(QtCore.QRect(20, 640, 93, 28))
@@ -501,17 +566,22 @@ class OfflineSettingsWindow(PageWindow):
         set_input_default(self.dpaKMaxInput, OfflineConfig.dpa_k_max)
         set_input_default(self.knnNNeighborsInput, OfflineConfig.knn_n_neighbors)
 
-
         self.retranslateUi()
 
     def go_back(self):
         self.goto("start")
 
-    def start_reading(self):
+    def go_to_next(self):
         for input in self.inputs:
             self.settings.setValue(input.objectName(), input.text())
 
-        self.goto("plot")
+        # try:
+        #     mouse = process_EEG_data(self.mouseDescriptionInput.text(), self.mouseIdInput.text())
+        #     self.goto("plot")
+        # except:
+
+
+
 
     def retranslateUi(self):
         self.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
