@@ -18,7 +18,7 @@ if __name__ == '__main__':
     # 1. Get data for indicated genotype and channel.
     # Preprocess data, or load previously processed data
     m = process_EEG_data(OfflineConfig.mouse_description, OfflineConfig.mouse_id)
-    rand_idx = get_random_idx(m.Sxx_ext, size=OfflineConfig.random_epoch_size)
+    rand_idx = get_random_idx(m.Sxx_df, size=OfflineConfig.random_epoch_size)
 
     ########################################################################################################
 

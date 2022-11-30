@@ -1,7 +1,7 @@
 """
 Online analysis
 """
-from PyQt5 import *
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -18,6 +18,7 @@ from OfflineAnalysis import Config as OfflineConfig
 from OnlineAnalysis.LoadModels import MouseModel
 from types import SimpleNamespace
 import sys
+import math
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
