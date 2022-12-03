@@ -1,7 +1,7 @@
 """
 Online analysis
 """
-from PyQt5 import *
+from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
@@ -33,6 +33,7 @@ class Window(QtWidgets.QMainWindow):
     def __init__(self, config_queue, parent=None):
         super().__init__(parent)
 
+        self.state = {}
         self.stacked_widget = QtWidgets.QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
 

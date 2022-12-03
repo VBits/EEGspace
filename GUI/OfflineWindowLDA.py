@@ -5,7 +5,7 @@ import sys
 
 from PyQt5.QtCore import QSettings
 from PyQt5.QtWidgets import QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, \
-    QGridLayout
+    QGridLayout, QPushButton
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -55,6 +55,13 @@ class OfflineWindowLDA(PageWindow):
         self.save_eeg_button.setGeometry(QtCore.QRect(5, 5, 200, 20))
         self.save_eeg_button.clicked.connect(self.save_eeg)
 
+        self.startButton = QtWidgets.QPushButton("Start")
+        self.startButton.setGeometry(QtCore.QRect(450, 320, 151, 28))
+        self.startButton.clicked.connect(self.go_to_next)
+        self.backButton = QtWidgets.QPushButton("Back")
+        self.backButton.setGeometry(QtCore.QRect(20, 640, 93, 28))
+        self.backButton.clicked.connect(self.go_back)
+
         self.indicator_layout = QGridLayout()
 
         settings_layout = QHBoxLayout()
@@ -65,10 +72,14 @@ class OfflineWindowLDA(PageWindow):
         # left_panel = QVBoxLayout()
         # left_panel.addLayout(settings_layout)
         # left_panel.addLayout(self.indicator_layout)
+        navigation_layout = QHBoxLayout()
+        navigation_layout.addWidget(self.startButton, 1)
+        navigation_layout.addWidget(self.backButton, 1)
 
         layout = QGridLayout()
         layout.addLayout(settings_layout, 0, 0, 2, 4)
         layout.addWidget(self.canvas, 2, 0, 2, 4)
+        layout.addLayout(navigation_layout, 4, 0, 2, 4)
 
         container.setLayout(layout)
         self.setCentralWidget(container)
@@ -98,6 +109,12 @@ class OfflineWindowLDA(PageWindow):
 
         ax.set_title("LDA")
         self.canvas.draw()
+
+    def go_to_next(self):
+        pass
+
+    def go_back(self):
+        self.goto("offline_settings")
 
     def save_eeg(self):
         pass
