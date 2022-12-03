@@ -18,7 +18,6 @@ from OfflineAnalysis import Config as OfflineConfig
 
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
-import numpy as np
 from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()

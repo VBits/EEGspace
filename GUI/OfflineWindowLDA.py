@@ -42,14 +42,18 @@ class OfflineWindowLDA(PageWindow):
         self.LDA_origin_label = QLabel("Select LDA source:")
 
         self.lda_origin_combobox = QComboBox()
+        load_average_option = "Load average LDA trained on multiple animals"
+        load_previously_trained_option = "Load previously trained LDA for this animal"
+        get_provisional_labels_option = "Get provisional labels from ANN and train a new LDA"
         self.lda_origin_combobox.addItems([
-            "Load average LDA trained on multiple animals",
-            "Load previously trained LDA for this animal",
-            "Get provisional labels from ANN and train a new LDA"
+            load_average_option,
+            load_previously_trained_option,
+            get_provisional_labels_option
         ])
 
         self.plot_data_button = QtWidgets.QPushButton("Load and plot data", self)
         self.plot_data_button.setGeometry(QtCore.QRect(5, 5, 200, 20))
+        self.plot_data_button.clicked.connect(self.plot_data)
 
         self.save_eeg_button = QtWidgets.QPushButton("Save EEG", self)
         self.save_eeg_button.setGeometry(QtCore.QRect(5, 5, 200, 20))
@@ -69,12 +73,9 @@ class OfflineWindowLDA(PageWindow):
         settings_layout.addWidget(self.lda_origin_combobox, 5)
         settings_layout.addWidget(self.plot_data_button, 12)
 
-        # left_panel = QVBoxLayout()
-        # left_panel.addLayout(settings_layout)
-        # left_panel.addLayout(self.indicator_layout)
         navigation_layout = QHBoxLayout()
-        navigation_layout.addWidget(self.startButton, 1)
         navigation_layout.addWidget(self.backButton, 1)
+        navigation_layout.addWidget(self.startButton, 1)
 
         layout = QGridLayout()
         layout.addLayout(settings_layout, 0, 0, 2, 4)
@@ -84,7 +85,8 @@ class OfflineWindowLDA(PageWindow):
         container.setLayout(layout)
         self.setCentralWidget(container)
 
-    def plot_data(self, mouse):
+    def plot_data(self):
+        mouse = self.state["mouse"]
         use_lda = self.lda_origin_combobox.currentIndex() + 1
         rand_idx = get_random_idx(mouse.Sxx_ext, size=OfflineConfig.random_epoch_size)
         _ = get_LDA(mouse, rand_idx, use_lda)
@@ -120,10 +122,6 @@ class OfflineWindowLDA(PageWindow):
         pass
 
     def mount(self):
-        print(self.state)
-        print(self.state.keys())
         if "mouse" not in self.state:
             return
-        mouse = self.state["mouse"]
-        self.plot_data_button.clicked.connect(lambda: self.plot_data(mouse))
-        self.plot_data(mouse)
+        self.plot_data()
