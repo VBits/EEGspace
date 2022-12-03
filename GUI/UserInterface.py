@@ -9,6 +9,7 @@ from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
 from GUI.OfflineWindowConfiguration import OfflineSettingsWindow
+from GUI.OfflineWindowDPA import OfflineWindowDPA
 from GUI.OfflineWindowKnn import OfflineWindowKnn
 from GUI.OfflineWindowLDA import OfflineWindowLDA
 from GUI.PageWindow import PageWindow
@@ -45,6 +46,7 @@ class Window(QtWidgets.QMainWindow):
         self.register(OfflineSettingsWindow(), "offline_settings")
         # self.register(OfflineWindowKnn(), "knn_window")
         self.register(OfflineWindowLDA(), "lda_window")
+        self.register(OfflineWindowDPA(), "dpa_window")
 
         self.mainWindowState = {}
         #self.register(ModelCreationWindow(), "offline_settings")

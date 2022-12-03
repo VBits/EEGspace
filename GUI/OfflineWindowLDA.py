@@ -113,7 +113,7 @@ class OfflineWindowLDA(PageWindow):
         self.canvas.draw()
 
     def go_to_next(self):
-        pass
+        self.goto("dpa_window")
 
     def go_back(self):
         self.goto("offline_settings")
