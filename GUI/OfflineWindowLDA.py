@@ -33,6 +33,14 @@ class OfflineWindowLDA(PageWindow):
         self.setWindowTitle("LDA Settings")
         self.settings = QSettings("ClosedLoopEEG", "OfflineSettingsLDA")
 
+        #main widget
+        #QV widget for the bottom bar and the top widget
+        #inside the top widget there should be QH widget for the plot panel on the left and the form panel on the right
+        #form panel needs a value for the max and the dpa-z
+        #checkboxes for the new rand and merge labels
+        #list of 4 labels
+        #and update button
+
         self.figure = Figure(figsize=(5, 5))
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.ax = self.figure.add_subplot(projection='3d')
