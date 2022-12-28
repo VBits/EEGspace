@@ -2,16 +2,8 @@
 Online analysis
 """
 
-from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
-import os
-import pickle
 from OnlineAnalysis import Config
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import classification_report, confusion_matrix, accuracy_score
 
 import Storage
 

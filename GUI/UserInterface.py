@@ -19,13 +19,17 @@ from OfflineAnalysis import Config as OfflineConfig
 from OnlineAnalysis.LoadModels import MouseModel
 from types import SimpleNamespace
 import sys
+from OnlineAnalysis.Timing import Timer
 
+timer = Timer("start_time", None, None)
+print("time since start b0: ", timer.get_duration_since("start_time"))
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
 import numpy as np
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
+print("time since start b1: ", timer.get_duration_since("start_time"))
 
 #window for the master page window
 class Window(QtWidgets.QMainWindow):
@@ -40,31 +44,43 @@ class Window(QtWidgets.QMainWindow):
 
         self.m_pages = {}
 
-        self.register(StartWindow(), "start")
-        self.register(OnlineSettingsWindow(config_queue), "online_settings")
-        self.register(PlotWindow(config_queue), "plot")
-        self.register(OfflineSettingsWindow(), "offline_settings")
+        self.register(StartWindow, "start")
+        self.register(lambda: OnlineSettingsWindow(config_queue), "online_settings")
+        self.register(lambda: PlotWindow(config_queue), "plot")
+        self.register(OfflineSettingsWindow, "offline_settings")
         # self.register(OfflineWindowKnn(), "knn_window")
-        self.register(OfflineWindowLDA(), "lda_window")
-        self.register(OfflineWindowDPA(), "dpa_window")
+        self.register(OfflineWindowLDA, "lda_window")
+        self.register(OfflineWindowDPA, "dpa_window")
 
         self.mainWindowState = {}
         #self.register(ModelCreationWindow(), "offline_settings")
 
         self.goto("start")
 
-    def register(self, widget, name):
-        self.m_pages[name] = widget
-        self.stacked_widget.addWidget(widget)
-        if isinstance(widget, PageWindow):
-            widget.gotoSignal.connect(self.goto)
-            widget.updateParentStateSignal.connect(self.setState)
-            self.propagateStateToChildrenSignal.connect(widget.setState)
+    def ensure_widget_instantiated(self, name):
+        print(type(self.m_pages[name]))
+        if not isinstance(self.m_pages[name], PageWindow):
+            widget = self.m_pages[name]()
+            self.m_pages[name] = widget
+            print(type(widget))
+            self.stacked_widget.addWidget(widget)
+            if isinstance(widget, PageWindow):
+                print("here yo")
+                widget.gotoSignal.connect(self.goto)
+                widget.updateParentStateSignal.connect(self.setState)
+                self.propagateStateToChildrenSignal.connect(widget.setState)
+
+    def register(self, widget_constructor, name):
+        print(type(widget_constructor))
+        self.m_pages[name] = widget_constructor
 
     @QtCore.pyqtSlot(str)
     def goto(self, name):
         if name in self.m_pages:
+            print(type(self.m_pages[name]))
+            self.ensure_widget_instantiated(name)
             widget = self.m_pages[name]
+            print(type(widget))
             self.stacked_widget.setCurrentWidget(widget)
             self.setWindowTitle(widget.windowTitle())
             widget.mount()
@@ -377,32 +393,13 @@ class PlotWindow(PageWindow):
 
         self.queue = queue
         self.mouse_id = Config.mouse_ids[0]#initialize to the first mouse number
-        self.models = {str(num):MouseModel(num) for num in Config.mouse_ids}
-        self.model = self.models[str(self.mouse_id)]
-        self.lda_encoded = self.model.lda.transform(self.model.training_data)
-
-        n = 40000
-        rand_idx = np.random.choice(len(self.lda_encoded), size=n, replace=False)
-        subset = self.lda_encoded[rand_idx]
-        subset_states = np.array([self.model.states[state] for state in self.model.training_data_states])[rand_idx]
-        subset_sate_colors = [Config.state_colors[state] for state in subset_states]
-        alpha = 0.3
-        size = 0.8
-        self.ax3.scatter(subset[:, 0], subset[:, 1], subset[:, 2], c=subset_sate_colors, s=size, alpha=alpha)
-        self.ax3.set_xlabel('ld1')
-        self.ax3.set_ylabel('ld2')
-        self.ax3.set_zlabel('ld3')
-        self.ax3.set_title("State space")
-
-        self.spot = self.ax3.scatter(0, 0, 0, c='b', s=size, alpha=alpha)
-        self.canvas1.draw()
-        self.canvas2.draw()
-        self.canvas3.draw()
+        self.lda_encoded = []#
 
         container = QWidget()
 
         self.mouse_select_label = QLabel("Mouse number:")
-
+        self.models = None
+        self.model = None
         self.mouse_select = QComboBox()
         self.mouse_select.addItems([str(num) for num in Config.mouse_ids])
         self.mouse_select.activated[str].connect(self.mouse_change)
@@ -433,6 +430,7 @@ class PlotWindow(PageWindow):
 
         container.setLayout(layout)
         self.setCentralWidget(container)
+        self.spot = None
 
         timer = QtCore.QTimer(self)
         timer.timeout.connect(self.on_timeout)
@@ -481,6 +479,28 @@ class PlotWindow(PageWindow):
             self.spot.remove()
             self.spot = self.ax3.scatter(scatter_point[0], scatter_point[1], scatter_point[2], c='r', s=60)
             self.canvas3.draw()
+
+    def mount(self):
+        self.models = {str(num):MouseModel(num) for num in Config.mouse_ids}
+        self.model = self.models[str(self.mouse_id)]
+        self.model.lda.transform(self.model.training_data)
+        n = 40000
+        rand_idx = np.random.choice(len(self.lda_encoded), size=n, replace=False)
+        subset = self.lda_encoded[rand_idx]
+        subset_states = np.array([self.model.states[state] for state in self.model.training_data_states])[rand_idx]
+        subset_sate_colors = [Config.state_colors[state] for state in subset_states]
+        alpha = 0.3
+        size = 0.8
+        self.ax3.scatter(subset[:, 0], subset[:, 1], subset[:, 2], c=subset_sate_colors, s=size, alpha=alpha)
+        self.ax3.set_xlabel('ld1')
+        self.ax3.set_ylabel('ld2')
+        self.ax3.set_zlabel('ld3')
+        self.ax3.set_title("State space")
+
+        self.spot = self.ax3.scatter(0, 0, 0, c='b', s=size, alpha=alpha)
+        self.canvas1.draw()
+        self.canvas2.draw()
+        self.canvas3.draw()
 
 def create_user_interface(input_queue, output_queue):
     plot_app = QtWidgets.QApplication(sys.argv)

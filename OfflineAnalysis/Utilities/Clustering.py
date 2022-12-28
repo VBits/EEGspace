@@ -37,7 +37,6 @@ def clustering_DPA_multiprocessing(m,rand_idx, queue, dpa_z=OfflineConfig.dpa_z,
     queue.put((m.LD_df.copy(), rand_idx, est.labels_, True))
     return est
 
-
 def merging_spurious_labels(m,rand_idx,label_dict,est):
     #change the dictionary format
     label_dict = {vi: k for k, v in label_dict.items() for vi in v}

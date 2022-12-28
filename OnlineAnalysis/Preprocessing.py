@@ -7,7 +7,6 @@ from scipy.signal import detrend, dlti, butter, decimate
 from OnlineAnalysis import Config
 import numpy as np
 import pandas as pd
-import scipy
 
 def transform_data(data_points, timer):
     timer.set_time_point("start_multitaper")
