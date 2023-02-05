@@ -6,14 +6,16 @@ readme = "README.md"
 license = { file = "LICENSE" }
 dependencies = [
     'tensorflow==2.3.0',
-    'numpy',
-    'pandas',
+#    'numpy',
+#    'pandas',
     'easycython',
     'DPA',
     'joblib',
     'sonpy',
     'h5py',
+    'PyQt5',
     'nitime',
+    'serial',
     'importlib-metadata; python_version<"3.10"',
 ]
 
