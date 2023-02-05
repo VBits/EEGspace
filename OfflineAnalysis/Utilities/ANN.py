@@ -1,10 +1,16 @@
 # Initial classification with ANN
+from OnlineAnalysis.Timing import Timer
+timer = Timer("start_time", None, None)
+print("time since start e0: ", timer.get_duration_since("start_time"))
 import tensorflow as tf
 from tensorflow import keras
+print("time since start e1: ", timer.get_duration_since("start_time"))
 from sklearn.utils import compute_class_weight
 import OfflineAnalysis.Config as OfflineConfig
+print("time since start e2: ", timer.get_duration_since("start_time"))
 import pandas as pd
 import numpy as np
+print("time since start e3: ", timer.get_duration_since("start_time"))
 
 
 def create_model(dataframe):

@@ -5,11 +5,13 @@ import sys
 
 from Pipeline import DPA
 from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QWidget, QComboBox, QLabel, QHBoxLayout, QGridLayout
+from PyQt5.QtWidgets import QWidget, QComboBox, QLabel, QHBoxLayout, QGridLayout, QSpacerItem, QSizePolicy, QFormLayout, \
+    QLineEdit, QPushButton, QVBoxLayout
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+from PyQt5.QtGui import QColor, QPalette
 
 from GUI.PageWindow import PageWindow
 from OfflineAnalysis.Utilities.GeneralUtils import get_random_idx
@@ -33,20 +35,39 @@ class OfflineWindowDPA(PageWindow):
         self.canvas = FigureCanvasQTAgg(self.figure)
         self.ax = self.figure.add_subplot(projection='3d')
 
-        #todo edit this window
         container = QWidget()
 
         self.LDA_origin_label = QLabel("Select LDA source:")
 
-        self.lda_origin_combobox = QComboBox()
-        load_average_option = "Load average LDA trained on multiple animals"
-        load_previously_trained_option = "Load previously trained LDA for this animal"
-        get_provisional_labels_option = "Get provisional labels from ANN and train a new LDA"
-        self.lda_origin_combobox.addItems([
-            load_average_option,
-            load_previously_trained_option,
-            get_provisional_labels_option
-        ])
+        self.right_panel = QWidget()
+
+        form_layout = QFormLayout()
+        form_layout.setContentsMargins(0, 0, 0, 0)
+
+        for i in range(5):
+            text_field_label = QLabel()
+            text_field_label.setObjectName(f"text_field_{i}_label")
+            text_field_label.setText(str(i))
+            form_layout.setWidget(i + 1, QFormLayout.LabelRole, text_field_label)
+
+            text_field_input = QLineEdit()
+            text_field_input.setObjectName(f"text_field_{i}_input")
+            form_layout.setWidget(i + 1, QFormLayout.FieldRole, text_field_input)
+
+        # add buttons
+        self.dpa_z_button = QPushButton("dpa-z")
+        form_layout.setWidget(5, QFormLayout.FieldRole, self.dpa_z_button)
+
+        self.rm_dpa_button = QPushButton("RM DPA")
+        form_layout.setWidget(6, QFormLayout.FieldRole, self.rm_dpa_button)
+
+        self.new_random_indexes_button = QPushButton("New random indexes")
+        form_layout.setWidget(7, QFormLayout.FieldRole, self.new_random_indexes_button)
+
+        self.merge_labels_button = QPushButton("Merge labels")
+        form_layout.setWidget(8, QFormLayout.FieldRole, self.merge_labels_button)
+
+        self.right_panel.setLayout(form_layout)
 
         self.plot_data_button = QtWidgets.QPushButton("Load and plot data", self)
         self.plot_data_button.setGeometry(QtCore.QRect(5, 5, 200, 20))
@@ -65,21 +86,27 @@ class OfflineWindowDPA(PageWindow):
 
         self.indicator_layout = QGridLayout()
 
-        settings_layout = QHBoxLayout()
-        settings_layout.addWidget(self.LDA_origin_label, 1)
-        settings_layout.addWidget(self.lda_origin_combobox, 5)
-        settings_layout.addWidget(self.plot_data_button, 12)
+        # Create the top panel
+        top_panel_layout = QGridLayout()
+        top_panel = QSpacerItem(20, 40, QSizePolicy.Minimum)
+        top_panel_layout.addItem(top_panel, 0, 0, 1, 2)
 
-        navigation_layout = QHBoxLayout()
-        navigation_layout.addWidget(self.backButton, 1)
-        navigation_layout.addWidget(self.startButton, 1)
+        # Create the center panel
+        center_panel = QWidget()
+        center_panel.setStyleSheet("background-color: rgb(255, 0, 0);")  # set background color to red
+        center_layout = QHBoxLayout()
+        center_layout.addWidget(self.canvas, 1)
+        center_layout.addWidget(self.right_panel, 1)
+        center_panel.setLayout(center_layout)
+        top_panel_layout.addWidget(center_panel, 1, 0, 1, 2)
 
-        layout = QGridLayout()
-        layout.addLayout(settings_layout, 0, 0, 2, 4)
-        layout.addWidget(self.canvas, 2, 0, 2, 4)
-        layout.addLayout(navigation_layout, 4, 0, 2, 4)
+        # Create the bottom panel
+        bottom_layout = QHBoxLayout()
+        bottom_layout.addWidget(self.backButton, 1)
+        bottom_layout.addWidget(self.startButton, 1)
+        top_panel_layout.addLayout(bottom_layout, 2, 0, 1, 2)
 
-        container.setLayout(layout)
+        container.setLayout(top_panel_layout)
         self.setCentralWidget(container)
 
     def plot_data(self):

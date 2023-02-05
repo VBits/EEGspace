@@ -1,14 +1,19 @@
 """
 Online analysis
 """
+from OnlineAnalysis.Timing import Timer
+timer = Timer("start_time", None, None)
+print("time since start b0: ", timer.get_duration_since("start_time"))
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
+print("time since start b1: ", timer.get_duration_since("start_time"))
 
 from GUI.OfflineWindowConfiguration import OfflineSettingsWindow
+print("time since start b1.1: ", timer.get_duration_since("start_time"))
 from GUI.OfflineWindowDPA import OfflineWindowDPA
 from GUI.OfflineWindowKnn import OfflineWindowKnn
 from GUI.OfflineWindowLDA import OfflineWindowLDA
@@ -17,19 +22,18 @@ from GUI.Utilities import set_input_default
 from OnlineAnalysis import Config
 from OfflineAnalysis import Config as OfflineConfig
 from OnlineAnalysis.LoadModels import MouseModel
+print("time since start b1.2: ", timer.get_duration_since("start_time"))
 from types import SimpleNamespace
 import sys
-from OnlineAnalysis.Timing import Timer
+print("time since start b2: ", timer.get_duration_since("start_time"))
 
-timer = Timer("start_time", None, None)
-print("time since start b0: ", timer.get_duration_since("start_time"))
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
 import numpy as np
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
 from pandas.plotting import register_matplotlib_converters
 register_matplotlib_converters()
-print("time since start b1: ", timer.get_duration_since("start_time"))
+print("time since start b3: ", timer.get_duration_since("start_time"))
 
 #window for the master page window
 class Window(QtWidgets.QMainWindow):

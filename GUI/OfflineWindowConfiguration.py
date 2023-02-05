@@ -1,13 +1,20 @@
+from OnlineAnalysis.Timing import Timer
+timer = Timer("start_time", None, None)
+print("time since start c0: ", timer.get_duration_since("start_time"))
 from PyQt5 import QtCore
 from PyQt5.QtWidgets import *
 from PyQt5.QtCore import *
+print("time since start c1: ", timer.get_duration_since("start_time"))
 
 from GUI.Utilities import set_input_default
 from GUI.PageWindow import PageWindow
 from OfflineAnalysis import Config as OfflineConfig
+print("time since start c1.1: ", timer.get_duration_since("start_time"))
 from OfflineAnalysis.Utilities.LoadData import process_EEG_data
+print("time since start c2: ", timer.get_duration_since("start_time"))
 import traceback
 import sys
+print("time since start c3: ", timer.get_duration_since("start_time"))
 
 #window for offline mode settings => OfflineSettingsWindow
 class OfflineSettingsWindow(PageWindow):
@@ -23,19 +30,18 @@ class OfflineSettingsWindow(PageWindow):
         self.formLayout = QFormLayout(self.formLayoutWidget)
         self.formLayout.setObjectName(u"formLayout")
         self.formLayout.setContentsMargins(0, 0, 0, 0)
+
+
         self.basePathLabel = QLabel(self.formLayoutWidget)
         self.basePathLabel.setObjectName(u"basePathLabel")
-
         self.formLayout.setWidget(0, QFormLayout.LabelRole, self.basePathLabel)
 
         self.basePathInput = QLineEdit(self.formLayoutWidget)
         self.basePathInput.setObjectName(u"basePathInput")
-
         self.formLayout.setWidget(0, QFormLayout.FieldRole, self.basePathInput)
 
         self.experimentalPathLabel = QLabel(self.formLayoutWidget)
         self.experimentalPathLabel.setObjectName(u"experimentalPathLabel")
-
         self.formLayout.setWidget(1, QFormLayout.LabelRole, self.experimentalPathLabel)
 
         self.experimentalPathInput = QLineEdit(self.formLayoutWidget)

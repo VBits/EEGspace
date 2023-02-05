@@ -1,15 +1,24 @@
+from OnlineAnalysis.Timing import Timer
+timer = Timer("start_time", None, None)
+print("time since start d0: ", timer.get_duration_since("start_time"))
+
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 plt.rc('lines', linewidth=0.5)
 import pandas as pd
+print("time since start d1: ", timer.get_duration_since("start_time"))
 # import sys
 # sys.path.append('C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/OfflineAnalysis')
 from OfflineAnalysis.Utilities.Mouse import Mouse
+print("time since start d1: ", timer.get_duration_since("start_time"))
 import OfflineAnalysis.Config as OfflineConfig
+print("time since start d2 ", timer.get_duration_since("start_time"))
 from OfflineAnalysis.Utilities.GeneralUtils import query_option, expand_epochs
 from OfflineAnalysis.Utilities.Transformations import train_lda,lda_transform_df
 import joblib
+print("time since start d3 ", timer.get_duration_since("start_time"))
 import OfflineAnalysis.Utilities.ANN as ANN
+print("time since start d4 ", timer.get_duration_since("start_time"))
 
 def process_EEG_data(description, mouse_id, load_data=-1):
 

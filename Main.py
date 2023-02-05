@@ -1,6 +1,8 @@
 """
 Online analysis
 """
+from PyQt5 import QtGui, QtCore, QtWidgets
+
 from OnlineAnalysis.Timing import Timer
 timer = Timer("start_time", None, None)
 print("time since start -1: ", timer.get_duration_since("start_time"))
@@ -24,6 +26,12 @@ import threading
 # from OfflineAnalysis import ClusteringAndClassification
 
 if __name__ == '__main__':
+    app = QtWidgets.QApplication([])
+    # Create splashscreen, this doesn't currently work
+    splash_pix = QtGui.QPixmap('img/Loading_icon.gif')
+    splash = QtWidgets.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
+    splash.show()
+    # start up the multiprocessing (probably need to run all the calculations and stuff seperate to the UI thread
     with multiprocessing.Manager() as manager:
 
         print("time since start 0: ", timer.get_duration_since("start_time"))
