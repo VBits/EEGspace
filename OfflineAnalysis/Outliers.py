@@ -5,7 +5,8 @@ These labels can then be propagated using KNN to the rest of the dataset
 #################
 from sklearn.cluster import DBSCAN
 
-dbscan_model = DBSCAN(eps=1.8,min_samples=100).fit(m.LD_df.loc[rand_idx]) # (2, 100)
+# dbscan_model = DBSCAN(eps=1.2,min_samples=100).fit(m.LD_df.loc[rand_idx]) # (2, 100)
+dbscan_model = DBSCAN(eps=1.7,min_samples=200).fit(m.LD_df.loc[rand_idx]) # (2, 100)
 
 fig = plt.figure()
 ax = Axes3D(fig)
@@ -24,10 +25,6 @@ sample_data = np.ascontiguousarray(m.LD_df.loc[rand_idx].values)
 clf_outlier.fit(sample_data, dbscan_model.labels_)
 # predict states
 m.state_df['outliers'] = clf_outlier.predict(m.LD_df)
-
-
-
-
 np.unique(m.state_df['outliers'],return_counts=True)
 
 # Annotate the state dataframe
