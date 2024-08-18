@@ -11,9 +11,6 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-
-#from GUI.OfflineWindowKnn import OfflineWindowKnn
-
 from GUI.PageWindow import PageWindow
 from GUI.Utilities import set_input_default
 from OnlineAnalysis import Config
@@ -51,20 +48,18 @@ class Window(QtWidgets.QMainWindow):
             from GUI.OfflineWindowLDA import OfflineWindowLDA
             return OfflineWindowLDA()
 
+        def load_offline_window_knn():
+            from GUI.OfflineWindowKnn import OfflineWindowKnn
+            return OfflineWindowKnn()
+
         self.page_factories = {
             "start": StartWindow,
             "online_settings": lambda: OnlineSettingsWindow(config_queue),
             "plot": lambda: PlotWindow(config_queue),
             "offline_settings": load_offline_settings_window,
             "lda_window": load_offline_window_lda,
+            "knn": load_offline_window_knn
         }
-
-        # self.register(StartWindow(), "start")
-        # self.register(OnlineSettingsWindow(config_queue), "online_settings")
-        # self.register(PlotWindow(config_queue), "plot")
-        # self.register(OfflineSettingsWindow(), "offline_settings")
-        # # self.register(OfflineWindowKnn(), "knn_window")
-        # self.register(OfflineWindowLDA(), "lda_window")
 
         self.mainWindowState = {}
         #self.register(ModelCreationWindow(), "offline_settings")
@@ -105,19 +100,40 @@ class Window(QtWidgets.QMainWindow):
         self.propagateStateToChildrenSignal.emit(state)
         print("setting global state")
 
-
-
 #window for start page with two options, create the model or run a closed loop experiment with existing model => StartWindow
 class StartWindow(PageWindow):
     def __init__(self):
         super().__init__()
 
-        self.offlineButton = QtWidgets.QPushButton("Offline Analysis", self)
-        self.offlineButton.setGeometry(QtCore.QRect(5, 5, 200, 20))
+        # Create buttons
+        self.offlineButton = QtWidgets.QPushButton("Offline Analysis")
+        self.onlineButton = QtWidgets.QPushButton("Closed Loop Experiment")
+
+        # Connect buttons to methods
         self.offlineButton.clicked.connect(self.goToOfflineSettings)
-        self.onlineButton = QtWidgets.QPushButton("Closed Loop Experiment", self)
-        self.onlineButton.setGeometry(QtCore.QRect(210, 5, 200, 20))
         self.onlineButton.clicked.connect(self.goToOnlineSettings)
+
+        self.offlineButton.setMinimumSize(200, 50)
+        self.onlineButton.setMinimumSize(200, 50)
+
+        # Create a horizontal layout for the buttons
+        h_layout = QtWidgets.QHBoxLayout()
+        h_layout.addStretch(1)  # Add stretchable space before the first button
+        h_layout.addWidget(self.offlineButton)
+        h_layout.addSpacing(20)  # Add fixed space between the buttons
+        h_layout.addWidget(self.onlineButton)
+        h_layout.addStretch(1)  # Add stretchable space after the second button
+
+        # Create a vertical layout to center the horizontal layout
+        v_layout = QtWidgets.QVBoxLayout(self)
+        v_layout.addStretch(1)  # Add stretchable space above the buttons
+        v_layout.addLayout(h_layout)
+        v_layout.addStretch(1)  # Add stretchable space below the buttons
+
+        # Set the layout for the window
+        container = QWidget()
+        container.setLayout(v_layout)
+        self.setCentralWidget(container)
 
     def goToOfflineSettings(self):
         self.goto("offline_settings")
