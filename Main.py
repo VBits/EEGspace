@@ -8,19 +8,14 @@ timer = Timer("start_time", None, None)
 print("time since start -1: ", timer.get_duration_since("start_time"))
 import sys
 from OnlineAnalysis import Config as ConfigOnline
-print("time since start -1.1: ", timer.get_duration_since("start_time"))
-from OnlineAnalysis import InputProcessing #this takes 2.8 seconds or so
-print("time since start -1.2: ", timer.get_duration_since("start_time"))
-from OnlineAnalysis import TestFileGeneration
-print("time since start -1.3: ", timer.get_duration_since("start_time"))
-#from OnlineAnalysis import StimulusOutput
-print("time since start -1.4: ", timer.get_duration_since("start_time"))
-
 from GUI import UserInterface #4 seconds to load think we need to load more stuff on mount or navigate
 print("time since start -1.5: ", timer.get_duration_since("start_time"))
 import multiprocessing
 import threading
 
+def run_test_file_cycle():
+    from OnlineAnalysis import TestFileGeneration
+    TestFileGeneration.cycle_test_files(lock)
 
 # from OfflineAnalysis import Config as OfflineConfig
 # from OfflineAnalysis import ClusteringAndClassification
@@ -43,7 +38,7 @@ if __name__ == '__main__':
 
         if ConfigOnline.cycle_test_data:
             lock = threading.Lock()
-            TestFileGeneration.cycle_test_files(lock)
+            run_test_file_cycle()
         print("time since start 0.1: ", timer.get_duration_since("start_time"))
         jobs = []
         #manager = multiprocessing.Manager()
@@ -64,6 +59,7 @@ if __name__ == '__main__':
 
         #start processing EEG data
         def run_loop_processes(config):
+            from OnlineAnalysis import InputProcessing  # this takes 2.8 seconds or so
             for mouse_id in config.mouse_ids:
                 p = multiprocessing.Process(target=InputProcessing.run_loop, args=(mouse_id, file_queue, LoadModels, config))
                 p.daemon = True

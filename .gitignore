@@ -1,4 +1,5 @@
 venv/
+.venv/
 181008_TRAP_females_4/
 mouse_object
 *.pkl

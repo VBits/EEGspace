@@ -11,14 +11,14 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
 import matplotlib.pyplot as plt
 
-from GUI.OfflineWindowConfiguration import OfflineSettingsWindow
-from GUI.OfflineWindowKnn import OfflineWindowKnn
-from GUI.OfflineWindowLDA import OfflineWindowLDA
+
+#from GUI.OfflineWindowKnn import OfflineWindowKnn
+
 from GUI.PageWindow import PageWindow
 from GUI.Utilities import set_input_default
 from OnlineAnalysis import Config
-from OfflineAnalysis import Config as OfflineConfig
-from OnlineAnalysis.LoadModels import MouseModel
+# from OfflineAnalysis import Config as OfflineConfig
+
 from types import SimpleNamespace
 import sys
 print("time since start b2: ", timer.get_duration_since("start_time"))
@@ -43,12 +43,28 @@ class Window(QtWidgets.QMainWindow):
 
         self.m_pages = {}
 
-        self.register(StartWindow(), "start")
-        self.register(OnlineSettingsWindow(config_queue), "online_settings")
-        self.register(PlotWindow(config_queue), "plot")
-        self.register(OfflineSettingsWindow(), "offline_settings")
-        # self.register(OfflineWindowKnn(), "knn_window")
-        self.register(OfflineWindowLDA(), "lda_window")
+        def load_offline_settings_window():
+            from GUI.OfflineWindowConfiguration import OfflineSettingsWindow
+            return OfflineSettingsWindow()
+
+        def load_offline_window_lda():
+            from GUI.OfflineWindowLDA import OfflineWindowLDA
+            return OfflineWindowLDA()
+
+        self.page_factories = {
+            "start": StartWindow,
+            "online_settings": lambda: OnlineSettingsWindow(config_queue),
+            "plot": lambda: PlotWindow(config_queue),
+            "offline_settings": load_offline_settings_window,
+            "lda_window": load_offline_window_lda,
+        }
+
+        # self.register(StartWindow(), "start")
+        # self.register(OnlineSettingsWindow(config_queue), "online_settings")
+        # self.register(PlotWindow(config_queue), "plot")
+        # self.register(OfflineSettingsWindow(), "offline_settings")
+        # # self.register(OfflineWindowKnn(), "knn_window")
+        # self.register(OfflineWindowLDA(), "lda_window")
 
         self.mainWindowState = {}
         #self.register(ModelCreationWindow(), "offline_settings")
@@ -63,13 +79,24 @@ class Window(QtWidgets.QMainWindow):
             widget.updateParentStateSignal.connect(self.setState)
             self.propagateStateToChildrenSignal.connect(widget.setState)
 
+
     @QtCore.pyqtSlot(str)
     def goto(self, name):
+        widget = None
         if name in self.m_pages:
             widget = self.m_pages[name]
+        else:
+            # Instantiate the page if it hasn't been created yet
+            page_factory = self.page_factories.get(name)
+            if page_factory:
+                page = page_factory() if callable(page_factory) else page_factory
+                self.register(page, name)
+                widget = self.m_pages[name]
+        if widget is not None:
             self.stacked_widget.setCurrentWidget(widget)
             self.setWindowTitle(widget.windowTitle())
             widget.mount()
+
 
     @QtCore.pyqtSlot(object)
     def setState(self, state):
@@ -355,6 +382,7 @@ class ModelCreationWindow(PageWindow):
 #window for now to just be the current online screen that we already have => PlotWindow
 class PlotWindow(PageWindow):
     def __init__(self, queue):
+        from OnlineAnalysis.LoadModels import MouseModel
         super().__init__()
 
         self.setWindowTitle("Closed Loop EEG")
