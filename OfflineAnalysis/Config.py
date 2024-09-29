@@ -4,11 +4,11 @@ file starts with a file ID
 We use dates that the experiment first started and a file first created as unique IDs
 """
 #Update for each mouse
-base_path = 'D:/Project_Mouse/Ongoing_analysis/'
-experimental_path = '201022_Nms_NO_misting_burrowing/Ephys/'
-file = '210120_000_SD_duringDD_part3.smrx'
+base_path = 'C:/Users/matthew.grant/source/repos/ClosedLoopEEG/OnlineAnalysis/data/CombinedData/'
+experimental_path = ''
+file = '220202_000'
 mouse_description = 'Nms'
-mouse_id = 16
+mouse_id = 1
 
 #Update more rarely
 experiment_id = experimental_path[:6]

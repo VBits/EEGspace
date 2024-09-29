@@ -3,13 +3,9 @@ Online analysis
 """
 from PyQt5 import QtGui, QtCore, QtWidgets
 
-from OnlineAnalysis.Timing import Timer
-timer = Timer("start_time", None, None)
-print("time since start -1: ", timer.get_duration_since("start_time"))
 import sys
 from OnlineAnalysis import Config as ConfigOnline
-from GUI import UserInterface #4 seconds to load think we need to load more stuff on mount or navigate
-print("time since start -1.5: ", timer.get_duration_since("start_time"))
+from GUI import UserInterface
 import multiprocessing
 import threading
 
@@ -29,33 +25,33 @@ if __name__ == '__main__':
     # start up the multiprocessing (probably need to run all the calculations and stuff seperate to the UI thread
     with multiprocessing.Manager() as manager:
 
-        print("time since start 0: ", timer.get_duration_since("start_time"))
         args = sys.argv
-        if '--run-offline-anaysis' in args:
-            print("Analysing files in offline mode")
-            # for mouse_id in OfflineConfig.mouse_id:
-            #     ClusteringAndClassification.process_EEG_data()
+        # if '--run-offline-anaysis' in args:
+        #     print("Analysing files in offline mode")
+        #     # for mouse_id in OfflineConfig.mouse_id:
+        #     #     ClusteringAndClassification.process_EEG_data()
 
         if ConfigOnline.cycle_test_data:
             lock = threading.Lock()
             run_test_file_cycle()
-        print("time since start 0.1: ", timer.get_duration_since("start_time"))
+        # print("time since start 0.1: ", timer.get_duration_since("start_time"))
         jobs = []
         #manager = multiprocessing.Manager()
-        print("time since start 0.2: ", timer.get_duration_since("start_time"))
+        # print("time since start 0.2: ", timer.get_duration_since("start_time"))
         file_queue = manager.Queue()
-        print("time since start 0.3: ", timer.get_duration_since("start_time"))
+        # print("time since start 0.3: ", timer.get_duration_since("start_time"))
         ui_input_queue = manager.Queue()
-        print("time since start 0.4: ", timer.get_duration_since("start_time"))
+        # print("time since start 0.4: ", timer.get_duration_since("start_time"))
         ui_output_queue = manager.Queue()
-        print("time since start 1: ", timer.get_duration_since("start_time"))
-        # stimulus_queues = []
+        # print("time since start 1: ", timer.get_duration_since("start_time"))
+        stimulus_queues = []
 
-        p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue, ui_output_queue))
-        p.daemon = True
-        p.start()
-        jobs.append(p)
-        print("time since start: 2", timer.get_duration_since("start_time"))
+        UserInterface.create_user_interface(ui_input_queue, ui_output_queue)
+        # p = multiprocessing.Process(target=UserInterface.create_user_interface, args=(ui_input_queue, ui_output_queue))
+        # p.daemon = True
+        # p.start()
+        # jobs.append(p)
+        #print("time since start: 2", timer.get_duration_since("start_time"))
 
         #start processing EEG data
         def run_loop_processes(config):

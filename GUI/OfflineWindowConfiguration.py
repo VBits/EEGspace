@@ -249,7 +249,6 @@ class OfflineSettingsWindow(PageWindow):
 
     def go_to_next(self):
         self.goto("lda_window")
-        return
 
         for input in self.inputs:
             self.settings.setValue(input.objectName(), input.text())
