@@ -16,7 +16,7 @@ from OfflineAnalysis.Utilities.GeneralUtils import get_random_idx
 from OfflineAnalysis.Utilities.LoadData import get_LDA
 from OfflineAnalysis import Config as OfflineConfig
 
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 plt.rc('lines', linewidth=0.5)
 from pandas.plotting import register_matplotlib_converters
 

@@ -21,7 +21,7 @@ import sys
 print("time since start b2: ", timer.get_duration_since("start_time"))
 import math
 
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 plt.rc('lines', linewidth=0.5)
 import numpy as np
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')

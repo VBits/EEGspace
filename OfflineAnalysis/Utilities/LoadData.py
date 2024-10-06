@@ -3,7 +3,7 @@ timer = Timer("start_time", None, None)
 print("time since start d0: ", timer.get_duration_since("start_time"))
 
 import matplotlib.pyplot as plt
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 plt.rc('lines', linewidth=0.5)
 import pandas as pd
 print("time since start d1: ", timer.get_duration_since("start_time"))

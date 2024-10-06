@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 plt.rc('lines', linewidth=0.5)
 import numpy as np
 import pandas as pd

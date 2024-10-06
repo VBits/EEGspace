@@ -17,7 +17,7 @@ from GUI.PageWindow import PageWindow
 from OfflineAnalysis.Utilities.GeneralUtils import get_random_idx
 from OfflineAnalysis import Config as OfflineConfig
 
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 plt.rc('lines', linewidth=0.5)
 import numpy as np
 from pandas.plotting import register_matplotlib_converters

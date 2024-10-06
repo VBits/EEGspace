@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 from OnlineAnalysis import Config
 from OnlineAnalysis.LoadModels import MouseModel
 
-plt.style.use('seaborn')
+plt.style.use('seaborn-v0_8')
 plt.rc('lines', linewidth=0.5)
 import numpy as np
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/delta_analysis/SleepAnalysisPaper')
