@@ -19,9 +19,6 @@ def run_test_file_cycle():
 if __name__ == '__main__':
     app = QtWidgets.QApplication([])
     # Create splashscreen, this doesn't currently work
-    splash_pix = QtGui.QPixmap('img/Loading_icon.gif')
-    splash = QtWidgets.QSplashScreen(splash_pix, QtCore.Qt.WindowStaysOnTopHint)
-    splash.show()
     # start up the multiprocessing (probably need to run all the calculations and stuff seperate to the UI thread
     with multiprocessing.Manager() as manager:
 

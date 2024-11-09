@@ -22,40 +22,44 @@ print("time since start d4 ", timer.get_duration_since("start_time"))
 
 def process_EEG_data(description, mouse_id, load_data=-1):
 
-    m = Mouse(description, mouse_id)
+    try:
+        m = Mouse(description, mouse_id)
 
-    # Create directory to save figures
-    m.gen_folder(OfflineConfig.base_path, OfflineConfig.experimental_path)
-    if load_data == -1:
-        load_data = query_option("Pick option: \n1) Preprocess raw data \n2) Load previously stored pkl files?",valid_options=[1,2])
-    if load_data==1:
-        print('Processing EEG data and storing files: _{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
-        #Load EEG data
-        m.read_smrx(OfflineConfig.base_path, OfflineConfig.experimental_path, OfflineConfig.file)
+        # Create directory to save figures
+        m.gen_folder(OfflineConfig.base_path, OfflineConfig.experimental_path)
+        if load_data == -1:
+            load_data = query_option("Pick option: \n1) Preprocess raw data \n2) Load previously stored pkl files?",valid_options=[1,2])
+        if load_data==1:
+            print('Processing EEG data and storing files: _{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+            #Load EEG data
+            m.read_smrx(OfflineConfig.base_path, OfflineConfig.experimental_path, OfflineConfig.file)
 
-        ### -------------------
-        ### Downsample, perform multitaper and normalize data
-        if m.EEG_fs > OfflineConfig.target_fs:
-            print ('downsampling mouse {} EEG data, from {}Hz to {}Hz'.format(m.mouse_id,m.EEG_fs,OfflineConfig.target_fs))
-            m.downsample_EGG(target_fs=OfflineConfig.target_fs)
+            ### -------------------
+            ### Downsample, perform multitaper and normalize data
+            if m.EEG_fs > OfflineConfig.target_fs:
+                print ('downsampling mouse {} EEG data, from {}Hz to {}Hz'.format(m.mouse_id,m.EEG_fs,OfflineConfig.target_fs))
+                m.downsample_EGG(target_fs=OfflineConfig.target_fs)
 
-        m.multitaper(resolution=OfflineConfig.epoch_seconds)
-        m.smoothen_and_norm_spectrum(window_size=OfflineConfig.smoothing_window,quantile=OfflineConfig.quantile_norm)
+            m.multitaper(resolution=OfflineConfig.epoch_seconds)
+            m.smoothen_and_norm_spectrum(window_size=OfflineConfig.smoothing_window,quantile=OfflineConfig.quantile_norm)
 
-        # Save normalized Dataframe to experimental folder
-        m.Sxx_df.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
-        m.Sxx_norm.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
-        m.multitaper_df.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
-    elif load_data ==2:
-        print('Loading previously analysed file {}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
-        # Load previously saved Dataframe from experimental folder
-        m.Sxx_df = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
-        m.Sxx_norm = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
-        m.multitaper_df = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+            # Save normalized Dataframe to experimental folder
+            m.Sxx_df.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+            m.Sxx_norm.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+            m.multitaper_df.to_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+        elif load_data ==2:
+            print('Loading previously analysed file {}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+            # Load previously saved Dataframe from experimental folder
+            m.Sxx_df = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+            m.Sxx_norm = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
+            m.multitaper_df = pd.read_pickle(OfflineConfig.base_path + OfflineConfig.experimental_path + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(OfflineConfig.experiment_id, OfflineConfig.file_id, m.description, m.mouse_id))
 
-    #Create an extended dataframe that contains the smoothed and raw epochs
-    m.Sxx_ext = expand_epochs(m)
-    return m
+        #Create an extended dataframe that contains the smoothed and raw epochs
+        m.Sxx_ext = expand_epochs(m)
+        return m
+    except Exception as e:
+        print('Error processing EEG data:', e)
+        return None
 
 
 def get_LDA(m, rand_idx, use_lda=-1):

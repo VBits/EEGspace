@@ -1,11 +1,7 @@
-"""
-Online analysis
-"""
-import sys
 
 from PyQt5.QtCore import QSettings
-from PyQt5.QtWidgets import QWidget, QComboBox, QLabel, QHBoxLayout, QVBoxLayout, \
-    QGridLayout, QPushButton
+from PyQt5.QtWidgets import QWidget, QComboBox, QLabel, QHBoxLayout, \
+    QGridLayout
 from PyQt5 import QtCore, QtWidgets
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg
 from matplotlib.figure import Figure
@@ -15,31 +11,19 @@ from GUI.PageWindow import PageWindow
 from OfflineAnalysis.Utilities.GeneralUtils import get_random_idx
 from OfflineAnalysis.Utilities.LoadData import get_LDA
 from OfflineAnalysis import Config as OfflineConfig
+from pandas.plotting import register_matplotlib_converters
 
 plt.style.use('seaborn-v0_8')
 plt.rc('lines', linewidth=0.5)
-import numpy as np
-from pandas.plotting import register_matplotlib_converters
 
 register_matplotlib_converters()
 
 class OfflineWindowLDA(PageWindow):
     def __init__(self):
-        #add in a panel for the dropdown and one for the plotting window
-        #Add the dropdown options, the go button
-        #
         super().__init__()
 
         self.setWindowTitle("LDA Settings")
         self.settings = QSettings("ClosedLoopEEG", "OfflineSettingsLDA")
-
-        #main widget
-        #QV widget for the bottom bar and the top widget
-        #inside the top widget there should be QH widget for the plot panel on the left and the form panel on the right
-        #form panel needs a value for the max and the dpa-z
-        #checkboxes for the new rand and merge labels
-        #list of 4 labels
-        #and update button
 
         self.figure = Figure(figsize=(5, 5))
         self.canvas = FigureCanvasQTAgg(self.figure)

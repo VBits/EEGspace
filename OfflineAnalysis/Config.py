@@ -6,7 +6,7 @@ We use dates that the experiment first started and a file first created as uniqu
 #Update for each mouse
 base_path = 'C:/Users/matthew.grant/source/repos/ClosedLoopEEG/OnlineAnalysis/data/CombinedData/'
 experimental_path = ''
-file = '220202_000'
+file = '220202_000.smrx'
 mouse_description = 'Nms'
 mouse_id = 1
 
@@ -33,9 +33,6 @@ lda_figure_title_state_labels = 'LDA state labels m{}-{}_{}'.format(mouse_id, ex
 lda_figure_title_outliers_labels = 'LDA state labels with outliers m{}-{}_{}'.format(mouse_id, experiment_id, file_id)
 
 eeg_figure_title = 'EEG m{}-{}_{} '.format(mouse_id, experiment_id, file_id, )
-
-# ann_folder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
-
 
 # standard functions for plotting
 plot_kwds = {'alpha': 0.25, 's': 20, 'linewidths': 0}

@@ -199,6 +199,8 @@ class OfflineSettingsWindow(PageWindow):
 
         self.formLayout.setWidget(16, QFormLayout.FieldRole, self.statesOrigin)
 
+        #self.formLayout.setWidget(17, QFormLayout.SpanningRole, QLabel("This is a label that stretches across the form let's see how far it can really go, show me now", self.formLayoutWidget))
+
         self.startButton = QPushButton(self.centralwidget)
         self.startButton.setObjectName(u"startButton")
         self.startButton.setGeometry(QtCore.QRect(940, 640, 151, 28))
