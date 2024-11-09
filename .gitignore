@@ -10,3 +10,4 @@ Old Pickle Files 10172021/
 data/
 __pycache__/
 .DS_Store
+venv-*/
