@@ -11,6 +11,7 @@ mouse_description = 'Nms'
 mouse_id = 1
 
 #Update more rarely
+#todo mg, update the UI to hide these most of the time
 experiment_id = experimental_path[:6]
 file_id = file[:6]
 dpa_z=0.9
@@ -27,12 +28,13 @@ min_samples = 100
 
 
 #No need to update normally
-lda_figure_title_no_labels = 'LDA no labels m{}-{}_{}'.format(mouse_id, experiment_id, file_id)
-lda_figure_title_dpc_labels = 'LDA DPC labels m{}-{}_{}'.format(mouse_id, experiment_id, file_id)
-lda_figure_title_state_labels = 'LDA state labels m{}-{}_{}'.format(mouse_id, experiment_id, file_id)
-lda_figure_title_outliers_labels = 'LDA state labels with outliers m{}-{}_{}'.format(mouse_id, experiment_id, file_id)
+figure_title_mouse_info = 'm{}-{}_{}'.format(mouse_id, experiment_id, file_id)
+lda_figure_title_no_labels = 'LDA no labels {}'.format(figure_title_mouse_info)
+lda_figure_title_dpc_labels = 'LDA DPC labels {}'.format(figure_title_mouse_info)
+lda_figure_title_state_labels = 'LDA state labels {}'.format(figure_title_mouse_info)
+lda_figure_title_outliers_labels = 'LDA state labels with outliers {}'.format(figure_title_mouse_info)
 
-eeg_figure_title = 'EEG m{}-{}_{} '.format(mouse_id, experiment_id, file_id, )
+eeg_figure_title = 'EEG {}'.format(figure_title_mouse_info)
 
 # standard functions for plotting
 plot_kwds = {'alpha': 0.25, 's': 20, 'linewidths': 0}
