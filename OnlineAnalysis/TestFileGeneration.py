@@ -16,10 +16,10 @@ import Storage
 def cycle_test_files(file_lock, use_random=False):
     epoch_size = Config.num_seconds_per_epoch * Config.eeg_fs
     f = Storage.read_smrx(Config.raw_data_file) #don't load file multiple times
-    for mouse_num in Config.rig_position:
-        channel_number = mouse_num-1
+    for mouse_id in Config.mouse_ids:
+        channel_number = Config.get_channel_number_from_mouse_id(mouse_id)
         path = Config.channel_file_base_path.format(channel_number=channel_number)
-        eeg_data = Storage.get_smrx_data(f, mouse_num, Config.downsample_fs)
+        eeg_data = Storage.get_smrx_data(f, mouse_id, Config.downsample_fs)
         with file_lock:
             if os.path.isfile(path):
                 os.remove(path)
