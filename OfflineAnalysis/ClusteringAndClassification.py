@@ -13,11 +13,17 @@ import joblib
 ######################################
 #1. Get data for indicated genotype and channel.
 # Preprocess data, or specify to load preprocessed data
-m = get_mouse('TRAP',16,load=False)
+m = get_mouse('VgatSert',7,load=False)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
-rand_idx = get_random_idx(m.Sxx_ext,size=20000)
+rand_idx = get_random_idx(m.Sxx_ext,size=60000)
+
+# Optional: If need to cut out data after a certain time (ex: mouse died partway through)
+cutoff_time = "2025-02-13 12:00:00" #Time after which data is cut out
+m.Sxx_ext = m.Sxx_ext.loc[m.Sxx_ext.index <= cutoff_time]
+rand_idx = get_random_idx(m.Sxx_ext,size=30000)
+
 
 ############################################################
 # 2. Create ANN
@@ -44,9 +50,9 @@ rand_idx = get_random_idx(m.Sxx_ext,size=20000)
 # lda, X_train = train_lda(m.Sxx_ext,m.state_df['ann_labels'],rand_idx,components=3)
 
 # b. Load a previously created LDA (works better with noisy data)
-lda_filename = 'D:/SleepHomeostasis_D/240125_TRAP_Kir21_MPOam/ephys/lda_240125_240307_TRAP_m1.joblib'
-lda_filename = 'D:/SleepHomeostasis_D/240125_TRAP_Kir21_MPOam/ephys/lda_240125_240307_TRAP_m4.joblib'
-lda_filename = 'D:/SleepHomeostasis_D/240125_TRAP_Kir21_MPOam/ephys/lda_240125_240307_TRAP_m2.joblib'
+# lda_filename = 'D:/SleepHomeostasis_D/240125_TRAP_Kir21_MPOam/ephys/lda_240125_240307_TRAP_m1.joblib'
+# lda_filename = 'D:/SleepHomeostasis_D/240125_TRAP_Kir21_MPOam/ephys/lda_240125_240307_TRAP_m4.joblib'
+# lda_filename = 'D:/SleepHomeostasis_D/240125_TRAP_Kir21_MPOam/ephys/lda_240125_240307_TRAP_m2.joblib'
 
 lda_filename = offline_data_path +'lda_average.joblib'
 lda = joblib.load(lda_filename)
@@ -59,27 +65,44 @@ plt.savefig(m.figureFolder+ 'LDA_NoLabels' + m.figure_tail, dpi=dpi)
 ############################################################
 # 4. Density peak clustering
 # Find density peaks in low dimensional space, tweak Z (k_max default usually 201)
-est = DPA.DensityPeakAdvanced(Z=0.8, k_max=201)
+est = DPA.DensityPeakAdvanced(Z=1.0, k_max=301) #est = DPA.DensityPeakAdvanced(Z=0.6, k_max=81)
 est.fit(m.LD_df.loc[rand_idx])
 # Plot DPA clusters on LDA
 plot_DPA_LDA(m, rand_idx, est)
 
 # OPTIONAL merge spurious clusters into 4 labels, labels:merged_labels
-label_dict = {0:4,1:1,2:2,3:3,4:4,5:3}
+label_dict = {0:0,
+              1:6,
+              2:2,
+              3:3,
+              4:2,
+              5:6,
+              6:6,
+              7:2,
+              8:6,
+              9:6,
+              10:6}
 est.labels_ = np.vectorize(label_dict.get)(est.labels_)
 plot_DPA_LDA(m, rand_idx, est)
 
 # OPTIONAL Update LDA using the DPA clusters
-lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)
-m.LD_df = lda_transform_df(m.Sxx_ext,lda)
+# lda, X_train = train_lda_dpa_labels(m.Sxx_ext,est,rand_idx,components=3)
+# m.LD_df = lda_transform_df(m.Sxx_ext,lda)
 
 
 ############################################################
 # 5. Propagate DPC labels
-knn_clf = get_knn_clf(m,rand_idx,est,n_neighbors=201)
+knn_clf = get_knn_clf(m,rand_idx,est,n_neighbors=201) #default n_neighbors=201
 # propagate labels
 m.knn_pred(knn_clf, m.Sxx_ext,state_averages_path)
 # Plot and evaluate state assignment 3D
+plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
+plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
+
+
+# If states get swapped here, can correct manually like this:
+swap_dict = {"REM": "Wake"} # specify states to swap. example: swap_dict = {"REM": "REM", "REM": "HTwake"}
+m.state_df["states"] = m.state_df["states"].replace(swap_dict)
 plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
 plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
 
@@ -95,9 +118,9 @@ m.state_df.to_pickle(BaseDir + ExpDir + 'states_{}_{}_{}_m{}.pkl'.format(ExpDir[
 # m.state_df = pd.read_pickle(BaseDir + ExpDir + 'states_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
 # ### -------------------
 # # Store or load LDA transformation
-lda_filename = BaseDir + ExpDir + 'lda_{}_{}_{}_m{}.joblib'.format(ExpDir[:6], File[:6], m.genotype, m.pos)
+# lda_filename = BaseDir + ExpDir + 'lda_{}_{}_{}_m{}.joblib'.format(ExpDir[:6], File[:6], m.genotype, m.pos)
 # Save file
-joblib.dump(lda, lda_filename)
+# joblib.dump(lda, lda_filename)
 # # # Recover previously saved file
 # lda = joblib.load(lda_filename)
 # ### -------------------

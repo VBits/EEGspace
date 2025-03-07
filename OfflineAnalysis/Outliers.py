@@ -6,7 +6,7 @@ These labels can then be propagated using KNN to the rest of the dataset
 from sklearn.cluster import DBSCAN
 
 # dbscan_model = DBSCAN(eps=1.2,min_samples=100).fit(m.LD_df.loc[rand_idx]) # (2, 100)
-dbscan_model = DBSCAN(eps=1.7,min_samples=200).fit(m.LD_df.loc[rand_idx]) # (2, 100)
+dbscan_model = DBSCAN(eps=1.8,min_samples=100).fit(m.LD_df.loc[rand_idx]) # (2, 100)
 
 fig = plt.figure()
 ax = Axes3D(fig)
