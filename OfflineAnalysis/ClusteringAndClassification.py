@@ -17,7 +17,7 @@ m = get_mouse('VgatSert',7,load=False)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
-rand_idx = get_random_idx(m.Sxx_ext,size=60000)
+rand_idx = get_random_idx(m.Sxx_ext,size=20000)
 
 # Optional: If need to cut out data after a certain time (ex: mouse died partway through)
 cutoff_time = "2025-02-13 12:00:00" #Time after which data is cut out
