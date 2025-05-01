@@ -3,8 +3,8 @@ import os
 BaseDir = 'D:/SleepHomeostasis_D/'
 
 
-ExpDir = '250205_VgatSert_Kir21_MR/ephys/'
-File = '250211_000.smrx'
+ExpDir = '250401_VgatSert_Kir_MR_rig1/ephys/'
+File = '250407_000.smrx'
 
 
 ANNfolder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
@@ -12,6 +12,10 @@ ANNfolder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
 
 # standard functions for plotting
 plot_kwds = {'alpha': 0.25, 's': 20, 'linewidths': 0}
+lda_figure_title_no_labels = "LDA_NoLabels"
+lda_figure_title_state_labels = "LDA_StateLabels"
+lda_figure_title_dpc_labels = "LDA_DPCLabels"
+dpi = 300
 # Set figure resolution
 dpi = 300
 
