@@ -14,7 +14,6 @@ import os
 from math import floor
 from sonpy import lib as sp
 
-
 def inspect_function(f):
     code, line_no = inspect.getsourcelines(f)
     print(''.join(code))
@@ -65,42 +64,87 @@ class Mouse:
             self.EMG_data = self.f["{}".format(self.Mouse_Ch[1])]["values"][0, :]
             self.EMG_fs = 1 / self.f["{}".format(self.Mouse_Ch[1])]['interval'][0][0]
 
-    def read_smrx(self,BaseDir, ExpDir, File):
+    def read_smrx(self, BaseDir, ExpDir, File):
         """
-        Load file from .smrx file format
-        :param BaseDir: Base directory that contains different experiments
-        :param ExpDir: Directory containing the experiment analyzed
-        :return:
+        Load EEG data from .smrx file using Spike2 Python SDK.
+        Stores BaseDir, ExpDir, and File for use in other methods.
+        Also creates self.FileHandle for the open file.
         """
-        # Get file path
+        # Save path info
+        self.BaseDir = BaseDir
+        self.ExpDir = ExpDir
+        self.File = File  # file name string
+
+        # Other metadata
         self.figure_tail = ' - {} - {}.png'.format(self.pos, self.genotype)
         self.FilePath = BaseDir + ExpDir
-        print('Loading Mouse {} from {}'.format(self.pos,self.FilePath))
+        print(f'Loading Mouse {self.pos} from {self.FilePath}')
 
-        # Open file
-        self.File = sp.SonFile(self.FilePath + File, True)
+        # Open the .smrx file with Spike2 SDK
+        self.FileHandle = sp.SonFile(self.FilePath + File, True)
 
-        if self.File.GetOpenError() != 0:
-            print('Error opening file:', sp.GetErrorString(self.File.GetOpenError()))
+        if self.FileHandle.GetOpenError() != 0:
+            print('Error opening file:', sp.GetErrorString(self.FileHandle.GetOpenError()))
             quit()
+
         WaveChan = self.pos - 1
-        self.Ch_units = self.File.GetChannelUnits(WaveChan)
-        self.Ch_name = self.File.GetChannelTitle(WaveChan)
+        self.Ch_units = self.FileHandle.GetChannelUnits(WaveChan)
+        self.Ch_name = self.FileHandle.GetChannelTitle(WaveChan)
 
-        # Get number of seconds to read
-        dMaxSeconds = self.File.ChannelMaxTime(WaveChan) * self.File.GetTimeBase()
-
-        # Prepare for plotting
-        dPeriod = self.File.ChannelDivide(WaveChan) * self.File.GetTimeBase()
+        # Duration
+        dMaxSeconds = self.FileHandle.ChannelMaxTime(WaveChan) * self.FileHandle.GetTimeBase()
+        dPeriod = self.FileHandle.ChannelDivide(WaveChan) * self.FileHandle.GetTimeBase()
         nPoints = floor(dMaxSeconds / dPeriod)
 
-        self.EEG_data = np.array(self.File.ReadFloats(WaveChan, nPoints, 0))
+        self.EEG_data = np.array(self.FileHandle.ReadFloats(WaveChan, nPoints, 0))
 
-        start = pd.DataFrame(np.reshape(self.File.GetTimeDate()[::-1][:-1], (1, 6)),
+        start = pd.DataFrame(np.reshape(self.FileHandle.GetTimeDate()[::-1][:-1], (1, 6)),
                              columns=['year', 'month', 'day', 'hour', 'minute', 'second'])
         self.start = pd.to_datetime(start)
         self.EEG_fs = 1 / dPeriod
-        self.EEG_ideal_fs = self.File.GetIdealRate(WaveChan)
+        self.EEG_ideal_fs = self.FileHandle.GetIdealRate(WaveChan)
+
+    def process_TTL_epochs(self, epoch_length_sec=2, fraction_threshold=0.1):
+        """
+        Detect TTL 'ON' epochs for square-wave TTL signal.
+        Marks an epoch as ON if the fraction of samples >2.5 V exceeds threshold.
+        """
+        ttl = np.asarray(self.TTL_signal)
+        epoch_samples = int(epoch_length_sec * self.TTL_fs)
+        n_epochs = int(len(ttl) / epoch_samples)
+
+        ttl_binary = ttl > 2.5
+
+        ttl_on_epochs = []
+        fraction_on_list = []
+
+        for i in range(n_epochs):
+            seg = ttl_binary[i * epoch_samples: (i + 1) * epoch_samples]
+            fraction_on = np.mean(seg)
+            fraction_on_list.append(fraction_on)
+            ttl_on_epochs.append(fraction_on > fraction_threshold)
+
+        df = pd.DataFrame({
+            'epoch': np.arange(n_epochs),
+            'TTL_on': ttl_on_epochs,
+            'fraction_on': fraction_on_list
+        })
+
+        df['start_time_sec'] = df['epoch'] * epoch_length_sec
+
+        # Add datetime for unambiguous merge
+        df['datetime'] = df['start_time_sec'].apply(
+            lambda x: self.start + pd.to_timedelta(x, unit='s')
+        )
+
+        self.TTL_epochs_df = df
+
+        # Save
+        fname = f'TTL_epochs_df_{self.ExpDir[:6]}_{self.File[:6]}_{self.genotype}_m{self.pos}.pkl'
+        path = self.BaseDir + self.ExpDir + fname
+        df.to_pickle(path)
+
+        print(f'Saved TTL epochs DataFrame to: {path}')
 
     #Generate folder to store figures for mouse
     def gen_folder(self, BaseDir, ExpDir, all_mice=None):

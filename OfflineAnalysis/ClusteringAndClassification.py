@@ -18,16 +18,19 @@ from sklearn.metrics import silhouette_score #for grid search
 ######################################
 #1. Get data for indicated genotype and channel.
 # Preprocess data, or specify to load preprocessed data
-m = get_mouse('VgatSert',6,load=True)
+m = get_mouse('GCaMP8m',16,load=True)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
-rand_idx = get_random_idx(m.Sxx_ext,size=24000)
+rand_idx = get_random_idx(m.Sxx_ext,size=22000)
 
 # Optional: If need to cut out data after a certain time (ex: mouse died partway through)
 # cutoff_time = "2025-02-13 12:00:00" #Time after which data is cut out
 # m.Sxx_ext = m.Sxx_ext.loc[m.Sxx_ext.index <= cutoff_time]
 # rand_idx = get_random_idx(m.Sxx_ext,size=30000)
+
+# Optional: for GCaMP imaging etc, extract ttl signal. On rig2, used channel 8
+m_ttl = get_TTL_epochs_from_channel(ttl_channel_idx=8, strain='GCaMP8m', pos=16, load=False)
 
 
 ############################################################
@@ -70,18 +73,18 @@ plt.savefig(m.figureFolder+ 'LDA_NoLabels' + m.figure_tail, dpi=dpi)
 ############################################################
 # 4. Density peak clustering
 # Find density peaks in low dimensional space, tweak Z (Z ~1.0, k_max default usually 201)
-est = DPA.DensityPeakAdvanced(Z=0.8, k_max=51) #est = DPA.DensityPeakAdvanced(Z=0.6, k_max=81)
+est = DPA.DensityPeakAdvanced(Z=1.2, k_max=201) #est = DPA.DensityPeakAdvanced(Z=0.6, k_max=81)
 est.fit(m.LD_df.loc[rand_idx])
 # Plot DPA clusters on LDA
 plot_DPA_LDA(m, rand_idx, est, savefigure=False, view_angles=(90, -67))
 
 # OPTIONAL merge spurious clusters into 4 labels, labels:merged_labels
 label_dict = {0:0,
-              1:1,
-              2:2,
+              1:4,
+              2:3,
               3:3,
-              4:0,#
-              5:2
+              4:4,
+              5:5,
 }
 est.labels_ = np.vectorize(label_dict.get)(est.labels_)
 plot_DPA_LDA(m, rand_idx, est, savefigure=False, remapped=True, view_angles=(90, -67))
@@ -143,22 +146,22 @@ plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6])
 
 
 # If states get swapped here, can correct manually like this:
-swap_dict = {"REM": "HTwake", "HTwake":"REM", } # specify states to swap. example: swap_dict = {"REM": "REM", "REM": "HTwake"}
-m.state_df["states"] = m.state_df["states"].replace(swap_dict)
-plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
-plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
+# swap_dict = {"REM": "HTwake", "HTwake":"REM", } # specify states to swap. example: swap_dict = {"REM": "REM", "REM": "HTwake"}
+# m.state_df["states"] = m.state_df["states"].replace(swap_dict)
+# plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
+# plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
 
 
 # Note: if multiple states need to be swapped, as can happen in Kir2.1:
-clusters_per_state = m.state_df.groupby("states")["clusters_knn"].unique()
-cluster_to_state = {
-    0: "HTwake",
-    2: "LTwake",
-    3: "SWS"
-}
-m.state_df["states"] = m.state_df["clusters_knn"].map(cluster_to_state)
-plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
-plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
+# clusters_per_state = m.state_df.groupby("states")["clusters_knn"].unique()
+# cluster_to_state = {
+#     0: "HTwake",
+#     2: "LTwake",
+#     3: "SWS"
+# }
+# m.state_df["states"] = m.state_df["clusters_knn"].map(cluster_to_state)
+# plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
+# plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
 # 5b. Note, at this point can exclude outliers
 
 ############################################################

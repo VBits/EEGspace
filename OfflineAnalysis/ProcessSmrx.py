@@ -6,6 +6,8 @@ import sys
 sys.path.append('C:/Users/bitsik0000/PycharmProjects/ClosedLoopEEG/OfflineAnalysis')
 from OfflineAnalysis.Mouse import Mouse
 from OfflineAnalysis.Config import *
+from math import floor
+import numpy as np
 
 def get_mouse(strain,pos,load=True):
     m = Mouse(strain, pos)
@@ -38,5 +40,38 @@ def get_mouse(strain,pos,load=True):
         m.Sxx_df.to_pickle(BaseDir + ExpDir + 'Sxx_df_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
         m.Sxx_norm.to_pickle(BaseDir + ExpDir + 'Sxx_norm_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
         m.multitaper_df.to_pickle(BaseDir + ExpDir + 'Multitaper_df_{}_{}_{}_m{}.pkl'.format(ExpDir[:6], File[:6], m.genotype, m.pos))
+
+    return m
+
+def get_TTL_epochs_from_channel(ttl_channel_idx, strain, pos, load=True):
+    """
+    Process or load TTL epochs for a specific channel index.
+    """
+    m = Mouse(strain, pos)
+    m.gen_folder(BaseDir, ExpDir)
+
+    if load:
+        fname = f'TTL_epochs_df_{ExpDir[:6]}_{File[:6]}_{m.genotype}_m{m.pos}.pkl'
+        print(f'Loading TTL epochs: {fname}')
+        m.TTL_epochs_df = pd.read_pickle(BaseDir + ExpDir + fname)
+
+    else:
+        print(f'Processing TTL channel {ttl_channel_idx} for mouse {m.pos}')
+        m.read_smrx(BaseDir, ExpDir, File)
+
+        TTLChan = ttl_channel_idx - 1
+
+        m.Ch_units_TTL = m.FileHandle.GetChannelUnits(TTLChan)
+        m.Ch_name_TTL = m.FileHandle.GetChannelTitle(TTLChan)
+
+        dMaxSeconds = m.FileHandle.ChannelMaxTime(TTLChan) * m.FileHandle.GetTimeBase()
+        dPeriod = m.FileHandle.ChannelDivide(TTLChan) * m.FileHandle.GetTimeBase()
+        nPoints = floor(dMaxSeconds / dPeriod)
+
+        m.TTL_signal = np.array(m.FileHandle.ReadFloats(TTLChan, nPoints, 0))
+        m.TTL_fs = 1 / dPeriod
+
+        # ✅ Updated arg name
+        m.process_TTL_epochs(epoch_length_sec=2, fraction_threshold=0.1)
 
     return m
