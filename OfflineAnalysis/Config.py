@@ -3,8 +3,8 @@ import os
 BaseDir = 'D:/SleepHomeostasis_D/'
 
 
-ExpDir = '250418_Vgat_Sert_GCaMP8m_MR_from_250530/ephys/'
-File = '250530_000.smrx'
+ExpDir = '251010_B6_GFAP_hPMCA2_MR/ephys/'
+File = '251026_000.smrx'
 
 
 ANNfolder = 'D:/Project_mouse/Ongoing_analysis/ANN_training/'
