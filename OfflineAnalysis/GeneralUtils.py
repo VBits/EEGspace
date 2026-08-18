@@ -6,6 +6,31 @@ def get_random_idx(array, size=40000, Repeat=False):
     rand_idx = np.random.choice(array[100:-100].index, size, replace=Repeat)
     return rand_idx
 
+# To distribute the training dataset across different parts of the recording (useful for Kir?)
+def get_stratified_random_idx(array, fractions, sizes):
+    """
+    fractions: list of (start_fraction, end_fraction)
+    sizes: number of epochs sampled from each interval
+    """
+
+    indices = []
+
+    n = len(array)
+
+    for (start_frac, end_frac), size in zip(fractions, sizes):
+
+        start = int(n * start_frac)
+        end = int(n * end_frac)
+
+        subset = array.iloc[start:end]
+
+        idx = get_random_idx(subset, size=size)
+
+        indices.extend(idx)
+
+    return np.array(indices)
+
+
 #combine the smoothed and the raw epochs
 def expand_epochs(m):
     return pd.concat([m.Sxx_df.add_suffix('_sm'), m.multitaper_df], axis=1)

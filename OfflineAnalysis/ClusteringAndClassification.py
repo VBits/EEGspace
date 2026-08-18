@@ -18,19 +18,36 @@ import joblib
 ######################################
 #1. Get data for indicated genotype and channel.
 # Preprocess data, or specify to load preprocessed data
-m = get_mouse('GFAP',16,load=False)
+m = get_mouse('VgatSert',14,load=False)
 
 #Create an extended dataframe that contains the smoothed and raw epochs
 m.Sxx_ext = expand_epochs(m)
-rand_idx = get_random_idx(m.Sxx_ext,size=20000)
+rand_idx = get_random_idx(m.Sxx_ext,size=60000)
 
 # Optional: If need to cut out data after a certain time (ex: mouse died partway through)
-# cutoff_time = "2025-02-13 12:00:00" #Time after which data is cut out
-# m.Sxx_ext = m.Sxx_ext.loc[m.Sxx_ext.index <= cutoff_time]
-# rand_idx = get_random_idx(m.Sxx_ext,size=30000)
+cutoff_time = "2026-08-12 10:51:00" #Time after which data is cut out
+m.Sxx_ext = m.Sxx_ext.loc[m.Sxx_ext.index <= cutoff_time]
+rand_idx = get_random_idx(m.Sxx_ext,size=60000)
+
+# Optional: To distribute training dataset across different parts of the experiment.
+# Maybe useful for longitudinal Kir.
+m.Sxx_ext = expand_epochs(m)
+rand_idx = get_stratified_random_idx(
+    m.Sxx_ext,
+    fractions=[
+        (0.00, 0.05),
+        (0.05, 0.55),
+        (0.55, 1.00)
+    ],
+    sizes=[
+        7000,
+        7000,
+        7000,
+    ]
+)
 
 # Optional: for GCaMP imaging etc, extract ttl signal. On rig2, used channel 8
-m_ttl = get_TTL_epochs_from_channel(ttl_channel_idx=8, strain='GCaMP8m', pos=15, load=False)
+# m_ttl = get_TTL_epochs_from_channel(ttl_channel_idx=8, strain='GCaMP8m', pos=15, load=False)
 
 
 ############################################################
@@ -73,17 +90,25 @@ plt.savefig(m.figureFolder+ 'LDA_NoLabels' + m.figure_tail, dpi=dpi)
 ############################################################
 # 4. Density peak clustering
 # Find density peaks in low dimensional space, tweak Z (Z ~1.0, k_max default usually 201)
-est = DPA.DensityPeakAdvanced(Z=1.6, k_max=201) #est = DPA.DensityPeakAdvanced(Z=0.6, k_max=81)
+est = DPA.DensityPeakAdvanced(Z=0.7, k_max=71) #est = DPA.DensityPeakAdvanced(Z=0.6, k_max=81)
 est.fit(m.LD_df.loc[rand_idx])
 # Plot DPA clusters on LDA
 plot_DPA_LDA(m, rand_idx, est, savefigure=False, view_angles=(90, -67))
 
 # OPTIONAL merge spurious clusters into 4 labels, labels:merged_labels
 label_dict = {0:0,
-              1:1,
-              2:3,
-              3:3,
-              4:4,
+              1:10,
+              2:10,
+              3:10,
+              4:0,
+              5:5,
+              6:10,
+              7:7,
+              8:0,
+              9:5,
+              10:10,
+              11:10,
+              12:0
 }
 est.labels_ = np.vectorize(label_dict.get)(est.labels_)
 plot_DPA_LDA(m, rand_idx, est, savefigure=False, remapped=True, view_angles=(90, -67))
@@ -95,42 +120,42 @@ plot_DPA_LDA(m, rand_idx, est, savefigure=False, remapped=True, view_angles=(90,
 ############################################################
 # To run a grid search for Z and k_max values:
 # Define the parameter grid
-Z_values = [0.6, 0.8, 1.0, 1.0, 1.2]
-k_max_values = [51, 101, 151, 201]
-
-# Store results
-silhouette_results = []
-
-for Z in Z_values:
-    for k_max in k_max_values:
-        print(f"\nRunning DPA with Z={Z}, k_max={k_max}")
-
-        # Fit clustering
-        est = DPA.DensityPeakAdvanced(Z=Z, k_max=k_max)
-        est.fit(m.LD_df.loc[rand_idx])
-
-        # Compute silhouette score
-        try:
-            score = silhouette_score(m.LD_df.loc[rand_idx], est.labels_)
-        except ValueError as e:
-            print(f"Silhouette score error: {e}")
-            score = np.nan  # fallback if only one cluster is found
-
-        silhouette_results.append({'Z': Z, 'k_max': k_max, 'score': score})
-        print(f"Silhouette score: {score:.4f}" if not np.isnan(score) else "Score unavailable")
-
-        # Plot and save the result
-        plot_DPA_LDA(m, rand_idx, est, savefigure=False, view_angles=(90, -67))
-
-        # Format filename safely
-        z_str = f"{Z:.3f}".replace('.', 'p')  # e.g., "0.8" -> "0p800"
-        filename = f"LDA_DPA_Z{z_str}_k{k_max}.png"
-        plt.savefig(os.path.join(m.figureFolder, filename), dpi=OfflineConfig.dpi)
-
-# Optional: print summary
-print("\n=== Grid Search Summary ===")
-for res in silhouette_results:
-    print(f"Z={res['Z']}, k_max={res['k_max']}, score={res['score']}")
+# Z_values = [0.6, 0.8, 1.0, 1.0, 1.2]
+# k_max_values = [51, 101, 151, 201]
+#
+# # Store results
+# silhouette_results = []
+#
+# for Z in Z_values:
+#     for k_max in k_max_values:
+#         print(f"\nRunning DPA with Z={Z}, k_max={k_max}")
+#
+#         # Fit clustering
+#         est = DPA.DensityPeakAdvanced(Z=Z, k_max=k_max)
+#         est.fit(m.LD_df.loc[rand_idx])
+#
+#         # Compute silhouette score
+#         try:
+#             score = silhouette_score(m.LD_df.loc[rand_idx], est.labels_)
+#         except ValueError as e:
+#             print(f"Silhouette score error: {e}")
+#             score = np.nan  # fallback if only one cluster is found
+#
+#         silhouette_results.append({'Z': Z, 'k_max': k_max, 'score': score})
+#         print(f"Silhouette score: {score:.4f}" if not np.isnan(score) else "Score unavailable")
+#
+#         # Plot and save the result
+#         plot_DPA_LDA(m, rand_idx, est, savefigure=False, view_angles=(90, -67))
+#
+#         # Format filename safely
+#         z_str = f"{Z:.3f}".replace('.', 'p')  # e.g., "0.8" -> "0p800"
+#         filename = f"LDA_DPA_Z{z_str}_k{k_max}.png"
+#         plt.savefig(os.path.join(m.figureFolder, filename), dpi=OfflineConfig.dpi)
+#
+# # Optional: print summary
+# print("\n=== Grid Search Summary ===")
+# for res in silhouette_results:
+#     print(f"Z={res['Z']}, k_max={res['k_max']}, score={res['score']}")
 
 
 
@@ -152,15 +177,16 @@ plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6])
 
 
 # Note: if multiple states need to be swapped, as can happen in Kir2.1:
-# clusters_per_state = m.state_df.groupby("states")["clusters_knn"].unique()
-# cluster_to_state = {
-#     0: "HTwake",
-#     2: "LTwake",
-#     3: "SWS"
-# }
-# m.state_df["states"] = m.state_df["clusters_knn"].map(cluster_to_state)
-# plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
-# plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
+clusters_per_state = m.state_df.groupby("states")["clusters_knn"].unique()
+cluster_to_state = {
+    7: "REM",
+    5: "LTwake",
+    10: "HTwake",
+    0: "SWS"
+}
+m.state_df["states"] = m.state_df["clusters_knn"].map(cluster_to_state)
+plot_LDA(m,rand_idx,m.state_df['states'],savefigure=False)
+plt.savefig(m.figureFolder + 'LDA_DPC_labels_{}_{}'.format(ExpDir[:6], File[:6]) + m.figure_tail, dpi=dpi)
 # 5b. Note, at this point can exclude outliers
 
 ############################################################
